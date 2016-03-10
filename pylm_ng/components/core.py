@@ -31,7 +31,7 @@ class Broker(object):
 
     def register_component(self, name, route=None, log=''):
         """
-        The broker connects to components. Each component has to
+        Register component by name. Only inbound components have to be registered.
         :param name: Name of the component. Each component has a name, that
           uniquely identifies it to the broker
         :param route: Each message that the broker gets from the component
@@ -99,6 +99,7 @@ class ComponentInbound(object):
         :param name: Name of the component
         :param listen_to: ZMQ socket address to listen to
         :param socket_type: ZMQ inbound socket type
+        :param reply: True if the listening socket blocks waiting a reply
         :param broker_address: ZMQ socket address for the broker
         :param logger: Logger instance
         :param messages: Maximum number of inbound messages. Defaults to infinity.
@@ -137,6 +138,7 @@ class ComponentOutbound(object):
         :param name: Name of the component
         :param listen_to: ZMQ socket address to listen to
         :param socket_type: ZMQ inbound socket type
+        :param reply: True if the listening socket blocks waiting a reply
         :param broker_address: ZMQ socket address for the broker
         :param logger: Logger instance
         :param messages: Maximum number of inbound messages. Defaults to infinity.
@@ -163,7 +165,7 @@ class ComponentOutbound(object):
                 self.broker.send(message_data)
 
 
-class ReqRepComponent(ComponentInbound):
+class RepComponent(ComponentInbound):
     """
     ReqRep is a component that connects a REQ socket to the broker, and a REP
     socket to an external service.
@@ -178,7 +180,7 @@ class ReqRepComponent(ComponentInbound):
         :param messages: Maximum number of inbound messages. Defaults to infinity.
         :return:
         """
-        super(ReqRepComponent, self).__init__(
+        super(RepComponent, self).__init__(
             name,
             listen_to,
             zmq.REP,
@@ -189,9 +191,9 @@ class ReqRepComponent(ComponentInbound):
         )
 
 
-class ReqPullComponent(ComponentInbound):
+class PullComponent(ComponentInbound):
     """
-    ReqRep is a component that connects a REQ socket to the broker, and a REP
+    ReqRep is a component that connects a REQ socket to the broker, and a PULL
     socket to an external service.
     """
     def __init__(self, name, listen_to, broker_address="inproc://broker",
@@ -204,7 +206,7 @@ class ReqPullComponent(ComponentInbound):
         :param messages: Maximum number of inbound messages. Defaults to infinity.
         :return:
         """
-        super(ReqPullComponent, self).__init__(
+        super(PullComponent, self).__init__(
             name,
             listen_to,
             zmq.PULL,
@@ -215,9 +217,9 @@ class ReqPullComponent(ComponentInbound):
         )
 
 
-class ReqPushComponent(ComponentOutbound):
+class PushComponent(ComponentOutbound):
     """
-    ReqPush is a component that connects a REQ socket to the broker, and a REP
+    ReqPush is a component that connects a REQ socket to the broker, and a PUSH
     socket to an external service.
     """
     def __init__(self, name, listen_to, broker_address="inproc://broker",
@@ -230,7 +232,7 @@ class ReqPushComponent(ComponentOutbound):
         :param messages: Maximum number of inbound messages. Defaults to infinity.
         :return:
         """
-        super(ReqPushComponent, self).__init__(
+        super(PushComponent, self).__init__(
             name,
             listen_to,
             zmq.PUSH,

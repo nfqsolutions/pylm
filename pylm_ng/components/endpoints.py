@@ -50,9 +50,61 @@ class ReqEndpoint(object):
 
 
 class PushEndPoint(object):
-    pass
+    """
+    Push endpoint to test pull to broker components
+    """
+    def __init__(self, bind_address='inproc://ReqEndPoint', logger=None):
+        self.socket = zmq_context.socket(zmq.PUSH)
+        self.socket.bind(bind_address)
+        self.bind_address = bind_address
+        self.logger = logger
+
+    def start(self, function='none', payload=b'0', nmessages=10):
+        """
+        Start the endpoint, sending several test messages
+        :param function: User defined function to call
+        :param payload: Payload to send within the message
+        :param nmessages: Number of test messages to send.
+        :return: No return value
+        """
+        if self.logger:
+            self.logger.info('Launch endpoint')
+
+        for i in range(nmessages):
+            message = PalmMessage()
+            message.function = function
+            message.pipeline = 'none'
+            message.stage = 0
+            message.client = 'none'
+            message.payload = payload
+            self.socket.send(message.SerializeToString())
+
+        self.logger.info("Everything went fine")
 
 
 class PullEndPoint(object):
-    pass
+    """
+    Pull endpoint to test broker to push components
+    """
+    def __init__(self, bind_address='inproc://PullEndPoint', logger=None):
+        self.socket = zmq_context.socket(zmq.PULL)
+        self.socket.bind(bind_address)
+        self.bind_address = bind_address
+        self.logger = logger
 
+    def start(self, nmessages=10):
+        """
+        Start the endpoint, sending several test messages
+        :param function: User defined function to call
+        :param payload: Payload to send within the message
+        :param nmessages: Number of test messages to send.
+        :return: No return value
+        """
+        if self.logger:
+            self.logger.info('Launch endpoint')
+
+        for i in range(nmessages):
+            self.socket.recv()
+            self.logger.info('Got #{} message back'.format(i+1))
+
+        self.logger.info("Everything went fine")
