@@ -1,5 +1,6 @@
 import zmq
 import sys
+import time
 from pylm_ng.components.messages_pb2 import PalmMessage
 
 
@@ -121,17 +122,15 @@ class ComponentInbound(object):
         for i in range(self.messages):
             self.logger.debug('Component {} blocked'.format(self.name))
             message_data = self.listen_to.recv()
+            time.sleep(1)
             self.logger.debug('Got inbound message')
             self.broker.send(message_data)
 
-            if self.reply:
-                self.logger.debug('Component {} blocked'.format(self.name))
-                message_data = self.broker.recv()
-                self.listen_to.send(message_data)
+            self.logger.debug('Component {} blocked'.format(self.name))
+            message_data = self.broker.recv()
 
-            else:
-                self.logger.debug('Component {} blocked'.format(self.name))
-                self.broker.recv()
+            if self.reply:
+                self.listen_to.send(message_data)
 
 
 class ComponentOutbound(object):

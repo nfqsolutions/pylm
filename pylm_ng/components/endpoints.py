@@ -2,6 +2,7 @@
 import logging
 import sys
 import zmq
+import time
 from pylm_ng.components.core import zmq_context
 from pylm_ng.components.messages_pb2 import PalmMessage
 
@@ -80,6 +81,7 @@ class PushEndPoint(object):
             message.client = 'none'
             message.payload = payload
             self.socket.send(message.SerializeToString())
+            time.sleep(1)
 
         self.logger.info("All messages sent")
 
