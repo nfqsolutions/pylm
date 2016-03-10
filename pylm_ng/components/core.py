@@ -29,7 +29,7 @@ class Broker(object):
         self.user_functions = {}
         self.messages = messages
 
-    def register_component(self, name, route=None, log=''):
+    def register_inbound(self, name, route=None, log=''):
         """
         Register component by name. Only inbound components have to be registered.
         :param name: Name of the component. Each component has a name, that
@@ -79,11 +79,12 @@ class Broker(object):
 
             # Reads the internal router and emits the log message
             route_to = self.internal_routing[component]['route']
-            self.logger.info(self.internal_routing[component]['log'])
 
             # Finally routes the message
             if route_to:
+                self.logger.debug(self.internal_routing[component]['log'])
                 message_data = message.SerializeToString()
+                self.logger.debug('Sending message to {}'.format(route_to))
                 self.events.send_multipart([route_to, empty, message_data])
 
 
@@ -116,14 +117,21 @@ class ComponentInbound(object):
         self.reply = reply
 
     def start(self):
-        self.logger.info('Launch component'.format(self.name))
+        self.logger.info('Launch component {}'.format(self.name))
         for i in range(self.messages):
+            self.logger.debug('Component {} blocked'.format(self.name))
             message_data = self.listen_to.recv()
+            self.logger.debug('Got inbound message')
             self.broker.send(message_data)
 
             if self.reply:
+                self.logger.debug('Component {} blocked'.format(self.name))
                 message_data = self.broker.recv()
                 self.listen_to.send(message_data)
+
+            else:
+                self.logger.debug('Component {} blocked'.format(self.name))
+                self.broker.recv()
 
 
 class ComponentOutbound(object):
@@ -155,14 +163,20 @@ class ComponentOutbound(object):
         self.reply = reply
 
     def start(self):
-        self.logger.info('Launch component'.format(self.name))
+        self.logger.info('Launch component {}'.format(self.name))
+
         for i in range(self.messages):
+            self.logger.debug('Component {} blocked'.format(self.name))
             message_data = self.broker.recv()
+            self.logger.debug('Got message from broker')
             self.listen_to.send(message_data)
 
             if self.reply:
                 message_data = self.listen_to.recv()
                 self.broker.send(message_data)
+
+            else:
+                self.broker.send()
 
 
 class RepComponent(ComponentInbound):
