@@ -13,6 +13,13 @@ class Broker(object):
     """
     def __init__(self, bind_address="inproc://broker", logger=None,
                  messages=sys.maxsize):
+        """
+        Initiate a broker instance
+        :param bind_address: Valid ZMQ bind address
+        :param logger: Logger instance
+        :param messages: Maximum number of inbound messages. Defaults to infinity.
+        :return:
+        """
         # Socket that will listen to all the components
         self.events = zmq_context.socket(zmq.ROUTER)
         self.events.bind(bind_address)
@@ -75,8 +82,9 @@ class Broker(object):
             self.logger.info(self.internal_routing[component]['log'])
 
             # Finally routes the message
-            message_data = message.SerializeToString()
-            self.events.send_multipart([route_to, empty, message_data])
+            if route_to:
+                message_data = message.SerializeToString()
+                self.events.send_multipart([route_to, empty, message_data])
 
 
 class ReqRepComponent(object):
@@ -86,6 +94,14 @@ class ReqRepComponent(object):
     """
     def __init__(self, name, listen_to, broker_address="inproc://broker",
                  logger=None, messages=sys.maxsize):
+        """
+        :param name: Name of the component
+        :param listen_to: ZMQ socket address to listen to
+        :param broker_address: ZMQ socket address for the broker
+        :param logger: Logger instance
+        :param messages: Maximum number of inbound messages. Defaults to infinity.
+        :return:
+        """
         self.name = name
         self.listen_to = zmq_context.socket(zmq.REP)
         self.listen_to.connect(listen_to)
