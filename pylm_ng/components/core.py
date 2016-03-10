@@ -23,7 +23,7 @@ class Broker(object):
         # Socket that will listen to all the components
         self.events = zmq_context.socket(zmq.ROUTER)
         self.events.bind(bind_address)
-        self.bind_address=bind_address
+        self.bind_address = bind_address
         self.logger = logger
         self.internal_routing = {}
         self.user_functions = {}
@@ -87,7 +87,83 @@ class Broker(object):
                 self.events.send_multipart([route_to, empty, message_data])
 
 
-class ReqRepComponent(object):
+class ComponentInbound(object):
+    """
+    Generic component that connects a REQ socket to the broker, and a
+    socket to an inbound external service.
+    """
+    def __init__(self, name, listen_to, socket_type, reply=True,
+                 broker_address="inproc://broker",
+                 logger=None, messages=sys.maxsize):
+        """
+        :param name: Name of the component
+        :param listen_to: ZMQ socket address to listen to
+        :param socket_type: ZMQ inbound socket type
+        :param broker_address: ZMQ socket address for the broker
+        :param logger: Logger instance
+        :param messages: Maximum number of inbound messages. Defaults to infinity.
+        :return:
+        """
+        self.name = name
+        self.listen_to = zmq_context.socket(socket_type)
+        self.listen_to.connect(listen_to)
+        self.broker = zmq_context.socket(zmq.REQ)
+        self.broker.identity = name.encode('utf-8')
+        self.broker.connect(broker_address)
+        self.logger = logger
+        self.messages = messages
+        self.reply = reply
+
+    def start(self):
+        self.logger.info('Launch component'.format(self.name))
+        for i in range(self.messages):
+            message_data = self.listen_to.recv()
+            self.broker.send(message_data)
+
+            if self.reply:
+                message_data = self.broker.recv()
+                self.listen_to.send(message_data)
+
+
+class ComponentOutbound(object):
+    """
+    Generic component that connects a REQ socket to the broker, and a
+    socket to an inbound external service.
+    """
+    def __init__(self, name, listen_to, socket_type, reply=True,
+                 broker_address="inproc://broker",
+                 logger=None, messages=sys.maxsize):
+        """
+        :param name: Name of the component
+        :param listen_to: ZMQ socket address to listen to
+        :param socket_type: ZMQ inbound socket type
+        :param broker_address: ZMQ socket address for the broker
+        :param logger: Logger instance
+        :param messages: Maximum number of inbound messages. Defaults to infinity.
+        :return:
+        """
+        self.name = name
+        self.listen_to = zmq_context.socket(socket_type)
+        self.listen_to.connect(listen_to)
+        self.broker = zmq_context.socket(zmq.REQ)
+        self.broker.identity = name.encode('utf-8')
+        self.broker.connect(broker_address)
+        self.logger = logger
+        self.messages = messages
+        self.reply = reply
+
+    def start(self):
+        self.logger.info('Launch component'.format(self.name))
+        for i in range(self.messages):
+            message_data = self.broker.recv()
+            self.listen_to.send(message_data)
+
+            if self.reply:
+                message_data = self.listen_to.recv()
+                self.broker.send(message_data)
+
+
+class ReqRepComponent(ComponentInbound):
     """
     ReqRep is a component that connects a REQ socket to the broker, and a REP
     socket to an external service.
@@ -102,19 +178,64 @@ class ReqRepComponent(object):
         :param messages: Maximum number of inbound messages. Defaults to infinity.
         :return:
         """
-        self.name = name
-        self.listen_to = zmq_context.socket(zmq.REP)
-        self.listen_to.connect(listen_to)
-        self.broker = zmq_context.socket(zmq.REQ)
-        self.broker.identity = name.encode('utf-8')
-        self.broker.connect(broker_address)
-        self.logger = logger
-        self.messages = messages
+        super(ReqRepComponent, self).__init__(
+            name,
+            listen_to,
+            zmq.REP,
+            reply=True,
+            broker_address=broker_address,
+            logger=logger,
+            messages=messages
+        )
 
-    def start(self):
-        self.logger.info('Launch component'.format(self.name))
-        for i in range(self.messages):
-            message_data = self.listen_to.recv()
-            self.broker.send(message_data)
-            message_data = self.broker.recv()
-            self.listen_to.send(message_data)
+
+class ReqPullComponent(ComponentInbound):
+    """
+    ReqRep is a component that connects a REQ socket to the broker, and a REP
+    socket to an external service.
+    """
+    def __init__(self, name, listen_to, broker_address="inproc://broker",
+                 logger=None, messages=sys.maxsize):
+        """
+        :param name: Name of the component
+        :param listen_to: ZMQ socket address to listen to
+        :param broker_address: ZMQ socket address for the broker
+        :param logger: Logger instance
+        :param messages: Maximum number of inbound messages. Defaults to infinity.
+        :return:
+        """
+        super(ReqPullComponent, self).__init__(
+            name,
+            listen_to,
+            zmq.PULL,
+            reply=False,
+            broker_address=broker_address,
+            logger=logger,
+            messages=messages
+        )
+
+
+class ReqPushComponent(ComponentOutbound):
+    """
+    ReqPush is a component that connects a REQ socket to the broker, and a REP
+    socket to an external service.
+    """
+    def __init__(self, name, listen_to, broker_address="inproc://broker",
+                 logger=None, messages=sys.maxsize):
+        """
+        :param name: Name of the component
+        :param listen_to: ZMQ socket address to listen to
+        :param broker_address: ZMQ socket address for the broker
+        :param logger: Logger instance
+        :param messages: Maximum number of inbound messages. Defaults to infinity.
+        :return:
+        """
+        super(ReqPushComponent, self).__init__(
+            name,
+            listen_to,
+            zmq.PUSH,
+            reply=False,
+            broker_address=broker_address,
+            logger=logger,
+            messages=messages
+        )

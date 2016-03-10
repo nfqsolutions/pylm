@@ -47,3 +47,12 @@ class ReqEndpoint(object):
             self.logger.info('Got #{} message back'.format(i+1))
 
         self.logger.info("Everything went fine")
+
+
+class PushEndPoint(object):
+    pass
+
+
+class PullEndPoint(object):
+    pass
+
