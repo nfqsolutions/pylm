@@ -1,7 +1,6 @@
 from pylm_ng.components.core import Broker, RepComponent, PushComponent, PullComponent
-from pylm_ng.components.endpoints import logger, ReqEndpoint, PushEndPoint, PullEndPoint
+from pylm_ng.components.endpoints import logger, ReqEndPoint, PushEndPoint, PullEndPoint
 from concurrent.futures import ThreadPoolExecutor
-import time
 
 
 def test_tests():
@@ -17,7 +16,7 @@ def test_request_reply():
     :return:
     """
     broker = Broker(logger=logger, messages=10)
-    endpoint = ReqEndpoint(logger=logger)
+    endpoint = ReqEndPoint(logger=logger)
     request_reply = RepComponent('test',
                                  listen_to=endpoint.bind_address,
                                  broker_address=broker.bind_address,
@@ -32,7 +31,7 @@ def test_request_reply():
         executor.submit(request_reply.start)
 
 
-def test_push_pull():
+def test_request_push():
     """
     Tests the following sequence
 
@@ -40,33 +39,34 @@ def test_push_pull():
     :return:
     """
     broker = Broker(logger=logger, messages=10)
-    endpoint_push = PushEndPoint(logger=logger)
+    endpoint_req = ReqEndPoint(logger=logger)
     endpoint_pull = PullEndPoint(logger=logger)
+    print(endpoint_req.bind_address)
+    rep_component = RepComponent('test_req',
+                                 listen_to=endpoint_req.bind_address,
+                                 broker_address=broker.bind_address,
+                                 logger=logger,
+                                 messages=10)
+    print(endpoint_pull.bind_address)
     push_component = PushComponent('test_push',
                                    listen_to=endpoint_pull.bind_address,
                                    broker_address=broker.bind_address,
                                    logger=logger,
                                    messages=10)
-    pull_component = PullComponent('test_pull',
-                                   listen_to=endpoint_push.bind_address,
-                                   broker_address=broker.bind_address,
-                                   logger=logger,
-                                   messages=10)
 
-    broker.register_inbound('test_pull',
+    broker.register_inbound('test_req',
                             route='test_push',
                             log='Routing to test_push')
 
     with ThreadPoolExecutor(max_workers=5) as executor:
         executor.submit(broker.start)
         executor.submit(push_component.start)
-        executor.submit(pull_component.start)
-        time.sleep(1)
+        executor.submit(rep_component.start)
         executor.submit(endpoint_pull.start)
-        executor.submit(endpoint_push.start, function='test_push_pull')
+        executor.submit(endpoint_req.start, function='test_request_pull')
 
 
 if __name__ == '__main__':
     test_tests()
     test_request_reply()
-    test_push_pull()
+    test_request_push()

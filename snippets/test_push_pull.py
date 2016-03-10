@@ -1,9 +1,9 @@
 import zmq
 import time
 from concurrent.futures import ThreadPoolExecutor
-#from threading import Thread
 
 zmq_context = zmq.Context.instance()
+
 
 class Master(object):
     def __init__(self, bind_address="inproc://master"):
@@ -45,15 +45,6 @@ if __name__ == '__main__':
     master = Master()
     collector = Collector()
     worker = Worker(master.bind_address, collector.bind_address)
-
-    # t1 = Thread(target=master.start)
-    # t1.start()
-
-    # t2 = Thread(target=collector.start)
-    # t2.start()
-
-    # t3 = Thread(target=worker.start)
-    # t3.start()
     
     with ThreadPoolExecutor(max_workers=3) as executor:
         executor.submit(master.start)

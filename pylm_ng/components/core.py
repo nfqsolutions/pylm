@@ -1,6 +1,5 @@
 import zmq
 import sys
-import time
 from pylm_ng.components.messages_pb2 import PalmMessage
 
 
@@ -64,6 +63,7 @@ class Broker(object):
             # Listens to the socket for messages
             self.logger.debug('Broker blocked waiting for events')
             component, empty, message_data = self.events.recv_multipart()
+            self.logger.debug('Got message from {}'.format(component))
 
             # Deserialize the message
             message = PalmMessage()
@@ -107,11 +107,11 @@ class ComponentInbound(object):
         :param messages: Maximum number of inbound messages. Defaults to infinity.
         :return:
         """
-        self.name = name
+        self.name = name.encode('utf-8')
         self.listen_to = zmq_context.socket(socket_type)
         self.listen_to.connect(listen_to)
         self.broker = zmq_context.socket(zmq.REQ)
-        self.broker.identity = name.encode('utf-8')
+        self.broker.identity = self.name
         self.broker.connect(broker_address)
         self.logger = logger
         self.messages = messages
@@ -122,10 +122,8 @@ class ComponentInbound(object):
         for i in range(self.messages):
             self.logger.debug('Component {} blocked'.format(self.name))
             message_data = self.listen_to.recv()
-            time.sleep(1)
             self.logger.debug('Got inbound message')
             self.broker.send(message_data)
-
             self.logger.debug('Component {} blocked'.format(self.name))
             message_data = self.broker.recv()
 
@@ -151,11 +149,11 @@ class ComponentOutbound(object):
         :param messages: Maximum number of inbound messages. Defaults to infinity.
         :return:
         """
-        self.name = name
+        self.name = name.encode('utf-8')
         self.listen_to = zmq_context.socket(socket_type)
         self.listen_to.connect(listen_to)
         self.broker = zmq_context.socket(zmq.REQ)
-        self.broker.identity = name.encode('utf-8')
+        self.broker.identity = self.name
         self.broker.connect(broker_address)
         self.logger = logger
         self.messages = messages
@@ -163,6 +161,7 @@ class ComponentOutbound(object):
 
     def start(self):
         self.logger.info('Launch component {}'.format(self.name))
+        self.broker.send()
 
         for i in range(self.messages):
             self.logger.debug('Component {} blocked'.format(self.name))

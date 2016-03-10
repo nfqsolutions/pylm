@@ -2,7 +2,6 @@
 import logging
 import sys
 import zmq
-import time
 from pylm_ng.components.core import zmq_context
 from pylm_ng.components.messages_pb2 import PalmMessage
 
@@ -14,7 +13,7 @@ logger.addHandler(handler)
 logger.setLevel(logging.DEBUG)
 
 
-class ReqEndpoint(object):
+class ReqEndPoint(object):
     """
     Request endpoint to test Rep to broker components
     """
@@ -33,7 +32,7 @@ class ReqEndpoint(object):
         :return: No return value
         """
         if self.logger:
-            self.logger.info('Launch endpoint')
+            self.logger.info('Launch endpoint Req Endpoint')
 
         for i in range(nmessages):
             message = PalmMessage()
@@ -81,7 +80,6 @@ class PushEndPoint(object):
             message.client = 'none'
             message.payload = payload
             self.socket.send(message.SerializeToString())
-            time.sleep(1)
 
         self.logger.info("All messages sent")
 
