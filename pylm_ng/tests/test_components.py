@@ -36,12 +36,6 @@ def test_request_reply():
     t3 = Thread(target=request_reply.start)
     t3.start()
 
-    #
-    # with ThreadPoolExecutor(max_workers=3) as executor:
-    #     executor.submit(broker.start)
-    #     executor.submit(endpoint.start)
-    #     executor.submit(request_reply.start)
-
 
 def test_request_push():
     """
