@@ -52,7 +52,7 @@ class Broker(object):
         self.poller.register(self.outbound, zmq.POLLIN)
         self.poller.register(self.inbound, zmq.POLLIN)
 
-    def register_inbound(self, name, route=None, log=''):
+    def register_inbound(self, name, reply, route=None, log=''):
         """
         Register component by name. Only inbound components have to be registered.
         :param name: Name of the component. Each component has a name, that
@@ -68,11 +68,12 @@ class Broker(object):
             route = name
 
         self.inbound_components[name.encode('utf-8')] = {
+            'reply': reply,
             'route': route.encode('utf-8'),
             'log': log
         }
 
-    def register_outbound(self, name, log=''):
+    def register_outbound(self, name, reply, log=''):
         self.outbound_components[name.encode('utf-8')] = {
             'log': log
         }
@@ -151,6 +152,7 @@ class Broker(object):
 
                 # Start internal routing
                 route_to = self.inbound_components[component]['route']
+                reply = self.inbound_components[component]['reply']
 
                 # If no routing needed
                 if route_to == component:
@@ -161,6 +163,10 @@ class Broker(object):
                 elif route_to in available_outbound:
                     available_outbound.remove(route_to)
                     self.outbound.send_multipart([route_to, empty, message_data])
+
+                    #Unblock the component
+                    if reply:
+                        self.inbound.send()
 
                 # If the corresponding outbound not is listening, buffer the message
                 else:
@@ -173,6 +179,9 @@ class Broker(object):
                     if sum([len(v) for v in buffer.values()]) >= self.max_buffer_size:
                         self.poller.unregister(self.inbound)
                         buffering = True
+
+                    if reply:
+                        self.inbound.send()
 
             else:
                 self.logger.critical('Socket not known.')
