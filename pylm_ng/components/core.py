@@ -166,7 +166,8 @@ class Broker(object):
 
                     # Unblock the component
                     if reply:
-                        self.inbound.send()
+                        self.logger.debug('Unblocking inbound')
+                        self.inbound.send_multipart([component, empty, b'1'])
 
                 # If the corresponding outbound not is listening, buffer the message
                 else:
@@ -181,10 +182,13 @@ class Broker(object):
                         buffering = True
 
                     if reply:
-                        self.inbound.send()
+                        self.logger.debug('Unblocking inbound')
+                        self.inbound.send_multipart([component, empty, b'1'])
 
             else:
                 self.logger.critical('Socket not known.')
+
+            self.logger.debug('Finished event cycle.')
 
 
 class ComponentInbound(object):

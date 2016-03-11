@@ -36,6 +36,9 @@ def test_request_reply():
     t3 = Thread(target=request_reply.start)
     t3.start()
 
+    for t in [t1, t2, t3]:
+        t.join()
+
 
 def test_request_push():
     """
@@ -44,19 +47,19 @@ def test_request_push():
     PUSH Endpoint -> Pull component -> Broker -> Push component -> PULL endpoint.
     :return:
     """
-    broker = Broker(logger=logger, messages=10)
+    broker = Broker(logger=logger, messages=20)
     endpoint_req = ReqEndPoint(logger=logger)
     endpoint_pull = PullEndPoint(logger=logger)
     print(endpoint_req.bind_address)
     rep_component = RepComponent('test_req',
                                  listen_to=endpoint_req.bind_address,
-                                 broker_address=broker.bind_address,
+                                 broker_address=broker.inbound_address,
                                  logger=logger,
                                  messages=10)
     print(endpoint_pull.bind_address)
     push_component = PushComponent('test_push',
                                    listen_to=endpoint_pull.bind_address,
-                                   broker_address=broker.bind_address,
+                                   broker_address=broker.outbound_address,
                                    logger=logger,
                                    messages=10)
 
@@ -76,4 +79,4 @@ def test_request_push():
 if __name__ == '__main__':
     test_tests()
     test_request_reply()
-    #test_request_push()
+    test_request_push()
