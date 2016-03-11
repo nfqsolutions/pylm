@@ -43,6 +43,7 @@ class Broker(object):
         self.logger = logger
         self.user_functions = {}
         self.messages = messages
+        self.buffer = {}
         if max_buffer_size < 100:  # Enforce a limit in buffer size.
             max_buffer_size = 100
         self.max_buffer_size = max_buffer_size
@@ -89,7 +90,6 @@ class Broker(object):
     def start(self):
         # Buffer to store the message when the outbound component is not available
         # for routing. Maybe replace by a heap queue.
-        buffer = {}
         buffering = False
 
         # List of available outbound components
@@ -109,14 +109,14 @@ class Broker(object):
                 component, empty, message_data = self.outbound.recv_multipart()
 
                 # If messages for the outbound are buffered.
-                if component in buffer:
+                if component in self.buffer:
                     # Look in the buffer
-                    message_data = buffer[component].pop()
-                    if len(buffer[component]) == 0:
-                        del buffer[component]
+                    message_data = self.buffer[component].pop()
+                    if len(self.buffer[component]) == 0:
+                        del self.buffer[component]
 
                     # If the buffer is empty enough and the broker was buffering
-                    if sum([len(v) for v in buffer.values()])*10 < self.max_buffer_size \
+                    if sum([len(v) for v in self.buffer.values()])*10 < self.max_buffer_size \
                             and buffering:
                         # Listen to inbound connections again.
                         self.poller.register(self.inbound, zmq.POLLIN)
@@ -171,12 +171,12 @@ class Broker(object):
                 # If the corresponding outbound not is listening, buffer the message
                 else:
                     self.logger.info('Sent to buffer.')
-                    if route_to in buffer:
-                        buffer[route_to].append(message_data)
+                    if route_to in self.buffer:
+                        self.buffer[route_to].append(message_data)
                     else:
-                        buffer[route_to] = [message_data]
+                        self.buffer[route_to] = [message_data]
 
-                    if sum([len(v) for v in buffer.values()]) >= self.max_buffer_size:
+                    if sum([len(v) for v in self.buffer.values()]) >= self.max_buffer_size:
                         self.poller.unregister(self.inbound)
                         buffering = True
 
