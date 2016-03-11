@@ -164,7 +164,7 @@ class Broker(object):
                     available_outbound.remove(route_to)
                     self.outbound.send_multipart([route_to, empty, message_data])
 
-                    #Unblock the component
+                    # Unblock the component
                     if reply:
                         self.inbound.send()
 
