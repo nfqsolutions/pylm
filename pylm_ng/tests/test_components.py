@@ -1,7 +1,7 @@
-from pylm_ng.components.core import Broker, RepComponent, PushComponent, PullComponent
-from pylm_ng.components.endpoints import logger, ReqEndPoint, PushEndPoint, PullEndPoint
+from pylm_ng.components.core import Broker, RepComponent, PushComponent
+from pylm_ng.components.endpoints import logger, ReqEndPoint, PullEndPoint
 from concurrent.futures import ThreadPoolExecutor
-
+from threading import Thread
 
 def test_tests():
     print("test")
@@ -19,16 +19,26 @@ def test_request_reply():
     endpoint = ReqEndPoint(logger=logger)
     request_reply = RepComponent('test',
                                  listen_to=endpoint.bind_address,
-                                 broker_address=broker.bind_address,
+                                 broker_address=broker.inbound_address,
                                  logger=logger,
                                  messages=10)
     broker.register_inbound('test',
                             log='Send to test component')
 
-    with ThreadPoolExecutor(max_workers=3) as executor:
-        executor.submit(broker.start)
-        executor.submit(endpoint.start)
-        executor.submit(request_reply.start)
+    t1 = Thread(target=broker.start)
+    t1.start()
+
+    t2 = Thread(target=endpoint.start, kwargs={'function': 'this.function'})
+    t2.start()
+
+    t3 = Thread(target=request_reply.start)
+    t3.start()
+
+    #
+    # with ThreadPoolExecutor(max_workers=3) as executor:
+    #     executor.submit(broker.start)
+    #     executor.submit(endpoint.start)
+    #     executor.submit(request_reply.start)
 
 
 def test_request_push():
@@ -69,4 +79,4 @@ def test_request_push():
 if __name__ == '__main__':
     test_tests()
     test_request_reply()
-    test_request_push()
+    #test_request_push()

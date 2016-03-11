@@ -9,25 +9,48 @@ zmq_context = zmq.Context.instance()
 class Broker(object):
     """
     Broker for the internal event-loop. It is a ROUTER socket that blocks
-    waiting for the components to send something.
+    waiting for the components to send something. This is more a bus than
+    a broker.
     """
-    def __init__(self, bind_address="inproc://broker", logger=None,
-                 messages=sys.maxsize):
+    def __init__(self,
+                 inbound_address="inproc://inbound",
+                 outbound_address="inproc://outbound",
+                 logger=None,
+                 messages=sys.maxsize,
+                 max_buffer_size=sys.maxsize):
         """
         Initiate a broker instance
-        :param bind_address: Valid ZMQ bind address
+        :param inbound_address: Valid ZMQ bind address for inbound components
+        :param outbound_address: Valid ZMQ bind address for outbound components
         :param logger: Logger instance
         :param messages: Maximum number of inbound messages. Defaults to infinity.
+        :param messages: Number of messages allowed before the router starts buffering.
         :return:
         """
-        # Socket that will listen to all the components
-        self.events = zmq_context.socket(zmq.ROUTER)
-        self.events.bind(bind_address)
-        self.bind_address = bind_address
+        # Socket that will listen to the inbound components
+        self.inbound = zmq_context.socket(zmq.ROUTER)
+        self.inbound.bind(inbound_address)
+        self.inbound_address = inbound_address
+        self.inbound_components = {}
+
+        # Socket that listens to the outbound components
+        self.outbound = zmq_context.socket(zmq.ROUTER)
+        self.outbound.bind(outbound_address)
+        self.outbound_address = outbound_address
+        self.outbound_components = {}
+
+        # Other utilities
         self.logger = logger
-        self.internal_routing = {}
         self.user_functions = {}
         self.messages = messages
+        if max_buffer_size < 100:  # Enforce a limit in buffer size.
+            max_buffer_size = 100
+        self.max_buffer_size = max_buffer_size
+
+        # Poller for the event loop
+        self.poller = zmq.Poller()
+        self.poller.register(self.outbound, zmq.POLLIN)
+        self.poller.register(self.inbound, zmq.POLLIN)
 
     def register_inbound(self, name, route=None, log=''):
         """
@@ -44,8 +67,13 @@ class Broker(object):
         if not route:
             route = name
 
-        self.internal_routing[name.encode('utf-8')] = {
+        self.inbound_components[name.encode('utf-8')] = {
             'route': route.encode('utf-8'),
+            'log': log
+        }
+
+    def register_outbound(self, name, log=''):
+        self.outbound_components[name.encode('utf-8')] = {
             'log': log
         }
 
@@ -58,35 +86,96 @@ class Broker(object):
         self.user_functions[function.__name__] == function
 
     def start(self):
+        # Buffer to store the message when the outbound component is not available
+        # for routing. Maybe replace by a heap queue.
+        buffer = {}
+        buffering = False
+
+        # List of available outbound components
+        available_outbound = []
+
         self.logger.info('Launch broker')
+        self.logger.info('Inbound socket: {}'.format(self.inbound))
+        self.logger.info('Outbound socket: {}'.format(self.outbound))
+
         for i in range(self.messages):
-            # Listens to the socket for messages
-            self.logger.debug('Broker blocked waiting for events')
-            component, empty, message_data = self.events.recv_multipart()
-            self.logger.debug('Got message from {}'.format(component))
+            # Polls the outbound socket for inbound and outbound connections
+            event = dict(self.poller.poll())
+            self.logger.debug('Event {}'.format(event))
 
-            # Deserialize the message
-            message = PalmMessage()
-            message.ParseFromString(message_data)
+            if self.outbound in event:
+                self.logger.debug('Handling outbound event')
+                component, empty, message_data = self.outbound.recv_multipart()
+                route_to = self.inbound_components[component]['route']
 
-            # Tries to execute the user defined function
-            if message.function in self.user_functions:
-                result = self.user_functions[message.function](message.payload)
-            else:
-                self.logger.warning('User defined function {} not available'.format(message.function))
-                result = b''
+                # If messages for the outbound are buffered.
+                if route_to in buffer:
+                    # Look in the buffer
+                    message_data = buffer[route_to].pop()
+                    if len(buffer[route_to]) == 0:
+                        del buffer[route_to]
 
-            message.payload = result
+                    # If the buffer is empty enough and the broker was buffering
+                    if sum([len(v) for v in buffer.values()])*10 < self.max_buffer_size \
+                            and buffering:
+                        # Listen to inbound connections again.
+                        self.poller.register(self.inbound, zmq.POLLIN)
 
-            # Reads the internal router and emits the log message
-            route_to = self.internal_routing[component]['route']
+                    self.outbound.send_multipart([route_to, empty, message_data])
 
-            # Finally routes the message
-            if route_to:
-                self.logger.debug(self.internal_routing[component]['log'])
+                # If they are no buffered messages, set outbound as available.
+                else:
+                    available_outbound.append(component)
+
+            elif self.inbound in event:
+                self.logger.debug('Handling inbound event')
+                component, empty, message_data = self.inbound.recv_multipart()
+
+                # Deserialize the message and execute the user defined function
+                message = PalmMessage()
+                message.ParseFromString(message_data)
+                if '.' in message.function:
+                    function = message.function.split('.')[1]
+                else:
+                    function = message.function
+
+                if function in self.user_functions:
+                    result = self.user_functions[function](message.payload)
+                else:
+                    self.logger.warning(
+                        'User defined function {} not available'.format(function)
+                    )
+                    result = b''
+                message.payload = result
                 message_data = message.SerializeToString()
-                self.logger.debug('Sending message to {}'.format(route_to))
-                self.events.send_multipart([route_to, empty, message_data])
+
+                # Start internal routing
+                route_to = self.inbound_components[component]['route']
+
+                # If no routing needed
+                if route_to == component:
+                    self.logger.debug('Message back to {}'.format(route_to))
+                    self.inbound.send_multipart([route_to, empty, message_data])
+
+                # If an outbound is listening
+                elif route_to in available_outbound:
+                    available_outbound.remove(route_to)
+                    self.outbound.send_multipart([route_to, empty, message_data])
+
+                # If the corresponding outbound not is listening, buffer the message
+                else:
+                    self.logger.info('Sent to buffer.')
+                    if route_to in buffer:
+                        buffer[route_to].append(message_data)
+                    else:
+                        buffer[route_to] = [message_data]
+
+                    if sum([len(v) for v in buffer.values()]) >= self.max_buffer_size:
+                        self.poller.unregister(self.inbound)
+                        buffering = True
+
+            else:
+                self.logger.critical('Socket not known.')
 
 
 class ComponentInbound(object):
@@ -120,11 +209,11 @@ class ComponentInbound(object):
     def start(self):
         self.logger.info('Launch component {}'.format(self.name))
         for i in range(self.messages):
-            self.logger.debug('Component {} blocked'.format(self.name))
+            self.logger.debug('Component {} blocked waiting messages'.format(self.name))
             message_data = self.listen_to.recv()
             self.logger.debug('Got inbound message')
             self.broker.send(message_data)
-            self.logger.debug('Component {} blocked'.format(self.name))
+            self.logger.debug('Component {} blocked waiting for broker'.format(self.name))
             message_data = self.broker.recv()
 
             if self.reply:
