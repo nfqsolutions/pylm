@@ -86,13 +86,6 @@ def test_request_push():
     for t in [t1, t2, t3, t4, t5]:
         t.join()
 
-    with ThreadPoolExecutor(max_workers=5) as executor:
-        executor.submit(broker.start)
-        executor.submit(push_component.start)
-        executor.submit(rep_component.start)
-        executor.submit(endpoint_pull.start)
-        executor.submit(endpoint_req.start, function='test_request_pull')
-
 
 if __name__ == '__main__':
     test_tests()

@@ -107,14 +107,13 @@ class Broker(object):
             if self.outbound in event:
                 self.logger.debug('Handling outbound event')
                 component, empty, message_data = self.outbound.recv_multipart()
-                route_to = self.inbound_components[component]['route']
 
                 # If messages for the outbound are buffered.
-                if route_to in buffer:
+                if component in buffer:
                     # Look in the buffer
-                    message_data = buffer[route_to].pop()
-                    if len(buffer[route_to]) == 0:
-                        del buffer[route_to]
+                    message_data = buffer[component].pop()
+                    if len(buffer[component]) == 0:
+                        del buffer[component]
 
                     # If the buffer is empty enough and the broker was buffering
                     if sum([len(v) for v in buffer.values()])*10 < self.max_buffer_size \
@@ -122,7 +121,7 @@ class Broker(object):
                         # Listen to inbound connections again.
                         self.poller.register(self.inbound, zmq.POLLIN)
 
-                    self.outbound.send_multipart([route_to, empty, message_data])
+                    self.outbound.send_multipart([component, empty, message_data])
 
                 # If they are no buffered messages, set outbound as available.
                 else:
@@ -276,7 +275,7 @@ class ComponentOutbound(object):
                 self.broker.send(message_data)
 
             else:
-                self.broker.send()
+                self.broker.send(b'1')
 
 
 class RepComponent(ComponentInbound):
