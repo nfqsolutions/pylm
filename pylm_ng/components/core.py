@@ -263,7 +263,7 @@ class ComponentOutbound(object):
 
     def start(self):
         self.logger.info('Launch component {}'.format(self.name))
-        self.broker.send()
+        self.broker.send(b'1')
 
         for i in range(self.messages):
             self.logger.debug('Component {} blocked'.format(self.name))

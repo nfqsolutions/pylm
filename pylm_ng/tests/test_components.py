@@ -68,6 +68,24 @@ def test_request_push():
                             reply=rep_component.reply,
                             log='Routing to test_push')
 
+    t1 = Thread(target=broker.start)
+    t1.start()
+
+    t2 = Thread(target=endpoint_req.start, kwargs={'function': 'this.function'})
+    t2.start()
+
+    t3 = Thread(target=endpoint_pull.start)
+    t3.start()
+
+    t4 = Thread(target=rep_component.start)
+    t4.start()
+
+    t5 = Thread(target=push_component.start)
+    t5.start()
+
+    for t in [t1, t2, t3, t4, t5]:
+        t.join()
+
     with ThreadPoolExecutor(max_workers=5) as executor:
         executor.submit(broker.start)
         executor.submit(push_component.start)
