@@ -44,7 +44,7 @@ def test_request_push():
     """
     Tests the following sequence
 
-    PUSH Endpoint -> Pull component -> Broker -> Push component -> PULL endpoint.
+    Req Endpoint -> Rep component -> Broker -> Push component -> PULL endpoint.
     :return:
     """
     broker = Broker(logger=logger, messages=20)
