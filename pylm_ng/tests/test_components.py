@@ -50,13 +50,13 @@ def test_request_push():
     broker = Broker(logger=logger, messages=20)
     endpoint_req = ReqEndPoint(logger=logger)
     endpoint_pull = PullEndPoint(logger=logger)
-    print(endpoint_req.bind_address)
+
     rep_component = RepComponent('test_req',
                                  listen_to=endpoint_req.bind_address,
                                  broker_address=broker.inbound_address,
                                  logger=logger,
                                  messages=10)
-    print(endpoint_pull.bind_address)
+
     push_component = PushComponent('test_push',
                                    listen_to=endpoint_pull.bind_address,
                                    broker_address=broker.outbound_address,
@@ -97,13 +97,13 @@ def test_pull_push():
     broker = Broker(logger=logger, messages=20)
     endpoint_push = PushEndPoint(logger=logger)
     endpoint_pull = PullEndPoint(logger=logger)
-    print(endpoint_push.bind_address)
+
     pull_component = PullComponent('test_pull',
                                    listen_to=endpoint_push.bind_address,
                                    broker_address=broker.inbound_address,
                                    logger=logger,
                                    messages=10)
-    print(endpoint_pull.bind_address)
+
     push_component = PushComponent('test_push',
                                    listen_to=endpoint_pull.bind_address,
                                    broker_address=broker.outbound_address,
