@@ -151,12 +151,11 @@ class Broker(object):
 
                 # Start internal routing
                 route_to = self.inbound_components[component]['route']
-                reply = self.inbound_components[component]['reply']
 
                 # If no routing needed
                 if route_to == component:
                     self.logger.debug('Message back to {}'.format(route_to))
-                    self.inbound.send_multipart([route_to, empty, message_data])
+                    self.inbound.send_multipart([component, empty, message_data])
 
                 # If an outbound is listening
                 elif route_to in available_outbound:
@@ -164,9 +163,8 @@ class Broker(object):
                     self.outbound.send_multipart([route_to, empty, message_data])
 
                     # Unblock the component
-                    if reply:
-                        self.logger.debug('Unblocking inbound')
-                        self.inbound.send_multipart([component, empty, b'1'])
+                    self.logger.debug('Unblocking inbound')
+                    self.inbound.send_multipart([component, empty, b'1'])
 
                 # If the corresponding outbound not is listening, buffer the message
                 else:
@@ -180,9 +178,8 @@ class Broker(object):
                         self.poller.unregister(self.inbound)
                         buffering = True
 
-                    if reply:
-                        self.logger.debug('Unblocking inbound')
-                        self.inbound.send_multipart([component, empty, b'1'])
+                    self.logger.debug('Unblocking inbound')
+                    self.inbound.send_multipart([component, empty, b'1'])
 
             else:
                 self.logger.critical('Socket not known.')
