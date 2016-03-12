@@ -119,6 +119,7 @@ class Broker(object):
                     if sum([len(v) for v in self.buffer.values()])*10 < self.max_buffer_size \
                             and buffering:
                         # Listen to inbound connections again.
+                        self.logger.info('Broker accepting messages again.')
                         self.poller.register(self.inbound, zmq.POLLIN)
 
                     self.outbound.send_multipart([component, empty, message_data])
@@ -175,6 +176,7 @@ class Broker(object):
                         self.buffer[route_to] = [message_data]
 
                     if sum([len(v) for v in self.buffer.values()]) >= self.max_buffer_size:
+                        self.logger.info('Broker buffering messages')
                         self.poller.unregister(self.inbound)
                         buffering = True
 
