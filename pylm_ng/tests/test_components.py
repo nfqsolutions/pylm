@@ -23,7 +23,6 @@ def test_request_reply():
                                  logger=logger,
                                  messages=10)
     broker.register_inbound('test',
-                            reply=request_reply.reply,
                             log='Send to test component')
 
     t1 = Thread(target=broker.start)
@@ -65,7 +64,6 @@ def test_request_push():
 
     broker.register_inbound('test_req',
                             route='test_push',
-                            reply=rep_component.reply,
                             log='Routing to test_push')
 
     t1 = Thread(target=broker.start)
@@ -112,7 +110,6 @@ def test_pull_push():
 
     broker.register_inbound('test_pull',
                             route='test_push',
-                            reply=pull_component.reply,
                             log='Routing to test_push')
 
     t1 = Thread(target=broker.start)

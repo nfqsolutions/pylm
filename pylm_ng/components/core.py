@@ -53,7 +53,7 @@ class Broker(object):
         self.poller.register(self.outbound, zmq.POLLIN)
         self.poller.register(self.inbound, zmq.POLLIN)
 
-    def register_inbound(self, name, reply, route=None, log=''):
+    def register_inbound(self, name, route=None, log=''):
         """
         Register component by name. Only inbound components have to be registered.
         :param name: Name of the component. Each component has a name, that
@@ -69,12 +69,11 @@ class Broker(object):
             route = name
 
         self.inbound_components[name.encode('utf-8')] = {
-            'reply': reply,
             'route': route.encode('utf-8'),
             'log': log
         }
 
-    def register_outbound(self, name, reply, log=''):
+    def register_outbound(self, name, log=''):
         self.outbound_components[name.encode('utf-8')] = {
             'log': log
         }
