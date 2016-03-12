@@ -121,6 +121,7 @@ class Broker(object):
                         # Listen to inbound connections again.
                         self.logger.info('Broker accepting messages again.')
                         self.poller.register(self.inbound, zmq.POLLIN)
+                        buffering = False
 
                     self.outbound.send_multipart([component, empty, message_data])
 
