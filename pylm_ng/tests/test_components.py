@@ -1,6 +1,8 @@
 from pylm_ng.components.core import Broker
-from pylm_ng.components.connections import RepConnection, PushConnection, PullConnection
-from pylm_ng.components.endpoints import logger, ReqEndPoint, PullEndPoint, PushEndPoint
+from pylm_ng.components.connections import RepConnection, PushConnection, PullConnection, \
+    SubConnection, PubConnection
+from pylm_ng.components.endpoints import logger, ReqEndPoint, PullEndPoint, PushEndPoint, \
+    PubEndPoint, SubEndPoint
 from threading import Thread
 
 
@@ -146,8 +148,51 @@ def test_pull_push():
     broker.outbound.close()
 
 
+def test_pub_sub():
+    broker = Broker(logger=logger, messages=20)
+    endpoint_pub = PubEndPoint(logger=logger)
+    endpoint_sub = SubEndPoint(logger=logger)
+    sub_connection = SubConnection('sub_test',
+                                   listen_to=endpoint_pub.bind_address,
+                                   broker_address=broker.inbound_address,
+                                   logger=logger,
+                                   messages=10)
+    pub_connection = PubConnection('pub_test',
+                                   listen_to=endpoint_sub.bind_address,
+                                   broker_address=broker.outbound_address,
+                                   logger=logger,
+                                   messages=10)
+    broker.register_inbound('sub_test',
+                            route='pub_test',
+                            log='routing from sub to pub')
+
+    t1 = Thread(target=broker.start)
+    t1.start()
+
+    t2 = Thread(target=sub_connection.start)
+    t2.start()
+
+    t3 = Thread(target=pub_connection.start)
+    t3.start()
+
+    t4 = Thread(target=endpoint_sub.start)
+    t4.start()
+
+    t5 = Thread(target=endpoint_pub.start)
+    t5.start()
+
+    for t in [t1, t2, t3, t4, t5]:
+        t.join()
+
+    endpoint_pub.socket.close()
+    endpoint_sub.socket.close()
+    broker.inbound.close()
+    broker.outbound.close()
+
+
 if __name__ == '__main__':
     test_tests()
     test_request_reply()
     test_request_push()
     test_pull_push()
+    test_pub_sub()
