@@ -1,7 +1,8 @@
-from pylm_ng.components.core import Broker
-from pylm_ng.components.connections import RepConnection, PushConnection, PullConnection
-from pylm_ng.components.endpoints import logger, ReqEndPoint, PullEndPoint, PushEndPoint
 from threading import Thread
+
+from pylm_ng.components.connections import RepConnection, PushConnection, PullConnection
+from pylm_ng.components.core import Broker
+from pylm_ng.tests.endpoints import logger, ReqEndPoint, PullEndPoint, PushEndPoint
 
 
 def test_tests():
@@ -19,7 +20,7 @@ def test_request_reply():
     broker = Broker(logger=logger, messages=10)
     endpoint = ReqEndPoint(logger=logger)
     request_reply = RepConnection('test',
-                                  listen_to=endpoint.bind_address,
+                                  listen_address=endpoint.bind_address,
                                   broker_address=broker.inbound_address,
                                   logger=logger,
                                   messages=10)
@@ -56,13 +57,13 @@ def test_request_push():
     endpoint_pull = PullEndPoint(logger=logger)
 
     rep_component = RepConnection('test_req',
-                                  listen_to=endpoint_req.bind_address,
+                                  listen_address=endpoint_req.bind_address,
                                   broker_address=broker.inbound_address,
                                   logger=logger,
                                   messages=10)
 
     push_component = PushConnection('test_push',
-                                    listen_to=endpoint_pull.bind_address,
+                                    listen_address=endpoint_pull.bind_address,
                                     broker_address=broker.outbound_address,
                                     logger=logger,
                                     messages=10)
@@ -107,13 +108,13 @@ def test_pull_push():
     endpoint_pull = PullEndPoint(logger=logger)
 
     pull_component = PullConnection('test_pull',
-                                    listen_to=endpoint_push.bind_address,
+                                    listen_address=endpoint_push.bind_address,
                                     broker_address=broker.inbound_address,
                                     logger=logger,
                                     messages=10)
 
     push_component = PushConnection('test_push',
-                                    listen_to=endpoint_pull.bind_address,
+                                    listen_address=endpoint_pull.bind_address,
                                     broker_address=broker.outbound_address,
                                     logger=logger,
                                     messages=10)
