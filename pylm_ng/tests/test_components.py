@@ -1,4 +1,5 @@
-from pylm_ng.components.core import Broker, RepComponent, PushComponent, PullComponent
+from pylm_ng.components.core import Broker
+from pylm_ng.components.connections import RepConnection, PushConnection, PullConnection
 from pylm_ng.components.endpoints import logger, ReqEndPoint, PullEndPoint, PushEndPoint
 from threading import Thread
 
@@ -17,11 +18,11 @@ def test_request_reply():
     """
     broker = Broker(logger=logger, messages=10)
     endpoint = ReqEndPoint(logger=logger)
-    request_reply = RepComponent('test',
-                                 listen_to=endpoint.bind_address,
-                                 broker_address=broker.inbound_address,
-                                 logger=logger,
-                                 messages=10)
+    request_reply = RepConnection('test',
+                                  listen_to=endpoint.bind_address,
+                                  broker_address=broker.inbound_address,
+                                  logger=logger,
+                                  messages=10)
     broker.register_inbound('test',
                             log='Send to test component')
 
@@ -37,6 +38,10 @@ def test_request_reply():
     for t in [t1, t2, t3]:
         t.join()
 
+    endpoint.socket.close()
+    broker.inbound.close()
+    broker.outbound.close()
+
 
 def test_request_push():
     """
@@ -50,17 +55,17 @@ def test_request_push():
     endpoint_req = ReqEndPoint(logger=logger)
     endpoint_pull = PullEndPoint(logger=logger)
 
-    rep_component = RepComponent('test_req',
-                                 listen_to=endpoint_req.bind_address,
-                                 broker_address=broker.inbound_address,
-                                 logger=logger,
-                                 messages=10)
+    rep_component = RepConnection('test_req',
+                                  listen_to=endpoint_req.bind_address,
+                                  broker_address=broker.inbound_address,
+                                  logger=logger,
+                                  messages=10)
 
-    push_component = PushComponent('test_push',
-                                   listen_to=endpoint_pull.bind_address,
-                                   broker_address=broker.outbound_address,
-                                   logger=logger,
-                                   messages=10)
+    push_component = PushConnection('test_push',
+                                    listen_to=endpoint_pull.bind_address,
+                                    broker_address=broker.outbound_address,
+                                    logger=logger,
+                                    messages=10)
 
     broker.register_inbound('test_req',
                             route='test_push',
@@ -84,6 +89,11 @@ def test_request_push():
     for t in [t1, t2, t3, t4, t5]:
         t.join()
 
+    endpoint_pull.socket.close()
+    endpoint_req.socket.close()
+    broker.inbound.close()
+    broker.outbound.close()
+
 
 def test_pull_push():
     """
@@ -96,17 +106,17 @@ def test_pull_push():
     endpoint_push = PushEndPoint(logger=logger)
     endpoint_pull = PullEndPoint(logger=logger)
 
-    pull_component = PullComponent('test_pull',
-                                   listen_to=endpoint_push.bind_address,
-                                   broker_address=broker.inbound_address,
-                                   logger=logger,
-                                   messages=10)
+    pull_component = PullConnection('test_pull',
+                                    listen_to=endpoint_push.bind_address,
+                                    broker_address=broker.inbound_address,
+                                    logger=logger,
+                                    messages=10)
 
-    push_component = PushComponent('test_push',
-                                   listen_to=endpoint_pull.bind_address,
-                                   broker_address=broker.outbound_address,
-                                   logger=logger,
-                                   messages=10)
+    push_component = PushConnection('test_push',
+                                    listen_to=endpoint_pull.bind_address,
+                                    broker_address=broker.outbound_address,
+                                    logger=logger,
+                                    messages=10)
 
     broker.register_inbound('test_pull',
                             route='test_push',
@@ -129,6 +139,11 @@ def test_pull_push():
 
     for t in [t1, t2, t3, t4, t5]:
         t.join()
+
+    endpoint_pull.socket.close()
+    endpoint_push.socket.close()
+    broker.inbound.close()
+    broker.outbound.close()
 
 
 if __name__ == '__main__':
