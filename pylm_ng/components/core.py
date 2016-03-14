@@ -144,7 +144,7 @@ class Broker(object):
                     result = self.user_functions[function](message.payload)
                 else:
                     self.logger.warning(
-                        'User defined function {} not available'.format(function)
+                        'broker: User defined function {} not available'.format(function)
                     )
                     result = b''
                 message.payload = result
