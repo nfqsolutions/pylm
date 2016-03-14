@@ -194,12 +194,12 @@ class ComponentInbound(object):
     Generic component that connects a REQ socket to the broker, and a
     socket to an inbound external service.
     """
-    def __init__(self, name, listen_to, socket_type, reply=True,
+    def __init__(self, name, listen_address, socket_type, reply=True,
                  broker_address="inproc://broker", bind=False,
                  logger=None, messages=sys.maxsize):
         """
         :param name: Name of the component
-        :param listen_to: ZMQ socket address to listen to
+        :param listen_address: ZMQ socket address to listen to
         :param socket_type: ZMQ inbound socket type
         :param reply: True if the listening socket blocks waiting a reply
         :param broker_address: ZMQ socket address for the broker
@@ -211,9 +211,10 @@ class ComponentInbound(object):
         self.name = name.encode('utf-8')
         self.listen_to = zmq_context.socket(socket_type)
         if bind:
-            self.listen_to.bind(listen_to)
+            self.listen_to.bind(listen_address)
         else:
-            self.listen_to.connect(listen_to)
+            self.listen_to.connect(listen_address)
+        self.listen_address = listen_address
         self.broker = zmq_context.socket(zmq.REQ)
         self.broker.identity = self.name
         self.broker.connect(broker_address)
@@ -240,12 +241,12 @@ class ComponentOutbound(object):
     Generic component that connects a REQ socket to the broker, and a
     socket to an inbound external service.
     """
-    def __init__(self, name, listen_to, socket_type, reply=True,
+    def __init__(self, name, listen_address, socket_type, reply=True,
                  broker_address="inproc://broker", bind=False,
                  logger=None, messages=sys.maxsize):
         """
         :param name: Name of the component
-        :param listen_to: ZMQ socket address to listen to
+        :param listen_address: ZMQ socket address to listen to
         :param socket_type: ZMQ inbound socket type
         :param reply: True if the listening socket blocks waiting a reply
         :param broker_address: ZMQ socket address for the broker,
@@ -257,9 +258,10 @@ class ComponentOutbound(object):
         self.name = name.encode('utf-8')
         self.listen_to = zmq_context.socket(socket_type)
         if bind:
-            self.listen_to.bind(listen_to)
+            self.listen_to.bind(listen_address)
         else:
-            self.listen_to.connect(listen_to)
+            self.listen_to.connect(listen_address)
+        self.listen_address = listen_address
         self.broker = zmq_context.socket(zmq.REQ)
         self.broker.identity = self.name
         self.broker.connect(broker_address)
@@ -289,11 +291,11 @@ class ComponentBypassInbound(object):
     """
     Generic inbound component that does not connect to the broker.
     """
-    def __init__(self, name, listen_to, socket_type, reply=True,
+    def __init__(self, name, listen_address, socket_type, reply=True,
                  bind=False, logger=None, messages=sys.maxsize):
         """
         :param name: Name of the component
-        :param listen_to: ZMQ socket address to listen to
+        :param listen_address: ZMQ socket address to listen to
         :param socket_type: ZMQ inbound socket type
         :param reply: True if the listening socket blocks waiting a reply
         :param bind: True if the component has to bind instead of connect.
@@ -304,9 +306,10 @@ class ComponentBypassInbound(object):
         self.name = name.encode('utf-8')
         self.listen_to = zmq_context.socket(socket_type)
         if bind:
-            self.listen_to.bind(listen_to)
+            self.listen_to.bind(listen_address)
         else:
-            self.listen_to.connect(listen_to)
+            self.listen_to.connect(listen_address)
+        self.listen_address = listen_address
         self.logger = logger
         self.messages = messages
         self.reply = reply
@@ -330,11 +333,11 @@ class ComponentBypassOutbound(object):
     """
     Generic inbound component that does not connect to the broker.
     """
-    def __init__(self, name, listen_to, socket_type, reply=True,
+    def __init__(self, name, listen_address, socket_type, reply=True,
                  bind=False, logger=None, messages=sys.maxsize):
         """
         :param name: Name of the component
-        :param listen_to: ZMQ socket address to listen to
+        :param listen_address: ZMQ socket address to listen to
         :param socket_type: ZMQ inbound socket type
         :param reply: True if the listening socket blocks waiting a reply
         :param bind: True if the socket has to bind instead of connect
@@ -345,9 +348,10 @@ class ComponentBypassOutbound(object):
         self.name = name.encode('utf-8')
         self.listen_to = zmq_context.socket(socket_type)
         if bind:
-            self.listen_to.bind(listen_to)
+            self.listen_to.bind(listen_address)
         else:
-            self.listen_to.connect(listen_to)
+            self.listen_to.connect(listen_address)
+        self.listen_address = listen_address
         self.logger = logger
         self.messages = messages
         self.reply = reply

@@ -12,8 +12,8 @@ def test_request_reply():
     """
     Tests the following sequence
 
-    REQ Endpoint -> Rep component -> broker
-                 <-               <-
+    REQ Endpoint -> Rep connection -> broker
+                 <-                <-
     :return:
     """
     broker = Broker(logger=logger, messages=10)

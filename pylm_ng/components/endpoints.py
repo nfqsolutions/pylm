@@ -50,6 +50,43 @@ class ReqEndPoint(object):
         self.logger.info("********************")
 
 
+class ReqConnection(object):
+    """
+    Request endpoint to test Rep to broker components
+    """
+    def __init__(self, listen_to, logger=None):
+        self.socket = zmq_context.socket(zmq.REQ)
+        self.socket.connect(listen_to)
+        self.listen_to = listen_to
+        self.logger = logger
+
+    def start(self, function='none', payload=b'0', nmessages=10):
+        """
+        Start the endpoint, sending several test messages
+        :param function: User defined function to call
+        :param payload: Payload to send within the message
+        :param nmessages: Number of test messages to send.
+        :return: No return value
+        """
+        if self.logger:
+            self.logger.info('Launch endpoint Req Endpoint')
+
+        for i in range(nmessages):
+            message = PalmMessage()
+            message.function = function
+            message.pipeline = 'none'
+            message.stage = 0
+            message.client = 'none'
+            message.payload = payload
+            self.socket.send(message.SerializeToString())
+            self.socket.recv()
+
+            self.logger.info('Got #{} message back'.format(i+1))
+
+        self.logger.info("Everything went fine")
+        self.logger.info("********************")
+
+
 class PushEndPoint(object):
     """
     Push endpoint to test pull to broker components
