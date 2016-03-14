@@ -1,6 +1,7 @@
 import zmq
 import sys
-from pylm_ng.components.core import ComponentInbound, ComponentOutbound
+from pylm_ng.components.core import ComponentInbound, ComponentOutbound, \
+    ComponentBypassInbound, ComponentBypassOutbound
 
 
 class RepConnection(ComponentInbound):
@@ -79,3 +80,17 @@ class PushConnection(ComponentOutbound):
             logger=logger,
             messages=messages
         )
+
+
+class PubConnection(ComponentBypassOutbound):
+    """
+    Generic connection that sends a message to a sub service. Good for logs.
+    """
+    def __init__(self, name, listen_to, socket_type, logger=None):
+        """
+        :param name: Name of the connection
+        :param listen_to: ZMQ socket address to listen to.
+        :param socket_type:  ZMQ Outbound socket type
+        :param logger: Logger instance
+        :return:
+        """
