@@ -86,11 +86,30 @@ class PubConnection(ComponentBypassOutbound):
     """
     Generic connection that sends a message to a sub service. Good for logs.
     """
-    def __init__(self, name, listen_to, socket_type, logger=None):
+    def __init__(self, name, listen_to, logger=None, messages=sys.maxsize):
         """
         :param name: Name of the connection
         :param listen_to: ZMQ socket address to listen to.
-        :param socket_type:  ZMQ Outbound socket type
         :param logger: Logger instance
         :return:
         """
+        super(PubConnection, self).__init__(name, listen_to, zmq.PUB,
+                                            reply=False, bind=False,
+                                            logger=logger, messages=messages)
+
+
+class SubConnection(ComponentBypassInbound):
+    """
+    Generic connection that opens a Sub socket and bypasses the broker.
+    """
+    def __init__(self, name, listen_to, logger=None, messages=sys.maxsize):
+        """
+        :param name: Name of the connection
+        :param listen_to: ZMQ socket address to listen to
+        :param logger: Logger instance
+        :param messages:
+        :return:
+        """
+        super(SubConnection, self).__init__(name, listen_to, zmq.SUB,
+                                            reply=False, bind=False,
+                                            logger=logger, messages=messages)
