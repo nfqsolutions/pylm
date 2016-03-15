@@ -42,6 +42,8 @@ class EtcdPoller(object):
             else:
                 response = self.etcd.wait(self.key)
 
+            self.wait_index = response['node']['modifiedIndex']+1
+            self.logger.debug('New wait index: {}'.format(self.wait_index))
             message = PalmMessage()
             message.function = self.function
             message.pipeline = ''

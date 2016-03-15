@@ -3,6 +3,7 @@ from pylm_ng.daemons.extra_components import EtcdPoller
 from pylm_ng.components.connections import PushConnection
 from pylm_ng.tests.endpoints import PullEndPoint, logger
 from threading import Thread
+import requests
 
 
 def test_etcd_poller():
@@ -38,6 +39,10 @@ def test_etcd_poller():
 
     for t in threads:
         t.start()
+
+    # This part here needs etcd running
+    for i in range(10):
+        requests.put('http://127.0.0.1:4001/v2/keys/servers/key', data='x')
 
     for t in threads:
         t.join()
