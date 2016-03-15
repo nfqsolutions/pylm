@@ -1,5 +1,7 @@
 import plyvel
 import pickle
+import tempfile
+import shutil
 
 
 # Class that implements a simple on-disk key value data store for the servers
@@ -259,8 +261,11 @@ class IndexedLevelDB(object):
         else:
             raise KeyError('List not found')
 
-if __name__ == '__main__':
-    import tempfile
-    import shutil
+
+def test_all():
     import doctest
     doctest.testmod()
+
+
+if __name__ == '__main__':
+    test_all()
