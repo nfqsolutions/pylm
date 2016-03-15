@@ -292,7 +292,7 @@ class ComponentBypassInbound(object):
     Generic inbound component that does not connect to the broker.
     """
     def __init__(self, name, listen_address, socket_type, reply=True,
-                 bind=False, logger=None, messages=sys.maxsize):
+                 bind=False, logger=None):
         """
         :param name: Name of the component
         :param listen_address: ZMQ socket address to listen to
@@ -300,7 +300,6 @@ class ComponentBypassInbound(object):
         :param reply: True if the listening socket blocks waiting a reply
         :param bind: True if the component has to bind instead of connect.
         :param logger: Logger instance
-        :param messages: Maximum number of inbound messages. Defaults to infinity.
         :return:
         """
         self.name = name.encode('utf-8')
@@ -311,7 +310,6 @@ class ComponentBypassInbound(object):
             self.listen_to.connect(listen_address)
         self.listen_address = listen_address
         self.logger = logger
-        self.messages = messages
         self.reply = reply
 
     def recv(self, reply_data=None):
@@ -320,13 +318,12 @@ class ComponentBypassInbound(object):
         :param reply_data: Message to send if connection needs an answer.
         :return:
         """
-        for i in range(self.messages):
-            message_data = self.listen_to.recv()
+        message_data = self.listen_to.recv()
 
-            if self.reply:
-                self.listen_to.send(reply_data)
+        if self.reply:
+            self.listen_to.send(reply_data)
 
-            yield message_data
+        return message_data
 
 
 class ComponentBypassOutbound(object):
@@ -334,7 +331,7 @@ class ComponentBypassOutbound(object):
     Generic inbound component that does not connect to the broker.
     """
     def __init__(self, name, listen_address, socket_type, reply=True,
-                 bind=False, logger=None, messages=sys.maxsize):
+                 bind=False, logger=None):
         """
         :param name: Name of the component
         :param listen_address: ZMQ socket address to listen to
@@ -342,7 +339,6 @@ class ComponentBypassOutbound(object):
         :param reply: True if the listening socket blocks waiting a reply
         :param bind: True if the socket has to bind instead of connect
         :param logger: Logger instance
-        :param messages: Maximum number of inbound messages. Defaults to infinity.
         :return:
         """
         self.name = name.encode('utf-8')
@@ -353,15 +349,12 @@ class ComponentBypassOutbound(object):
             self.listen_to.connect(listen_address)
         self.listen_address = listen_address
         self.logger = logger
-        self.messages = messages
         self.reply = reply
 
     def send(self, message_data):
-        for i in range(self.messages):
-            message_data = self.listen_to.send(message_data)
+        self.listen_to.send(message_data)
 
-            if self.reply:
-                message_data = self.listen_to.recv()
-
-            yield message_data
+        if self.reply:
+            message_data = self.listen_to.recv()
+            return message_data
 

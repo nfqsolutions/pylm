@@ -142,8 +142,9 @@ class PullEndPoint(object):
 
         for i in range(nmessages):
             self.logger.info('Pull endpoint waiting for messages')
-            self.socket.recv()
+            m = self.socket.recv()
             self.logger.info('Got #{} message back in pull endpoint'.format(i+1))
+            self.logger.info('pull: {}'.format(m))
 
         self.logger.info("Everything went fine")
         self.logger.info("********************")

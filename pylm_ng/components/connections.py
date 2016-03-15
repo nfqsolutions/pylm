@@ -94,8 +94,8 @@ class PushBypassConnection(ComponentBypassOutbound):
         :return:
         """
         super(PushBypassConnection, self).__init__(name, listen_address, zmq.PUSH,
-                                                  reply=False, bind=False,
-                                                  logger=logger, messages=messages)
+                                                   reply=False, bind=False,
+                                                   logger=logger)
 
 
 class PullBypassConnection(ComponentBypassInbound):
@@ -111,5 +111,5 @@ class PullBypassConnection(ComponentBypassInbound):
         :return:
         """
         super(PullBypassConnection, self).__init__(name, listen_address, zmq.PULL,
-                                                  reply=False, bind=False,
-                                                  logger=logger, messages=messages)
+                                                   reply=False, bind=False,
+                                                   logger=logger)
