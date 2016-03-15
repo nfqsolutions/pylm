@@ -1,6 +1,8 @@
-import requests
 from pylm_ng.components.core import zmq_context
 from pylm_ng.components.messages_pb2 import PalmMessage
+from pylm_ng.persistence.etcd import Client
+import zmq
+import sys
 
 
 class EtcdPoller(object):
@@ -8,11 +10,11 @@ class EtcdPoller(object):
     Component that polls an etcd http connection and sends the result
     to the broker
     """
-    def __init__(self, name, url, broker_address='inproc://broker',
+    def __init__(self, name, key, function='update', broker_address='inproc://broker',
                  logger=None, messages=sys.maxsize):
         """
         :param name: Name of the connection
-        :param url: Url to poll to
+        :param key: Key of the dict to poll to
         :param broker_address: ZMQ address of the broker
         :param logger: Logger instance
         :param messages: Maximum number of messages. Intended for debugging.
@@ -24,15 +26,23 @@ class EtcdPoller(object):
         self.broker.connect(broker_address)
         self.logger = logger
         self.messages = messages
-        self.url = url
+        self.key = key
+        self.function = function
+        self.etcd = Client()
+        self.wait_index = 0
 
     def start(self):
         self.logger.info('Launch Compoment {}'.format(self.name))
         for i in range(self.messages):
-            response = requests.get(self.url)
+            self.logger.debug('Waiting for etcd')
+            if self.wait_index > 0:
+                response = self.etcd.wait(self.key, wait_index=self.wait_index)
+            else:
+                response = self.etcd.wait(self.key)
+
             print(response)
             message = PalmMessage()
-            message.function('etcd_update')
+            message.function = self.function
             message.pipeline = ''
             message.stage = 0
             message.client = 'EtcdPoller'
@@ -42,4 +52,3 @@ class EtcdPoller(object):
             # Just unblock
             self.broker.recv()
 
-r
