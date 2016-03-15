@@ -98,3 +98,24 @@ class PerformanceCollector(object):
         """
         self.nlog += 1
         print('TICK #{:<8}:'.format(self.nlog), perfcounter.decode('utf-8'))
+
+
+class Pinger(PushBypassConnection):
+    """
+    Pinger that is used for centralized heartbeat service. It has to be
+    launched in a thread
+    """
+    def __init__(self, listen_address, every=1, pings=sys.maxsize):
+        """
+        :param listen_address: Address of the heartbeat collector
+        :param every: Ping every n seconds
+        :return:
+        """
+        super(Pinger, self).__init__('pinger', listen_address=listen_address)
+        self.pings = pings
+        self.every = every
+
+    def start(self):
+        for i in range(self.pings):
+            time.sleep(self.every)
+            self.send(b'ping')
