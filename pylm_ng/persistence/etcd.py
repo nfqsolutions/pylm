@@ -1,7 +1,7 @@
 import requests
-import logging
 import time
 import sys
+import logging
 
 
 MAX_RETRIES = 5
@@ -32,6 +32,7 @@ class Client(object):
                                        str(port),
                                        version_prefix,
                                        '/keys'])
+        self.logger = logging.getLogger('etcd')
 
     
     def get(self, key, retries=MAX_RETRIES, params={}):
@@ -42,10 +43,10 @@ class Client(object):
         try:
             req = requests.get(request_string,params=params)
         except requests.exceptions.ConnectionError:
-            logging.error("Could not access etcd database")
+            self.logger.error("Could not access etcd database")
             sys.exit(-1)
             
-        logging.debug('Get key {}'.format(request_string))
+        self.logger.debug('Get key {}'.format(request_string))
         times = 1
         
         while req.status_code == 404: 
@@ -99,27 +100,25 @@ class Client(object):
         try:
             r = requests.put(request_string,params=request_params)
         except requests.exceptions.ConnectionError:
-            logging.error("Could not access etcd database")
+            self.logger.error("Could not access etcd database")
             sys.exit(-1)
 
-
-        logging.debug('Put key {} with value {}'.format(request_string,value))
+        self.logger.debug('Put key {} with value {}'.format(request_string,value))
         if r.status_code == 404:
             raise EtcdError("I don't know if it fits here.")
-
 
     def delete(self,key,directory=False):
         """
         Deletes a key or a node given the full path.
         """
         request_string = ''.join([self.request_prefix,key])
-        logging.debug('Delete key {}'.format(request_string))
+        self.logger.debug('Delete key {}'.format(request_string))
         if directory:
             r = requests.delete(request_string,params={'dir': 'true'})
         else:
             r = requests.delete(request_string)
 
         if r.status_code == 200:
-            logging.debug('Successfully deleted key'.format(request_string))
+            self.logger.debug('Successfully deleted key'.format(request_string))
 
 

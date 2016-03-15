@@ -3,6 +3,7 @@ from pylm_ng.components.messages_pb2 import PalmMessage
 from pylm_ng.persistence.etcd import Client
 import zmq
 import sys
+import json
 
 
 class EtcdPoller(object):
@@ -10,7 +11,8 @@ class EtcdPoller(object):
     Component that polls an etcd http connection and sends the result
     to the broker
     """
-    def __init__(self, name, key, function='update', broker_address='inproc://broker',
+    def __init__(self, name, key, function='update',
+                 broker_address='inproc://broker',
                  logger=None, messages=sys.maxsize):
         """
         :param name: Name of the connection
@@ -40,15 +42,16 @@ class EtcdPoller(object):
             else:
                 response = self.etcd.wait(self.key)
 
-            print(response)
             message = PalmMessage()
             message.function = self.function
             message.pipeline = ''
             message.stage = 0
             message.client = 'EtcdPoller'
-            message.payload = response
+            message.payload = json.dumps(response).encode('utf-8')
             # Build the PALM message that tells what to do with the data
             self.broker.send(message.SerializeToString())
             # Just unblock
+            self.logger.debug('blocked waiting broker')
             self.broker.recv()
+            self.logger.debug('Got response from broker')
 

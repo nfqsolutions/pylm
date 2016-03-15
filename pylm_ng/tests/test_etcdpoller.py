@@ -13,15 +13,20 @@ def test_etcd_poller():
     :return:
     """
 
-    broker = Broker(logger=logger, messages=10)
+    broker = Broker(logger=logger, messages=20)
     endpoint_pull = PullEndPoint(logger=logger)
-    poller = EtcdPoller('etcdpoller', '/servers', broker.inbound_address,
-                        logger=logger, messages=10)
-    push_component = PushConnection('test_push', endpoint_pull.bind_address,
+    poller = EtcdPoller('etcdpoller',
+                        '/servers',
+                        broker_address=broker.inbound_address,
+                        logger=logger,
+                        messages=10)
+    push_component = PushConnection('test_push',
+                                    listen_address=endpoint_pull.bind_address,
                                     broker_address=broker.outbound_address,
                                     logger=logger, messages=10)
 
-    broker.register_inbound('etcdpoller', route='test_push',
+    broker.register_inbound('etcdpoller',
+                            route='test_push',
                             log='Redirecting etcd data')
 
     threads = [

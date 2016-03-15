@@ -160,6 +160,7 @@ class Broker(object):
 
                 # If an outbound is listening
                 elif route_to in available_outbound:
+                    self.logger.debug('Broker routing to {}'.format(route_to))
                     available_outbound.remove(route_to)
                     self.outbound.send_multipart([route_to, empty, message_data])
 
