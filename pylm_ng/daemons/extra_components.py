@@ -34,7 +34,7 @@ class EtcdPoller(object):
         self.wait_index = 0
 
     def start(self):
-        self.logger.info('Launch Compoment {}'.format(self.name))
+        self.logger.info('Launch Component {}'.format(self.name))
         for i in range(self.messages):
             self.logger.debug('Waiting for etcd')
             if self.wait_index > 0:

@@ -1,6 +1,7 @@
 import zmq
 import sys
 from pylm_ng.components.messages_pb2 import PalmMessage
+from google.protobuf.message import DecodeError
 
 
 zmq_context = zmq.Context.instance()
@@ -134,21 +135,27 @@ class Broker(object):
 
                 # Deserialize the message and execute the user defined function
                 message = PalmMessage()
-                message.ParseFromString(message_data)
-                if '.' in message.function:
-                    function = message.function.split('.')[1]
-                else:
-                    function = message.function
 
-                if function in self.user_functions:
-                    result = self.user_functions[function](message.payload)
-                else:
-                    self.logger.warning(
-                        'broker: User defined function {} not available'.format(function)
-                    )
-                    result = b''
-                message.payload = result
-                message_data = message.SerializeToString()
+                try:
+                    message.ParseFromString(message_data)
+                    if '.' in message.function:
+                        function = message.function.split('.')[1]
+                    else:
+                        function = message.function
+
+                    if function in self.user_functions:
+                        result = self.user_functions[function](message.payload)
+                    else:
+                        self.logger.warning(
+                            'broker: User defined function {} not available'.format(function)
+                        )
+                        result = b''
+                    message.payload = result
+                    message_data = message.SerializeToString()
+
+                except DecodeError:
+                    self.logger.error('Message could not be decoded, '
+                                      'The broker will just try to route it')
 
                 # Start internal routing
                 route_to = self.inbound_components[component]['route']
