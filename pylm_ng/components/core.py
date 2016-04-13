@@ -25,6 +25,7 @@ class Broker(object):
         :param inbound_address: Valid ZMQ bind address for inbound components
         :param outbound_address: Valid ZMQ bind address for outbound components
         :param logger: Logger instance
+        :param cache: Global cache of the server
         :param messages: Maximum number of inbound messages. Defaults to infinity.
         :param messages: Number of messages allowed before the router starts buffering.
         :return:
@@ -225,6 +226,7 @@ class ComponentInbound(object):
         :param broker_address: ZMQ socket address for the broker
         :param bind: True if socket has to bind, instead of connect.
         :param logger: Logger instance
+        :param cache: Cache for shared data in the server
         :param messages: Maximum number of inbound messages. Defaults to infinity.
         :return:
         """
@@ -280,6 +282,7 @@ class ComponentOutbound(object):
         :param broker_address: ZMQ socket address for the broker,
         :param bind: True if the socket has to bind instead of connect.
         :param logger: Logger instance
+        :param cache: Access to the cache of the server
         :param messages: Maximum number of inbound messages. Defaults to infinity.
         :return:
         """
@@ -320,8 +323,14 @@ class ComponentBypassInbound(object):
     """
     Generic inbound component that does not connect to the broker.
     """
-    def __init__(self, name, listen_address, socket_type, reply=True,
-                 bind=False, logger=None):
+    def __init__(self,
+                 name,
+                 listen_address,
+                 socket_type,
+                 reply=True,
+                 bind=False,
+                 logger=None,
+                 cache=None):
         """
         :param name: Name of the component
         :param listen_address: ZMQ socket address to listen to
@@ -329,6 +338,7 @@ class ComponentBypassInbound(object):
         :param reply: True if the listening socket blocks waiting a reply
         :param bind: True if the component has to bind instead of connect.
         :param logger: Logger instance
+        :param cache: Access to the server cache
         :return:
         """
         self.name = name.encode('utf-8')
@@ -340,6 +350,7 @@ class ComponentBypassInbound(object):
         self.listen_address = listen_address
         self.logger = logger
         self.reply = reply
+        self.cache = cache
 
     def recv(self, reply_data=None):
         """
@@ -359,8 +370,14 @@ class ComponentBypassOutbound(object):
     """
     Generic inbound component that does not connect to the broker.
     """
-    def __init__(self, name, listen_address, socket_type, reply=True,
-                 bind=False, logger=None):
+    def __init__(self,
+                 name,
+                 listen_address,
+                 socket_type,
+                 reply=True,
+                 bind=False,
+                 logger=None,
+                 cache=None):
         """
         :param name: Name of the component
         :param listen_address: ZMQ socket address to listen to
@@ -368,6 +385,7 @@ class ComponentBypassOutbound(object):
         :param reply: True if the listening socket blocks waiting a reply
         :param bind: True if the socket has to bind instead of connect
         :param logger: Logger instance
+        :param cache: Access to the cache of the server
         :return:
         """
         self.name = name.encode('utf-8')
@@ -379,6 +397,7 @@ class ComponentBypassOutbound(object):
         self.listen_address = listen_address
         self.logger = logger
         self.reply = reply
+        self.cache = cache
 
     def send(self, message_data):
         self.listen_to.send(message_data)

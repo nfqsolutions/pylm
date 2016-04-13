@@ -12,6 +12,7 @@ class StandaloneServer(object):
     def __init__(self, name, rep_address, log_address, perf_address,
                  ping_address, debug_level=logging.DEBUG):
         self.name = name
+        self.cache = {}  # The simplest possible cache
 
         # Configure the log handler
         handler = PushHandler(log_address)
@@ -27,7 +28,8 @@ class StandaloneServer(object):
                              every=1.0)
 
         # Configure the broker, although probably it is never used.
-        self.broker = Broker(logger=self.logger)
+        self.broker = Broker(logger=self.logger,
+                             cache=self.cache)
 
         # Configure the rep connection that binds and blocks.
         self.rep = RepService('name', rep_address)
