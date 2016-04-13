@@ -17,6 +17,7 @@ class Broker(object):
                  inbound_address="inproc://inbound",
                  outbound_address="inproc://outbound",
                  logger=None,
+                 cache=None,
                  messages=sys.maxsize,
                  max_buffer_size=sys.maxsize):
         """
@@ -53,6 +54,9 @@ class Broker(object):
         self.poller = zmq.Poller()
         self.poller.register(self.outbound, zmq.POLLIN)
         self.poller.register(self.inbound, zmq.POLLIN)
+
+        # Cache for the server
+        self.cache = cache
 
     def register_inbound(self, name, route=None, log=''):
         """
@@ -106,6 +110,7 @@ class Broker(object):
 
             if self.outbound in event:
                 self.logger.debug('Handling outbound event')
+                # TODO: Handle this message_data from outbound component, just like inbound
                 component, empty, message_data = self.outbound.recv_multipart()
 
                 # If messages for the outbound are buffered.
@@ -202,9 +207,16 @@ class ComponentInbound(object):
     Generic component that connects a REQ socket to the broker, and a
     socket to an inbound external service.
     """
-    def __init__(self, name, listen_address, socket_type, reply=True,
-                 broker_address="inproc://broker", bind=False,
-                 logger=None, messages=sys.maxsize):
+    def __init__(self,
+                 name,
+                 listen_address,
+                 socket_type,
+                 reply=True,
+                 broker_address="inproc://broker",
+                 bind=False,
+                 logger=None,
+                 cache=None,
+                 messages=sys.maxsize):
         """
         :param name: Name of the component
         :param listen_address: ZMQ socket address to listen to
@@ -227,6 +239,7 @@ class ComponentInbound(object):
         self.broker.identity = self.name
         self.broker.connect(broker_address)
         self.logger = logger
+        self.cache = cache
         self.messages = messages
         self.reply = reply
 
@@ -249,9 +262,16 @@ class ComponentOutbound(object):
     Generic component that connects a REQ socket to the broker, and a
     socket to an inbound external service.
     """
-    def __init__(self, name, listen_address, socket_type, reply=True,
-                 broker_address="inproc://broker", bind=False,
-                 logger=None, messages=sys.maxsize):
+    def __init__(self,
+                 name,
+                 listen_address,
+                 socket_type,
+                 reply=True,
+                 broker_address="inproc://broker",
+                 bind=False,
+                 logger=None,
+                 cache=None,
+                 messages=sys.maxsize):
         """
         :param name: Name of the component
         :param listen_address: ZMQ socket address to listen to
@@ -274,6 +294,7 @@ class ComponentOutbound(object):
         self.broker.identity = self.name
         self.broker.connect(broker_address)
         self.logger = logger
+        self.cache = cache
         self.messages = messages
         self.reply = reply
 
@@ -282,7 +303,7 @@ class ComponentOutbound(object):
         self.broker.send(b'1')
 
         for i in range(self.messages):
-            self.logger.debug('Component {} blocked'.format(self.name))
+            self.logger.debug('Component {} blocked waiting for broker'.format(self.name))
             message_data = self.broker.recv()
             self.logger.debug('Got message from broker')
             self.listen_to.send(message_data)

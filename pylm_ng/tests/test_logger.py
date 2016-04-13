@@ -28,7 +28,7 @@ def test_logger():
 
     broker.register_inbound('test', log='Service responds!')
 
-    t1 = Thread(target=collector.start, args=(97,))
+    t1 = Thread(target=collector.start, args=(97,))  # 97 is the expexted number of log messages
     t1.start()
 
     t2 = Thread(target=broker.start)

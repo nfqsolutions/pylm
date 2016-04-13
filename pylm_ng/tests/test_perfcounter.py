@@ -21,7 +21,6 @@ def test_perfcounter():
 
     perfcounter.tick('Instantiate Req connection')
     req_connection = ReqConnection(listen_to=request_reply.listen_address,
-
                                    logger=logger)
 
     broker.register_inbound('test', log='Service responds!')

@@ -6,7 +6,7 @@ from pylm_ng.components.core import ComponentInbound, ComponentOutbound, \
 
 class RepConnection(ComponentInbound):
     """
-    ReqRep is a component that connects a REQ socket to the broker, and a REP
+    RepConnection is a component that connects a REQ socket to the broker, and a REP
     socket to an external service.
     """
     def __init__(self, name, listen_address, broker_address="inproc://broker",
@@ -32,7 +32,7 @@ class RepConnection(ComponentInbound):
 
 class PullConnection(ComponentInbound):
     """
-    ReqRep is a component that connects a REQ socket to the broker, and a PULL
+    PullConnection is a component that connects a REQ socket to the broker, and a PULL
     socket to an external service.
     """
     def __init__(self, name, listen_address, broker_address="inproc://broker",
@@ -58,7 +58,7 @@ class PullConnection(ComponentInbound):
 
 class PushConnection(ComponentOutbound):
     """
-    ReqPush is a component that connects a REQ socket to the broker, and a PUSH
+    PushConnection is a component that connects a REQ socket to the broker, and a PUSH
     socket to an external service.
     """
     def __init__(self, name, listen_address, broker_address="inproc://broker",
@@ -84,7 +84,7 @@ class PushConnection(ComponentOutbound):
 
 class PushBypassConnection(ComponentBypassOutbound):
     """
-    Generic connection that sends a message to a sub service. Good for logs.
+    Generic connection that sends a message to a sub service. Good for logs or metrics.
     """
     def __init__(self, name, listen_address, logger=None, messages=sys.maxsize):
         """

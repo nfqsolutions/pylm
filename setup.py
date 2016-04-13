@@ -7,6 +7,6 @@ setup(name='pylm_ng',
       description='New Python prototype of PALM pipelines',
       author='Guillem Borrell',
       author_email='guillemborrell@gmail.com',
-      packages=['pylm_ng', 'pylm_ng.components'],
+      packages=['pylm_ng', 'pylm_ng.components', 'pylm_ng.tests', 'pylm_ng.persistence', 'pylm_ng.daemons'],
       install_requres=['protobuf>=3.0.0b2', 'requests', 'pyzmq', 'plyvel', 'requests']
       )
