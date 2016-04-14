@@ -2,6 +2,7 @@ from pylm_ng.components.core import Broker
 from pylm_ng.components.utils import PushHandler, Pinger, PerformanceCounter
 from pylm_ng.components.services import RepService
 from pylm_ng.components.messages_pb2 import PalmMessage
+from google.protobuf.message import DecodeError
 import logging
 
 # Standalone servers use some of the infrastructure of PALM, but they
@@ -51,11 +52,33 @@ class StandaloneServer(object):
     def start(self):
         message_data = self.rep.recv()
         self.logger.info('Got a message')
+        result = b'0'
+        message = PalmMessage()
+        try:
+            message.ParseFromString(message_data)
+            [server, function] = message.function.split('.')
 
-        message = PalmMessage
+            if not self.name == server:
+                self.logger.error('You called the wrong server')
+            else:
+                try:
+                    user_function = self.user_functions[function]
+                    try:
+                        result = user_function(message.payload)
+                    except:
+                        self.logger.error('User function gave an error')
+                except KeyError:
+                    self.logger.error(
+                        'Function {} was not found'.format(function)
+                    )
+        except DecodeError:
+            self.logger.error('Message could not be decoded')
+
+        message.payload = result
+        self.rep.send(message.SerializeToString())
 
 
-class StandaloneCluster(object):
+class StandaloneMaster(object):
     pass
 
 
