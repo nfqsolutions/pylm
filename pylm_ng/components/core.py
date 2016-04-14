@@ -90,7 +90,7 @@ class Broker(object):
         :param function:
         :return:
         """
-        self.user_functions[function.__name__] == function
+        self.user_functions[function.__name__] = function
 
     def start(self):
         # Buffer to store the message when the outbound component is not available
