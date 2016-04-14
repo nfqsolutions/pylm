@@ -24,7 +24,7 @@ class StandaloneEndPoint(object):
         self.poller.register(self.perf, zmq.POLLIN)
         self.poller.register(self.ping, zmq.POLLIN)
 
-    def start(self, messages=sys.maxsize):
+    def _start_debug(self, messages=sys.maxsize):
         for i in range(messages):
             event = dict(self.poller.poll())
 
