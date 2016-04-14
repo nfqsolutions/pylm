@@ -245,18 +245,44 @@ class ComponentInbound(object):
         self.messages = messages
         self.reply = reply
 
+    def scatter(self, message_data):
+        """
+        To be overriden. Picks a message and returns a generator that multiplies the messages
+        to the broker.
+        :param message_data:
+        :return:
+        """
+        yield message_data
+
+    def handle_feedback(self, message_data):
+        """
+        To be overriden. Handles the feedback from the broker
+        :param message_data:
+        :return:
+        """
+        pass
+
+    def reply_feedback(self):
+        """
+        To be overriden. Returns the feedback if the component has to reply.
+        :return:
+        """
+        return b'0'
+
     def start(self):
         self.logger.info('Launch component {}'.format(self.name))
         for i in range(self.messages):
             self.logger.debug('Component {} blocked waiting messages'.format(self.name))
             message_data = self.listen_to.recv()
             self.logger.debug('Got inbound message')
-            self.broker.send(message_data)
-            self.logger.debug('Component {} blocked waiting for broker'.format(self.name))
-            message_data = self.broker.recv()
+
+            for scattered in self.scatter(message_data):
+                self.broker.send(scattered)
+                self.logger.debug('Component {} blocked waiting for broker'.format(self.name))
+                self.handle_feedback(self.broker.recv())
 
             if self.reply:
-                self.listen_to.send(message_data)
+                self.listen_to.send(self.reply_feedback())
 
 
 class ComponentOutbound(object):
