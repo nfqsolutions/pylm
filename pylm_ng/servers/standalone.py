@@ -88,4 +88,42 @@ class StandaloneMaster(object):
 
 
 class StandaloneWorker(object):
-    pass
+    """
+    Standalone worker for the standalone master.
+    """
+    def __init__(self, name, pull_address, push_address,
+                 log_address, perf_address,
+                 ping_address, debug_level=logging.DEBUG,
+                 messages=sys.maxsize):
+        self.name = name
+        self.cache = {}  # The simplest possible cache
+
+        # Configure the log handler
+        handler = PushHandler(log_address)
+        self.logger = logging.getLogger(name)
+        self.logger.addHandler(handler)
+        self.logger.setLevel(debug_level)
+
+        # Configure the performance counter
+        self.perfcounter = PerformanceCounter(listen_address=perf_address)
+
+        # Configure the pinger.
+        self.pinger = Pinger(listen_address=ping_address,
+                             every=10.0)
+
+        # Configure the push and pull connections.
+        self.pull = zmq_context.socket(zmq.PULL)
+        self.pull.connect(pull_address)
+        self.push = zmq_context.socket(zmq.PUSH)
+        self.push.connect(push_address)
+
+        # This is the function storage
+        self.user_functions = {}
+
+        self.messages = messages
+
+        # This is the pinger thread that keeps the pinger alive.
+        pinger_thread = Thread(target=self.pinger.start)
+        pinger_thread.daemon = True
+        pinger_thread.start()
+
