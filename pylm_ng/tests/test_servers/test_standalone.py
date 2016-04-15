@@ -7,10 +7,10 @@ import zmq
 import logging
 
 
-this_log_address = "inproc://log"
-this_perf_address = "inproc://perf"
-this_ping_address = "inproc://ping"
-this_rep_address = "inproc://rep"
+this_log_address = "inproc://log1"
+this_perf_address = "inproc://perf1"
+this_ping_address = "inproc://ping1"
+this_rep_address = "inproc://rep1"
 
 
 class DummyClient(object):

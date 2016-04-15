@@ -5,10 +5,10 @@ from threading import Thread
 import logging
 
 
-this_log_address = "inproc://log"
-this_perf_address = "inproc://perf"
-this_ping_address = "inproc://ping"
-this_rep_address = "inproc://rep"
+this_log_address = "inproc://log3"
+this_perf_address = "inproc://perf3"
+this_ping_address = "inproc://ping3"
+this_rep_address = "inproc://rep3"
 
 
 class RemoteServer(StandaloneServer):

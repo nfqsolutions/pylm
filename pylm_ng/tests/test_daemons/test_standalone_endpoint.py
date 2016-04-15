@@ -10,9 +10,9 @@ def send_ten(socket):
 
 
 def test_endpoint():
-    log_address = "inproc://log"
-    perf_address = "inproc://perf"
-    ping_address = "inproc://ping"
+    log_address = "inproc://log2"
+    perf_address = "inproc://perf2"
+    ping_address = "inproc://ping2"
     endpoint = StandaloneEndPoint('EndPoint', log_address, perf_address,
                                   ping_address)
 
