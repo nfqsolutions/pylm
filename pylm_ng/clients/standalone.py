@@ -16,8 +16,6 @@ class StandaloneClient(object):
         message.stage = 0
         message.function = '.'.join([self.server_name, function])
         message.payload = data
-        print('Sending Message')
         self.req.send(message.SerializeToString())
         message.ParseFromString(self.req.recv())
-        print('Got response')
         return message.payload
