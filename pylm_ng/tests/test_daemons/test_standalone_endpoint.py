@@ -13,7 +13,8 @@ def test_endpoint():
     log_address = "inproc://log"
     perf_address = "inproc://perf"
     ping_address = "inproc://ping"
-    endpoint = StandaloneEndPoint('EndPoint', log_address, perf_address, ping_address)
+    endpoint = StandaloneEndPoint('EndPoint', log_address, perf_address,
+                                  ping_address)
 
     log_generator = zmq_context.socket(zmq.PUSH)
     log_generator.connect(log_address)

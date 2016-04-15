@@ -1,15 +1,15 @@
-from pylm_ng.components.core import Broker
+from pylm_ng.components.core import zmq_context
 from pylm_ng.components.utils import PushHandler, Pinger, PerformanceCounter
-from pylm_ng.components.services import RepService
 from pylm_ng.components.messages_pb2 import PalmMessage
 from google.protobuf.message import DecodeError
+from threading import Thread
 import logging
+import zmq
 
 # Standalone servers use some of the infrastructure of PALM, but they
 # are not run-time configurable. You have to wire the connections yourself,
-# but on the other hand, hou have a broker you can use for whatever you
-# want, the logger and the performance counter, and a convenient endpoint
-# for these services.
+# but on the other hand, hou have a logger and the performance counter, and
+# a convenient endpoint for these services.
 
 
 class StandaloneServer(object):
@@ -34,20 +34,19 @@ class StandaloneServer(object):
 
         # Configure the pinger.
         self.pinger = Pinger(listen_address=ping_address,
-                             every=1.0)
-
-        # Configure the broker, although probably it is never used.
-        self.broker = Broker(logger=self.logger,
-                             cache=self.cache)
+                             every=10.0)
 
         # Configure the rep connection that binds and blocks.
-        self.rep = RepService('name', rep_address)
+        self.rep = zmq_context.socket(zmq.REP)
+        self.rep.bind(rep_address)
 
         # This is the function storage
         self.user_functions = {}
 
-    def register_function(self, function):
-        self.user_functions[function.__name__] = function
+        # This is the pinger thread that keeps the pinger alive.
+        pinger_thread = Thread(target=self.pinger.start)
+        pinger_thread.daemon = True
+        pinger_thread.start()
 
     def start(self):
         message_data = self.rep.recv()
@@ -62,7 +61,7 @@ class StandaloneServer(object):
                 self.logger.error('You called the wrong server')
             else:
                 try:
-                    user_function = self.user_functions[function]
+                    user_function = getattr(self, function)
                     try:
                         result = user_function(message.payload)
                     except:
