@@ -47,6 +47,7 @@ class RemoteServer(StandaloneServer):
         :return:
         """
         self.logger(data)
+        return b'got something'
 
 
 def test_standalone():
@@ -71,8 +72,9 @@ def test_standalone():
     t2.daemon = True
     t2.start()
 
-    retval = client.job('echo_data', b'000')
-    print(retval)
+    for i in range(10):
+        retval = client.job('echo_data', str(i).encode('utf-8'))
+        print(retval)
 
 if __name__ == '__main__':
     test_standalone()
