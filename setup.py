@@ -14,5 +14,5 @@ setup(name='pylm_ng',
                 'pylm_ng.daemons',
                 'pylm_ng.servers',
                 'pylm_ng.clients'],
-      install_requres=['protobuf>=3.0.0b2', 'requests', 'pyzmq', 'plyvel', 'requests']
+      install_requires=['protobuf>=3.0.0b2', 'requests', 'pyzmq', 'plyvel', 'requests']
       )

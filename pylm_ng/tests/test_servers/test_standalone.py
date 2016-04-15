@@ -26,8 +26,11 @@ class DummyClient(object):
         message.stage = 0
         message.function = '.'.join([self.server_name, function])
         message.payload = data
+        print('Sending Message')
         self.req.send(message.SerializeToString())
-        return self.req.recv()
+        message.ParseFromString(self.req.recv())
+        print('Got response')
+        return message.payload
 
 
 class RemoteServer(StandaloneServer):
@@ -46,8 +49,8 @@ class RemoteServer(StandaloneServer):
         :param data:
         :return:
         """
-        self.logger(data)
-        return b'got something'
+        self.logger.info(data)
+        return b'something'
 
 
 def test_standalone():
@@ -72,7 +75,7 @@ def test_standalone():
     t2.daemon = True
     t2.start()
 
-    for i in range(10):
+    for i in range(1, 10):
         retval = client.job('echo_data', str(i).encode('utf-8'))
         print(retval)
 

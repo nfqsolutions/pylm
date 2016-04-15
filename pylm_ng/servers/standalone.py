@@ -5,6 +5,7 @@ from google.protobuf.message import DecodeError
 from threading import Thread
 import logging
 import zmq
+import sys
 
 # Standalone servers use some of the infrastructure of PALM, but they
 # are not run-time configurable. You have to wire the connections yourself,
@@ -19,7 +20,8 @@ class StandaloneServer(object):
     Mostly for testing purposes and to implement dumb workers.
     """
     def __init__(self, name, rep_address, log_address, perf_address,
-                 ping_address, debug_level=logging.DEBUG):
+                 ping_address, debug_level=logging.DEBUG,
+                 messages=sys.maxsize):
         self.name = name
         self.cache = {}  # The simplest possible cache
 
@@ -43,38 +45,42 @@ class StandaloneServer(object):
         # This is the function storage
         self.user_functions = {}
 
+        self.messages = messages
+
         # This is the pinger thread that keeps the pinger alive.
         pinger_thread = Thread(target=self.pinger.start)
         pinger_thread.daemon = True
         pinger_thread.start()
 
     def start(self):
-        message_data = self.rep.recv()
-        self.logger.info('Got a message')
-        result = b'0'
-        message = PalmMessage()
-        try:
-            message.ParseFromString(message_data)
-            [server, function] = message.function.split('.')
+        for i in range(self.messages):
+            message_data = self.rep.recv()
+            self.logger.info('Got a message')
+            result = b'0'
+            message = PalmMessage()
+            try:
+                message.ParseFromString(message_data)
+                [server, function] = message.function.split('.')
 
-            if not self.name == server:
-                self.logger.error('You called the wrong server')
-            else:
-                try:
-                    user_function = getattr(self, function)
+                if not self.name == server:
+                    self.logger.error('You called the wrong server')
+                else:
                     try:
-                        result = user_function(message.payload)
-                    except:
-                        self.logger.error('User function gave an error')
-                except KeyError:
-                    self.logger.error(
-                        'Function {} was not found'.format(function)
-                    )
-        except DecodeError:
-            self.logger.error('Message could not be decoded')
+                        user_function = getattr(self, function)
+                        self.logger.info('Loking for {}'.format(function))
+                        try:
+                            result = user_function(message.payload)
+                        except:
+                            self.logger.error('User function gave an error')
+                    except KeyError:
+                        self.logger.error(
+                            'Function {} was not found'.format(function)
+                        )
+            except DecodeError:
+                self.logger.error('Message could not be decoded')
 
-        message.payload = result
-        self.rep.send(message.SerializeToString())
+            message.payload = result
+            self.rep.send(message.SerializeToString())
 
 
 class StandaloneMaster(object):
