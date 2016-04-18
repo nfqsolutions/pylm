@@ -62,6 +62,9 @@ class Server(object):
         del self.cache[key]
         return key
 
+    def get(self, key):
+        return self.cache[key]
+
     def start(self):
         for i in range(self.messages):
             message_data = self.rep.recv()
