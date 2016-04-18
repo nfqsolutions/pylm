@@ -130,9 +130,6 @@ class Worker(object):
         self.push = zmq_context.socket(zmq.PUSH)
         self.push.connect(push_address)
 
-        # This is the function storage
-        self.user_functions = {}
-
         self.messages = messages
 
         # This is the pinger thread that keeps the pinger alive.
@@ -140,3 +137,33 @@ class Worker(object):
         pinger_thread.daemon = True
         pinger_thread.start()
 
+
+def start(self):
+    for i in range(self.messages):
+        message_data = self.rep.recv()
+        self.logger.info('Got a message')
+        result = b'0'
+        message = PalmMessage()
+        try:
+            message.ParseFromString(message_data)
+            [server, function] = message.function.split('.')
+
+            if not self.name == server:
+                self.logger.error('You called the wrong server')
+            else:
+                try:
+                    user_function = getattr(self, function)
+                    self.logger.info('Loking for {}'.format(function))
+                    try:
+                        result = user_function(message.payload)
+                    except:
+                        self.logger.error('User function gave an error')
+                except KeyError:
+                    self.logger.error(
+                        'Function {} was not found'.format(function)
+                    )
+        except DecodeError:
+            self.logger.error('Message could not be decoded')
+
+        message.payload = result
+        self.rep.send(message.SerializeToString())

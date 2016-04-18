@@ -44,7 +44,6 @@ class Broker(object):
 
         # Other utilities
         self.logger = logger
-        self.user_functions = {}
         self.messages = messages
         self.buffer = {}
         if max_buffer_size < 100:  # Enforce a limit in buffer size.
@@ -83,14 +82,6 @@ class Broker(object):
         self.outbound_components[name.encode('utf-8')] = {
             'log': log
         }
-
-    def register_function(self, function):
-        """
-        Register a user-defined function to the broker.
-        :param function:
-        :return:
-        """
-        self.user_functions[function.__name__] = function
 
     def start(self):
         # Buffer to store the message when the outbound component is not available
@@ -138,30 +129,6 @@ class Broker(object):
             elif self.inbound in event:
                 self.logger.debug('Handling inbound event')
                 component, empty, message_data = self.inbound.recv_multipart()
-
-                # Deserialize the message and execute the user defined function
-                message = PalmMessage()
-
-                try:
-                    message.ParseFromString(message_data)
-                    if '.' in message.function:
-                        function = message.function.split('.')[1]
-                    else:
-                        function = message.function
-
-                    if function in self.user_functions:
-                        result = self.user_functions[function](message.payload)
-                    else:
-                        self.logger.warning(
-                            'broker: User defined function {} not available'.format(function)
-                        )
-                        result = b''
-                    message.payload = result
-                    message_data = message.SerializeToString()
-
-                except DecodeError:
-                    self.logger.error('Message could not be decoded, '
-                                      'The broker will just try to route it')
 
                 # Start internal routing
                 route_to = self.inbound_components[component]['route']
