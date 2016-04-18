@@ -1,7 +1,5 @@
 import zmq
 import sys
-from pylm_ng.components.messages_pb2 import PalmMessage
-from google.protobuf.message import DecodeError
 
 
 zmq_context = zmq.Context.instance()
