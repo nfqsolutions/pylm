@@ -19,8 +19,7 @@ class Broker(object):
                  outbound_address="inproc://outbound",
                  logger=None,
                  cache=None,
-                 messages=sys.maxsize,
-                 max_buffer_size=sys.maxsize):
+                 messages=sys.maxsize):
         """
         Initiate a broker instance
         :param inbound_address: Valid ZMQ bind address for inbound components
@@ -47,9 +46,6 @@ class Broker(object):
         self.logger = logger
         self.messages = messages
         self.buffer = {}
-        if max_buffer_size < 100:  # Enforce a limit in buffer size.
-            max_buffer_size = 100
-        self.max_buffer_size = max_buffer_size
 
         # Poller for the event loop
         self.poller = zmq.Poller()
@@ -61,7 +57,7 @@ class Broker(object):
 
     def register_inbound(self, name, route=None, log=''):
         """
-        Register component by name. Only inbound components have to be registered.
+        Register component by name.
         :param name: Name of the component. Each component has a name, that
           uniquely identifies it to the broker
         :param route: Each message that the broker gets from the component
@@ -70,25 +66,22 @@ class Broker(object):
         :param log: Log message for each inbound connection.
         :return:
         """
-        # If route is not specified, the component wants a message back.
         if not route:
             route = name
-
         self.inbound_components[name.encode('utf-8')] = {
             'route': route.encode('utf-8'),
             'log': log
         }
 
-    def register_outbound(self, name, log=''):
+    def register_outbound(self, name, route=None, log=''):
+        if not route:
+            route = name
         self.outbound_components[name.encode('utf-8')] = {
+            'route': route.encode('utf-8'),
             'log': log
         }
 
     def start(self):
-        # Buffer to store the message when the outbound component is not available
-        # for routing. Maybe replace by a heap queue.
-        buffering = False
-
         # List of available outbound components
         available_outbound = []
 
@@ -103,28 +96,17 @@ class Broker(object):
 
             if self.outbound in event:
                 self.logger.debug('Handling outbound event')
-                component, empty, message_data = self.outbound.recv_multipart()
+                component, empty, feedback = self.outbound.recv_multipart()
 
                 # If messages for the outbound are buffered.
                 if component in self.buffer:
                     # Look in the buffer
-                    message_data = self.buffer[component].pop()
-                    if len(self.buffer[component]) == 0:
-                        del self.buffer[component]
-
-                    # If the buffer is empty enough and the broker was buffering
-                    if sum([len(v) for v in self.buffer.values()])*10 < self.max_buffer_size \
-                            and buffering:
-                        # Listen to inbound connections again.
-                        self.logger.info('Broker accepting messages again.')
-                        self.poller.register(self.inbound, zmq.POLLIN)
-                        buffering = False
-
+                    message_data = self.buffer.pop(component)
                     self.outbound.send_multipart([component, empty, message_data])
 
                 # If they are no buffered messages, set outbound as available.
                 else:
-                    available_outbound.append(component)
+                    available_outbound[component]
 
             elif self.inbound in event:
                 self.logger.debug('Handling inbound event')
