@@ -3,6 +3,7 @@ from pylm_ng.components.utils import PushHandler, Pinger, PerformanceCounter
 from pylm_ng.components.messages_pb2 import PalmMessage
 from google.protobuf.message import DecodeError
 from threading import Thread
+from uuid import uuid4
 import logging
 import zmq
 import sys
@@ -51,6 +52,15 @@ class Server(object):
         pinger_thread = Thread(target=self.pinger.start)
         pinger_thread.daemon = True
         pinger_thread.start()
+
+    def set(self, data):
+        key = str(uuid4()).encode('utf-8')
+        self.cache[key] = data
+        return key
+
+    def delete(self, key):
+        del self.cache[key]
+        return key
 
     def start(self):
         for i in range(self.messages):

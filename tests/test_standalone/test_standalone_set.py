@@ -3,10 +3,10 @@ from threading import Thread
 
 from pylm_ng.standalone import Client, Server, EndPoint
 
-this_log_address = "inproc://log3"
-this_perf_address = "inproc://perf3"
-this_ping_address = "inproc://ping3"
-this_rep_address = "inproc://rep3"
+this_log_address = "inproc://log4"
+this_perf_address = "inproc://perf4"
+this_ping_address = "inproc://ping4"
+this_rep_address = "inproc://rep4"
 
 
 class RemoteServer(Server):
@@ -51,9 +51,15 @@ def test_standalone():
     t2.daemon = True
     t2.start()
 
+    keys = []
+
     for i in range(1, 10):
-        retval = client.call('echo_data', str(i).encode('utf-8'))
-        print(retval)
+        retval = client.set(str(i).encode('utf-8'))
+        keys.append(retval)
+
+    for k in keys:
+        retval = client.delete(k)
+        assert retval == k
 
 if __name__ == '__main__':
     test_standalone()
