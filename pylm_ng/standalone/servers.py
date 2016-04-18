@@ -13,7 +13,7 @@ import sys
 # a convenient endpoint for these services.
 
 
-class StandaloneServer(object):
+class Server(object):
     """
     Standalone and minimal server that does not interact with the registry.
     It only offers a REP socket for anyone to connect. It still has a broker.
@@ -83,11 +83,11 @@ class StandaloneServer(object):
             self.rep.send(message.SerializeToString())
 
 
-class StandaloneMaster(object):
+class Master(object):
     pass
 
 
-class StandaloneWorker(object):
+class Worker(object):
     """
     Standalone worker for the standalone master.
     """

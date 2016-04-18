@@ -3,7 +3,7 @@ from pylm_ng.components.messages_pb2 import PalmMessage
 import zmq
 
 
-class StandaloneClient(object):
+class Client(object):
     def __init__(self, connection, server_name):
         self.req = zmq_context.socket(zmq.REQ)
         self.req.connect(connection)

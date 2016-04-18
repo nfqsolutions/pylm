@@ -1,7 +1,9 @@
-from pylm_ng.daemons.standalone import StandaloneEndPoint
-from pylm_ng.components.core import zmq_context
 from threading import Thread
+
 import zmq
+
+from pylm_ng.components.core import zmq_context
+from pylm_ng.standalone import EndPoint
 
 
 def send_ten(socket):
@@ -13,8 +15,8 @@ def test_endpoint():
     log_address = "inproc://log2"
     perf_address = "inproc://perf2"
     ping_address = "inproc://ping2"
-    endpoint = StandaloneEndPoint('EndPoint', log_address, perf_address,
-                                  ping_address)
+    endpoint = EndPoint('EndPoint', log_address, perf_address,
+                        ping_address)
 
     log_generator = zmq_context.socket(zmq.PUSH)
     log_generator.connect(log_address)

@@ -3,7 +3,7 @@ import zmq
 import sys
 
 
-class StandaloneEndPoint(object):
+class EndPoint(object):
     def __init__(self, name, log_address, perf_address, ping_address):
         self.poller = zmq.Poller()
         self.name = name

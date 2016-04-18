@@ -2,7 +2,7 @@ from threading import Thread
 
 from pylm_ng.components.connections import RepConnection, PushConnection, PullConnection
 from pylm_ng.components.core import Broker
-from pylm_ng.tests.endpoints import logger, ReqEndPoint, PullEndPoint, PushEndPoint
+from pylm_ng.components.endpoints import logger, ReqEndPoint, PullEndPoint, PushEndPoint
 
 
 def test_tests():

@@ -1,9 +1,10 @@
-from pylm_ng.components.utils import Pinger
-from pylm_ng.components.core import Broker
-from pylm_ng.components.services import PullService
-from pylm_ng.components.connections import PushConnection
-from pylm_ng.tests.endpoints import PullEndPoint, logger
 from threading import Thread
+
+from pylm_ng.components.connections import PushConnection
+from pylm_ng.components.core import Broker
+from pylm_ng.components.endpoints import PullEndPoint, logger
+from pylm_ng.components.services import PullService
+from pylm_ng.components.utils import Pinger
 
 
 def test_pinger():

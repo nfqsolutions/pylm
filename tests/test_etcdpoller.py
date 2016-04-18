@@ -1,9 +1,11 @@
-from pylm_ng.components.core import Broker
-from pylm_ng.daemons.extra_components import EtcdPoller
-from pylm_ng.components.connections import PushConnection
-from pylm_ng.tests.endpoints import PullEndPoint, logger
 from threading import Thread
+
 import requests
+
+from pylm_ng.components.connections import PushConnection
+from pylm_ng.components.core import Broker
+from pylm_ng.components.endpoints import PullEndPoint, logger
+from pylm_ng.persistence.etcd import EtcdPoller
 
 
 def test_etcd_poller():

@@ -1,9 +1,7 @@
-from pylm_ng.servers.standalone import StandaloneServer
-from pylm_ng.daemons.standalone import StandaloneEndPoint
-from pylm_ng.clients.standalone import StandaloneClient
-from threading import Thread
 import logging
+from threading import Thread
 
+from pylm_ng.standalone import Client, Server, EndPoint
 
 this_log_address = "inproc://log3"
 this_perf_address = "inproc://perf3"
@@ -11,7 +9,7 @@ this_ping_address = "inproc://ping3"
 this_rep_address = "inproc://rep3"
 
 
-class RemoteServer(StandaloneServer):
+class RemoteServer(Server):
     def __init__(self, name, rep_address, log_address, perf_address,
                  ping_address, debug_level=logging.DEBUG):
         super(RemoteServer, self).__init__(name,
@@ -32,17 +30,17 @@ class RemoteServer(StandaloneServer):
 
 
 def test_standalone():
-    endpoint = StandaloneEndPoint('EndPoint',
-                                  this_log_address,
-                                  this_perf_address,
-                                  this_ping_address)
+    endpoint = EndPoint('EndPoint',
+                        this_log_address,
+                        this_perf_address,
+                        this_ping_address)
     server = RemoteServer('Echo_server',
                           this_rep_address,
                           endpoint.log_address,
                           endpoint.perf_address,
                           endpoint.ping_address)
 
-    client = StandaloneClient(this_rep_address, 'Echo_server')
+    client = Client(this_rep_address, 'Echo_server')
 
     print('Starting')
     t1 = Thread(target=endpoint._start_debug)

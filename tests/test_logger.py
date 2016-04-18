@@ -1,10 +1,11 @@
 # Test of the logger as a bypass connection.
-from pylm_ng.components.core import Broker
-from pylm_ng.components.utils import PushHandler, LogCollector
-from pylm_ng.components.services import RepService
-from pylm_ng.tests.endpoints import ReqConnection
-from threading import Thread
 import logging
+from threading import Thread
+
+from pylm_ng.components.core import Broker
+from pylm_ng.components.endpoints import ReqConnection
+from pylm_ng.components.services import RepService
+from pylm_ng.components.utils import PushHandler, LogCollector
 
 
 def test_logger():
