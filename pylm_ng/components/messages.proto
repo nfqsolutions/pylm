@@ -8,3 +8,9 @@ message PalmMessage {
   optional string cache    = 7;
   optional bytes payload   = 8;
 }
+
+
+message BrokerMessage {
+  required string key =    1;
+  required bytes payload = 2;
+}
