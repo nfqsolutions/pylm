@@ -118,15 +118,15 @@ class Broker(object):
                     self.logger.debug('Component added as available')
                     available_outbound.append(component)
 
-                if available_outbound and not self.buffer:
-                    self.poller.register(self.inbound, zmq.POLLIN)
-
                 # Check if some socket is waiting for the response.
                 if broker_message.key.encode('utf-8') in self.ledger:
                     self.logger.debug('Message ID found in ledger')
                     component = self.ledger.pop(broker_message.key.encode('utf-8'))
                     self.logger.debug('Unblocking pending inbound: {}'.format(component))
                     self.inbound.send_multipart([component, empty, broker_message.payload])
+
+                if available_outbound and not self.buffer and not self.ledger:
+                    self.poller.register(self.inbound, zmq.POLLIN)
 
             elif self.inbound in event:
                 message_key = str(uuid4()).encode('utf-8')
