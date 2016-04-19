@@ -159,6 +159,7 @@ class Broker(object):
                     else:
                         self.ledger[message_key] = component
                         self.logger.debug('Inbound waiting for feedback: {}'.format(self.ledger))
+                        self.poller.unregister(self.inbound)
 
                 # If the corresponding outbound not is listening, buffer the message
                 else:
@@ -214,7 +215,7 @@ def outbound(listen_addr):
 def test_feedback():
     broker = Broker(logger=logger, messages=20)
     broker.register_inbound('inbound1', route='outbound', block=True, log='inbound1')
-    broker.register_inbound('inbound2', route='outbound', log='inboubd2')
+    broker.register_inbound('inbound2', route='outbound', log='inbound2')
     broker.register_inbound('outbound', log='outbound')
 
     threads = [
