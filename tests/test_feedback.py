@@ -104,24 +104,28 @@ class Broker(object):
             self.logger.debug('Event {}'.format(event))
 
             if self.outbound in event:
-                self.logger.debug('Handling outbound event')
                 component, empty, feedback = self.outbound.recv_multipart()
                 broker_message = BrokerMessage()
                 broker_message.ParseFromString(feedback)
+                self.logger.debug('Handling outbound event: {}'.format(broker_message.key))
 
                 # If any message has been buffered,
                 if component in self.buffer:
+                    self.logger.debug('The message was buffered')
                     message_data = self.buffer.pop(component)
                     self.outbound.send_multipart([component, empty, message_data])
                 else:
+                    self.logger.debug('Component added as available')
                     available_outbound.append(component)
 
                 if available_outbound and not self.buffer:
                     self.poller.register(self.inbound, zmq.POLLIN)
 
                 # Check if some socket is waiting for the response.
-                if broker_message.key in self.ledger:
-                    component = self.ledger.pop(broker_message.key)
+                if broker_message.key.encode('utf-8') in self.ledger:
+                    self.logger.debug('Message ID found in ledger')
+                    component = self.ledger.pop(broker_message.key.encode('utf-8'))
+                    self.logger.debug('Unblocking pending inbound: {}'.format(component))
                     self.inbound.send_multipart([component, empty, broker_message.payload])
 
             elif self.inbound in event:
@@ -153,8 +157,8 @@ class Broker(object):
                         self.logger.debug('Unblocking inbound')
                         self.inbound.send_multipart([component, empty, b'1'])
                     else:
-                        self.logger.debug('Inbound waiting for feedback')
-                        self.ledger[component] = message_key
+                        self.ledger[message_key] = component
+                        self.logger.debug('Inbound waiting for feedback: {}'.format(self.ledger))
 
                 # If the corresponding outbound not is listening, buffer the message
                 else:
@@ -177,7 +181,7 @@ def inbound1(listen_addr):
         broker.send(str(i).encode('utf-8'))
         returned = broker.recv()
         print('Inbound1', i, returned)
-        #assert int(returned) == i
+        assert int(returned) == i
 
 
 def inbound2(listen_addr):
@@ -189,7 +193,7 @@ def inbound2(listen_addr):
         broker.send(str(i).encode('utf-8'))
         returned = broker.recv()
         print('Inbound2', i, returned)
-        #assert int(returned) == i
+        assert int(returned) == 1
 
 
 def outbound(listen_addr):
@@ -209,7 +213,7 @@ def outbound(listen_addr):
 
 def test_feedback():
     broker = Broker(logger=logger, messages=20)
-    broker.register_inbound('inbound1', route='outbound', log='inbound1')
+    broker.register_inbound('inbound1', route='outbound', block=True, log='inbound1')
     broker.register_inbound('inbound2', route='outbound', log='inboubd2')
     broker.register_inbound('outbound', log='outbound')
 
