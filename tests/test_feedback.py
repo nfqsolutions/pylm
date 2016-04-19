@@ -125,6 +125,7 @@ class Broker(object):
                     self.logger.debug('Unblocking pending inbound: {}'.format(component))
                     self.inbound.send_multipart([component, empty, broker_message.payload])
 
+                # TODO: Check if the ledger condition is necessary.
                 if available_outbound and not self.buffer and not self.ledger:
                     self.poller.register(self.inbound, zmq.POLLIN)
 
@@ -159,6 +160,7 @@ class Broker(object):
                     else:
                         self.ledger[message_key] = component
                         self.logger.debug('Inbound waiting for feedback: {}'.format(self.ledger))
+                        # TODO: Check if ledger condition is necessary
                         self.poller.unregister(self.inbound)
 
                 # If the corresponding outbound not is listening, buffer the message
