@@ -65,7 +65,7 @@ def test_feedback():
         t.start()
 
     for t in threads:
-        t.join()
+        t.join(1)
 
     broker.cleanup()
 
