@@ -62,7 +62,7 @@ class Broker(object):
         # Cache for the server
         self.cache = cache
 
-    def register_inbound(self, name, route='', block=False, service=False, log=''):
+    def register_inbound(self, name, route='', block=False, log=''):
         """
         Register component by name.
         :param name: Name of the component. Each component has a name, that
@@ -71,15 +71,12 @@ class Broker(object):
           may be routed to another component. This argument gives the name
           of the target component for the message.
         :param block: Register if the component is waiting for a reply.
-        :param service: Register if the component is a service, and the message
-          has to be translated to PalmMessage to BrokerMessage
         :param log: Log message for each inbound connection.
         :return:
         """
         self.inbound_components[name.encode('utf-8')] = {
             'route': route.encode('utf-8'),
             'block': block,
-            'service': service,
             'log': log
         }
 
@@ -91,8 +88,6 @@ class Broker(object):
     def start(self):
         # List of available outbound components
         available_outbound = []
-
-        # Lock for the buffer
 
         self.logger.info('Launch broker')
         self.logger.info('Inbound socket: {}'.format(self.inbound))
@@ -119,9 +114,9 @@ class Broker(object):
                     available_outbound.append(component)
 
                 # Check if some socket is waiting for the response.
-                if broker_message.key.encode('utf-8') in self.ledger:
+                if broker_message.key in self.ledger:
                     self.logger.debug('Message ID found in ledger')
-                    component = self.ledger.pop(broker_message.key.encode('utf-8'))
+                    component = self.ledger.pop(broker_message.key)
                     self.logger.debug('Unblocking pending inbound: {}'.format(component))
                     self.inbound.send_multipart([component, empty, broker_message.payload])
 
@@ -130,13 +125,10 @@ class Broker(object):
                     self.poller.register(self.inbound, zmq.POLLIN)
 
             elif self.inbound in event:
-                message_key = str(uuid4()).encode('utf-8')
                 broker_message = BrokerMessage()
-                broker_message.key = message_key
-
                 self.logger.debug('Handling inbound event')
                 component, empty, message_data = self.inbound.recv_multipart()
-                broker_message.payload = message_data
+                broker_message.ParseFromString(message_data)
 
                 # Start internal routing
                 route_to = self.inbound_components[component]['route']
@@ -158,7 +150,7 @@ class Broker(object):
                         self.logger.debug('Unblocking inbound')
                         self.inbound.send_multipart([component, empty, b'1'])
                     else:
-                        self.ledger[message_key] = component
+                        self.ledger[broker_message.key] = component
                         self.logger.debug('Inbound waiting for feedback: {}'.format(self.ledger))
                         # TODO: Check if ledger condition is necessary
                         self.poller.unregister(self.inbound)
@@ -181,10 +173,14 @@ def inbound1(listen_addr):
     broker.connect(listen_addr)
 
     for i in range(0, 10, 2):
-        broker.send(str(i).encode('utf-8'))
+        broker_message = BrokerMessage()
+        broker_message.key = str(uuid4()).encode('utf-8')
+        broker_message.payload = str(i).encode('utf-8')
+        broker.send(broker_message.SerializeToString())
         returned = broker.recv()
-        print('Inbound1', i, returned)
         assert int(returned) == i
+
+    print('DEBUG: Inbound 1 finished')
 
 
 def inbound2(listen_addr):
@@ -193,10 +189,14 @@ def inbound2(listen_addr):
     broker.connect(listen_addr)
 
     for i in range(1, 10, 2):
-        broker.send(str(i).encode('utf-8'))
+        broker_message = BrokerMessage()
+        broker_message.key = str(uuid4()).encode('utf-8')
+        broker_message.payload = str(i).encode('utf-8')
+        broker.send(broker_message.SerializeToString())
         returned = broker.recv()
-        print('Inbound2', i, returned)
         assert int(returned) == 1
+
+    print('DEBUG: Inbound 2 finished')
 
 
 def outbound(listen_addr):
@@ -210,8 +210,9 @@ def outbound(listen_addr):
 
     for i in range(10):
         broker_message.ParseFromString(broker.recv())
-        print('outbound:', broker_message)
         broker.send(broker_message.SerializeToString())
+
+    print('DEBUG: Outbound finished')
 
 
 def test_feedback():
@@ -232,6 +233,8 @@ def test_feedback():
 
     for t in threads:
         t.join()
+
+    print('DEBUG: Test completed...')
 
 if __name__ == '__main__':
     test_feedback()
