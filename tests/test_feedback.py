@@ -174,7 +174,7 @@ def inbound1(listen_addr):
 
     for i in range(0, 10, 2):
         broker_message = BrokerMessage()
-        broker_message.key = str(uuid4()).encode('utf-8')
+        broker_message.key = str(uuid4())
         broker_message.payload = str(i).encode('utf-8')
         broker.send(broker_message.SerializeToString())
         returned = broker.recv()
@@ -190,7 +190,7 @@ def inbound2(listen_addr):
 
     for i in range(1, 10, 2):
         broker_message = BrokerMessage()
-        broker_message.key = str(uuid4()).encode('utf-8')
+        broker_message.key = str(uuid4())
         broker_message.payload = str(i).encode('utf-8')
         broker.send(broker_message.SerializeToString())
         returned = broker.recv()

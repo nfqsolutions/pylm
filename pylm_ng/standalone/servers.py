@@ -80,7 +80,7 @@ class Server(object):
                 else:
                     try:
                         user_function = getattr(self, function)
-                        self.logger.info('Loking for {}'.format(function))
+                        self.logger.info('Looking for {}'.format(function))
                         try:
                             result = user_function(message.payload)
                         except:

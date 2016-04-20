@@ -1,3 +1,5 @@
+from pylm_ng.components.messages_pb2 import PalmMessage, BrokerMessage
+from uuid import uuid4
 import zmq
 import sys
 
@@ -180,6 +182,7 @@ class ComponentInbound(object):
                  reply=True,
                  broker_address="inproc://broker",
                  bind=False,
+                 palm=False,
                  logger=None,
                  cache=None,
                  messages=sys.maxsize):
@@ -190,6 +193,8 @@ class ComponentInbound(object):
         :param reply: True if the listening socket blocks waiting a reply
         :param broker_address: ZMQ socket address for the broker
         :param bind: True if socket has to bind, instead of connect.
+        :param palm: True if the message is waiting is a PALM message. False if it is
+          just a binary string
         :param logger: Logger instance
         :param cache: Cache for shared data in the server
         :param messages: Maximum number of inbound messages. Defaults to infinity.
@@ -205,10 +210,35 @@ class ComponentInbound(object):
         self.broker = zmq_context.socket(zmq.REQ)
         self.broker.identity = self.name
         self.broker.connect(broker_address)
+        self.palm = palm
         self.logger = logger
         self.cache = cache
         self.messages = messages
         self.reply = reply
+
+    def _translate_to_broker(self, message_data):
+        """
+        Translate the message that the component has got to be digestible by the broker
+        :param message_data:
+        :return:
+        """
+        broker_message_key = str(uuid4())
+        if self.palm:
+            palm_message = PalmMessage()
+            palm_message.ParseFromString(message_data)
+            payload = palm_message.payload
+
+            # I store the message to get it later when the message is outbound. See that
+            # if I am just sending binary messages, I do not need to assign any envelope.
+            self.cache.set(broker_message_key, message_data)
+        else:
+            payload = message_data
+
+        broker_message = BrokerMessage()
+        broker_message.key = broker_message_key
+        broker_message.payload = payload
+
+        return broker_message.SerializeToString()
 
     def scatter(self, message_data):
         """
@@ -242,6 +272,7 @@ class ComponentInbound(object):
             self.logger.debug('Got inbound message')
 
             for scattered in self.scatter(message_data):
+                scattered = self._translate_to_broker(scattered)
                 self.broker.send(scattered)
                 self.logger.debug('Component {} blocked waiting for broker'.format(self.name))
                 self.handle_feedback(self.broker.recv())
@@ -262,6 +293,7 @@ class ComponentOutbound(object):
                  reply=True,
                  broker_address="inproc://broker",
                  bind=False,
+                 palm=False,
                  logger=None,
                  cache=None,
                  messages=sys.maxsize):
@@ -272,6 +304,7 @@ class ComponentOutbound(object):
         :param reply: True if the listening socket blocks waiting a reply
         :param broker_address: ZMQ socket address for the broker,
         :param bind: True if the socket has to bind instead of connect.
+        :param palm: The component is sending back a Palm message
         :param logger: Logger instance
         :param cache: Access to the cache of the server
         :param messages: Maximum number of inbound messages. Defaults to infinity.
@@ -288,9 +321,32 @@ class ComponentOutbound(object):
         self.broker.identity = self.name
         self.broker.connect(broker_address)
         self.logger = logger
+        self.palm = palm
         self.cache = cache
         self.messages = messages
         self.reply = reply
+
+    def _translate_from_broker(self, message_data):
+        """
+        Translate the message that the component has got to be digestible by the broker
+        :param message_data:
+        :return:
+        """
+        broker_message = BrokerMessage()
+        broker_message.ParseFromString(message_data)
+
+        if self.palm:
+            # Get the envelope of the message from the cache.
+            message_data = self.cache.get(broker_message.key)
+            palm_message = PalmMessage()
+            palm_message.ParseFromString(message_data)
+            palm_message.payload = broker_message.payload
+            message_data = palm_message.SerializeToString()
+
+        else:
+            message_data = broker_message.payload
+
+        return message_data
 
     def scatter(self, message_data):
         """
