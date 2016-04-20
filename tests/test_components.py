@@ -2,6 +2,7 @@ from pylm_ng.components.connections import RepConnection, PushConnection, PullCo
 from pylm_ng.components.core import Broker
 from pylm_ng.components.endpoints import logger, ReqEndPoint, PullEndPoint, PushEndPoint
 from threading import Thread
+import atexit
 
 
 def test_request_reply():
@@ -35,7 +36,6 @@ def test_request_reply():
         t.join(1)
 
     endpoint.socket.close()
-    request_reply.cleanup()
     broker.cleanup()
 
 
@@ -83,8 +83,6 @@ def test_request_push():
 
     endpoint_pull.socket.close()
     endpoint_req.socket.close()
-    push_component.cleanup()
-    rep_component.cleanup()
     broker.cleanup()
 
 
@@ -130,10 +128,8 @@ def test_pull_push():
     endpoint_pull.socket.close()
     endpoint_push.socket.close()
     broker.cleanup()
-    pull_component.cleanup()
-    push_component.cleanup()
 
-
+    
 if __name__ == '__main__':
     test_request_reply()
     test_request_push()

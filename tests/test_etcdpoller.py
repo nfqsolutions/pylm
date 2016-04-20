@@ -49,6 +49,8 @@ def test_etcd_poller():
     for t in threads:
         t.join()
 
+    push_component.cleanup()
+    broker.cleanup()
 
 if __name__ == '__main__':
     test_etcd_poller()
