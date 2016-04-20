@@ -1,12 +1,7 @@
-from threading import Thread
-
 from pylm_ng.components.connections import RepConnection, PushConnection, PullConnection
 from pylm_ng.components.core import Broker
 from pylm_ng.components.endpoints import logger, ReqEndPoint, PullEndPoint, PushEndPoint
-
-
-def test_tests():
-    print("test")
+from threading import Thread
 
 
 def test_request_reply():
@@ -148,7 +143,6 @@ def test_pull_push():
 
 
 if __name__ == '__main__':
-    test_tests()
     test_request_reply()
     test_request_push()
     test_pull_push()
