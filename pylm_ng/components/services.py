@@ -179,16 +179,22 @@ class PushPullService(object):
 
     def start(self):
         self.logger.info('Launch component {}'.format(self.name))
+        initial_broker_message = BrokerMessage()
+        initial_broker_message.key = '0'
+        initial_broker_message.payload = b'0'
+        self.broker.send(initial_broker_message.SerializeToString())
+
         for i in range(self.messages):
-            self.logger.debug('Component {} blocked waiting messages'.format(self.name))
-            message_data = self.listen_to.recv()
-            self.logger.debug('Got inbound message')
-
+            self.logger.debug('Component {} blocked waiting for broker'.format(self.name))
+            message_data = self.broker.recv()
+            self.logger.debug('Got message from broker')
             for scattered in self.scatter(message_data):
-                scattered = self._translate_to_broker(scattered)
-                self.broker.send(scattered)
-                self.logger.debug('Component {} blocked waiting for broker'.format(self.name))
-                self.handle_feedback(self.broker.recv())
+                self.push.send(scattered)
+                self.handle_feedback(self.pull.recv())
 
-            if self.reply:
-                self.listen_to.send(self.reply_feedback())
+            self.broker.send(self.reply_feedback())
+
+    def cleanup(self):
+        self.push.close()
+        self.pull.close()
+        self.broker.close()
