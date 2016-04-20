@@ -186,6 +186,7 @@ class PushPullService(object):
 
         for i in range(self.messages):
             self.logger.debug('Component {} blocked waiting for broker'.format(self.name))
+            # Workers use BrokerMessages, because they want to know the message ID.
             message_data = self.broker.recv()
             self.logger.debug('Got message from broker')
             for scattered in self.scatter(message_data):

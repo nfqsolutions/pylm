@@ -218,6 +218,7 @@ class ComponentInbound(object):
         self.cache = cache
         self.messages = messages
         self.reply = reply
+        self.last_message = b''
 
     def _translate_to_broker(self, message_data):
         """
@@ -251,17 +252,11 @@ class ComponentInbound(object):
         """
         broker_message = BrokerMessage()
         broker_message.ParseFromString(message_data)
-
-        if self.palm:
-            message_data = self.cache.get(broker_message.key)
-            palm_message = PalmMessage()
-            palm_message.ParseFromString(message_data)
-            palm_message.payload = broker_message.payload
-            message_data = palm_message.SerializeToString()
-
-        else:
-            message_data = broker_message.payload
-
+        message_data = self.cache.get(broker_message.key)
+        palm_message = PalmMessage()
+        palm_message.ParseFromString(message_data)
+        palm_message.payload = broker_message.payload
+        message_data = palm_message.SerializeToString()
         return message_data
 
     def scatter(self, message_data):
@@ -279,14 +274,14 @@ class ComponentInbound(object):
         :param message_data:
         :return:
         """
-        pass
+        self.last_message = message_data
 
     def reply_feedback(self):
         """
         To be overriden. Returns the feedback if the component has to reply.
         :return:
         """
-        return b'0'
+        return self.last_message
 
     def start(self):
         self.logger.info('Launch component {}'.format(self.name))
@@ -353,6 +348,7 @@ class ComponentOutbound(object):
         self.cache = cache
         self.messages = messages
         self.reply = reply
+        self.last_message = b''
 
     def _translate_to_broker(self, message_data):
         """
@@ -386,16 +382,11 @@ class ComponentOutbound(object):
         """
         broker_message = BrokerMessage()
         broker_message.ParseFromString(message_data)
-
-        if self.palm:
-            message_data = self.cache.get(broker_message.key)
-            palm_message = PalmMessage()
-            palm_message.ParseFromString(message_data)
-            palm_message.payload = broker_message.payload
-            message_data = palm_message.SerializeToString()
-
-        else:
-            message_data = broker_message.payload
+        message_data = self.cache.get(broker_message.key)
+        palm_message = PalmMessage()
+        palm_message.ParseFromString(message_data)
+        palm_message.payload = broker_message.payload
+        message_data = palm_message.SerializeToString()
 
         return message_data
 
@@ -414,14 +405,14 @@ class ComponentOutbound(object):
         :param message_data:
         :return:
         """
-        pass
+        self.last_message = message_data
 
     def reply_feedback(self):
         """
         To be overriden. Returns the feedback if the component has to reply.
         :return:
         """
-        return b'0'
+        return self.last_message
 
     def start(self):
         self.logger.info('Launch component {}'.format(self.name))
@@ -432,7 +423,10 @@ class ComponentOutbound(object):
 
         for i in range(self.messages):
             self.logger.debug('Component {} blocked waiting for broker'.format(self.name))
-            message_data = self._translate_from_broker(self.broker.recv())
+            message_data = self.broker.recv()
+            if self.palm:
+                message_data = self._translate_from_broker(message_data)
+
             self.logger.debug('Got message from broker')
             for scattered in self.scatter(message_data):
                 self.listen_to.send(scattered)
@@ -440,7 +434,9 @@ class ComponentOutbound(object):
                 if self.reply:
                     self.handle_feedback(self.listen_to.recv())
 
-            self.broker.send(self._translate_to_broker(self.reply_feedback()))
+            feedback = self.reply_feedback()
+            feedback = self._translate_to_broker(feedback)
+            self.broker.send(feedback)
 
     def cleanup(self):
         self.listen_to.close()
