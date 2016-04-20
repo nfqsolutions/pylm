@@ -22,16 +22,16 @@ def test_request_reply():
     broker.register_inbound('test',
                             log='Send to test component')
 
-    t1 = Thread(target=broker.start)
-    t1.start()
+    threads = [
+        Thread(target=broker.start),
+        Thread(target=endpoint.start, kwargs={'function': 'this.function'}),
+        Thread(target=request_reply.start)
+        ]
 
-    t2 = Thread(target=endpoint.start, kwargs={'function': 'this.function'})
-    t2.start()
+    for t in threads:
+        t.start()
 
-    t3 = Thread(target=request_reply.start)
-    t3.start()
-
-    for t in [t1, t2, t3]:
+    for t in threads:
         t.join()
 
     endpoint.socket.close()
@@ -67,22 +67,18 @@ def test_request_push():
                             route='test_push',
                             log='Routing to test_push')
 
-    t1 = Thread(target=broker.start)
-    t1.start()
+    threads = [
+        Thread(target=broker.start),
+        Thread(target=endpoint_req.start, kwargs={'function': 'this.function'}),
+        Thread(target=endpoint_pull.start),
+        Thread(target=rep_component.start),
+        Thread(target=push_component.start)
+        ]
 
-    t2 = Thread(target=endpoint_req.start, kwargs={'function': 'this.function'})
-    t2.start()
+    for t in threads:
+        t.start()
 
-    t3 = Thread(target=endpoint_pull.start)
-    t3.start()
-
-    t4 = Thread(target=rep_component.start)
-    t4.start()
-
-    t5 = Thread(target=push_component.start)
-    t5.start()
-
-    for t in [t1, t2, t3, t4, t5]:
+    for t in threads:
         t.join()
 
     endpoint_pull.socket.close()
@@ -118,22 +114,16 @@ def test_pull_push():
                             route='test_push',
                             log='Routing to test_push')
 
-    t1 = Thread(target=broker.start)
-    t1.start()
+    threads = [Thread(target=broker.start),
+               Thread(target=endpoint_push.start, kwargs={'function': 'this.function'}),
+               Thread(target=endpoint_pull.start),
+               Thread(target=pull_component.start),
+               Thread(target=push_component.start)]
 
-    t2 = Thread(target=endpoint_push.start, kwargs={'function': 'this.function'})
-    t2.start()
+    for t in threads:
+        t.start()
 
-    t3 = Thread(target=endpoint_pull.start)
-    t3.start()
-
-    t4 = Thread(target=pull_component.start)
-    t4.start()
-
-    t5 = Thread(target=push_component.start)
-    t5.start()
-
-    for t in [t1, t2, t3, t4, t5]:
+    for t in threads:
         t.join()
 
     endpoint_pull.socket.close()
