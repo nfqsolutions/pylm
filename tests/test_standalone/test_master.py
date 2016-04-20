@@ -2,6 +2,7 @@ from threading import Thread
 from pylm_ng.components.core import zmq_context, Broker
 from pylm_ng.components.messages_pb2 import BrokerMessage
 from pylm_ng.components.endpoints import logger
+from pylm_ng.components.services import PushPullService
 from uuid import uuid4
 import zmq
 
@@ -34,18 +35,15 @@ def inbound2(listen_addr):
         assert int(returned) == 1
 
 
-def outbound(listen_addr):
-    broker = zmq_context.socket(zmq.REQ)
-    broker.identity = b'outbound'
-    broker.connect(listen_addr)
-    broker_message = BrokerMessage()
-    broker_message.key = '0'
-    broker_message.payload = b'READY'
-    broker.send(broker_message.SerializeToString())
+def worker(listen_push, listen_pull):
+    pull = zmq_context.socket(zmq.PULL)
+    pull.connect(listen_push)
+    push = zmq_context.socket(zmq.PUSH)
+    push.connect(listen_pull)
 
     for i in range(10):
-        broker_message.ParseFromString(broker.recv())
-        broker.send(broker_message.SerializeToString())
+        message = pull.recv()
+        push.send(message)
 
 
 def test_feedback():
@@ -53,6 +51,10 @@ def test_feedback():
     broker.register_inbound('inbound1', route='outbound', block=True, log='inbound1')
     broker.register_inbound('inbound2', route='outbound', log='inbound2')
     broker.register_outbound('outbound', log='outbound')
+
+    pushpull = PushPullService('PushPull', 'inproc://push', 'inproc://pull',
+                               broker.outbound_address, logger=logger,
+                               messages=20)
 
     threads = [
         Thread(target=broker.start),
