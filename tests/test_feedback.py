@@ -20,6 +20,7 @@ def inbound1(listen_addr):
         assert int(returned) == i
 
     print('DEBUG: Inbound 1 finished')
+    broker.close()
 
 
 def inbound2(listen_addr):
@@ -36,6 +37,7 @@ def inbound2(listen_addr):
         assert int(returned) == 1
 
     print('DEBUG: Inbound 2 finished')
+    broker.close()
 
 
 def outbound(listen_addr):
@@ -52,6 +54,7 @@ def outbound(listen_addr):
         broker.send(broker_message.SerializeToString())
 
     print('DEBUG: Outbound finished')
+    broker.close()
 
 
 def test_feedback():
@@ -71,7 +74,9 @@ def test_feedback():
         t.start()
 
     for t in threads:
-        t.join()
+        t.join(1)
+
+    broker.cleanup()
 
     print('DEBUG: Test completed...')
 

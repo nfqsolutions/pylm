@@ -168,6 +168,10 @@ class Broker(object):
 
             self.logger.debug('Finished event cycle.')
 
+    def cleanup(self):
+        self.inbound.close()
+        self.outbound.close()
+
 
 class ComponentInbound(object):
     """
@@ -299,6 +303,10 @@ class ComponentInbound(object):
 
             if self.reply:
                 self.listen_to.send(self.reply_feedback())
+
+    def cleanup(self):
+        self.broker.close()
+        self.listen_to.close()
 
 
 class ComponentOutbound(object):
@@ -433,6 +441,10 @@ class ComponentOutbound(object):
                     self.handle_feedback(self.listen_to.recv())
 
             self.broker.send(self._translate_to_broker(self.reply_feedback()))
+
+    def cleanup(self):
+        self.listen_to.close()
+        self.broker.close()
 
 
 class ComponentBypassInbound(object):

@@ -32,11 +32,11 @@ def test_request_reply():
         t.start()
 
     for t in threads:
-        t.join()
+        t.join(1)
 
     endpoint.socket.close()
-    broker.inbound.close()
-    broker.outbound.close()
+    request_reply.cleanup()
+    broker.cleanup()
 
 
 def test_request_push():
@@ -79,12 +79,13 @@ def test_request_push():
         t.start()
 
     for t in threads:
-        t.join()
+        t.join(1)
 
     endpoint_pull.socket.close()
     endpoint_req.socket.close()
-    broker.inbound.close()
-    broker.outbound.close()
+    push_component.cleanup()
+    rep_component.cleanup()
+    broker.cleanup()
 
 
 def test_pull_push():
@@ -124,12 +125,13 @@ def test_pull_push():
         t.start()
 
     for t in threads:
-        t.join()
+        t.join(1)
 
     endpoint_pull.socket.close()
     endpoint_push.socket.close()
-    broker.inbound.close()
-    broker.outbound.close()
+    broker.cleanup()
+    pull_component.cleanup()
+    push_component.cleanup()
 
 
 if __name__ == '__main__':
