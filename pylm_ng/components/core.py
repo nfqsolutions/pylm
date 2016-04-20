@@ -18,8 +18,7 @@ class Broker(object):
                  outbound_address="inproc://outbound",
                  logger=None,
                  cache=None,
-                 messages=sys.maxsize,
-                 max_buffer_size=sys.maxsize):
+                 messages=sys.maxsize):
         """
         Initiate a broker instance
         :param inbound_address: Valid ZMQ bind address for inbound components
@@ -45,36 +44,36 @@ class Broker(object):
         # Other utilities
         self.logger = logger
         self.messages = messages
+
+        # Ledger for inbound components that are waiting for a message
+        self.ledger = {}
+
+        # Despite this is a dictionary, only one message can be buffered
         self.buffer = {}
-        if max_buffer_size < 100:  # Enforce a limit in buffer size.
-            max_buffer_size = 100
-        self.max_buffer_size = max_buffer_size
 
         # Poller for the event loop
         self.poller = zmq.Poller()
+        # Register only inbound to avoid having to buffer stuff
         self.poller.register(self.outbound, zmq.POLLIN)
-        self.poller.register(self.inbound, zmq.POLLIN)
 
         # Cache for the server
         self.cache = cache
 
-    def register_inbound(self, name, route=None, log=''):
+    def register_inbound(self, name, route='', block=False, log=''):
         """
-        Register component by name. Only inbound components have to be registered.
+        Register component by name.
         :param name: Name of the component. Each component has a name, that
           uniquely identifies it to the broker
         :param route: Each message that the broker gets from the component
           may be routed to another component. This argument gives the name
           of the target component for the message.
+        :param block: Register if the component is waiting for a reply.
         :param log: Log message for each inbound connection.
         :return:
         """
-        # If route is not specified, the component wants a message back.
-        if not route:
-            route = name
-
         self.inbound_components[name.encode('utf-8')] = {
             'route': route.encode('utf-8'),
+            'block': block,
             'log': log
         }
 
@@ -84,12 +83,13 @@ class Broker(object):
         }
 
     def start(self):
-        # Buffer to store the message when the outbound component is not available
-        # for routing. Maybe replace by a heap queue.
-        buffering = False
-
         # List of available outbound components
         available_outbound = []
+
+        # If no outbound components are expected, just register inbound
+        # to allow inbound connections
+        if not self.outbound_components:
+            self.poller.register(self.inbound, zmq.POLLIN)
 
         self.logger.info('Launch broker')
         self.logger.info('Inbound socket: {}'.format(self.inbound))
@@ -101,68 +101,67 @@ class Broker(object):
             self.logger.debug('Event {}'.format(event))
 
             if self.outbound in event:
-                self.logger.debug('Handling outbound event')
-                # TODO: Handle this message_data from outbound component, just like inbound
-                component, empty, message_data = self.outbound.recv_multipart()
+                component, empty, feedback = self.outbound.recv_multipart()
+                broker_message = BrokerMessage()
+                broker_message.ParseFromString(feedback)
+                self.logger.debug('Handling outbound event: {}'.format(broker_message.key))
 
-                # If messages for the outbound are buffered.
+                # If any message has been buffered,
                 if component in self.buffer:
-                    # Look in the buffer
-                    message_data = self.buffer[component].pop()
-                    if len(self.buffer[component]) == 0:
-                        del self.buffer[component]
-
-                    # If the buffer is empty enough and the broker was buffering
-                    if sum([len(v) for v in self.buffer.values()])*10 < self.max_buffer_size \
-                            and buffering:
-                        # Listen to inbound connections again.
-                        self.logger.info('Broker accepting messages again.')
-                        self.poller.register(self.inbound, zmq.POLLIN)
-                        buffering = False
-
+                    self.logger.debug('The message was buffered')
+                    message_data = self.buffer.pop(component)
                     self.outbound.send_multipart([component, empty, message_data])
-
-                # If they are no buffered messages, set outbound as available.
                 else:
+                    self.logger.debug('Component added as available')
                     available_outbound.append(component)
 
+                # Check if some socket is waiting for the response.
+                if broker_message.key in self.ledger:
+                    self.logger.debug('Message ID found in ledger')
+                    component = self.ledger.pop(broker_message.key)
+                    self.logger.debug('Unblocking pending inbound: {}'.format(component))
+                    self.inbound.send_multipart([component, empty, broker_message.payload])
+
+                # TODO: Check if the ledger condition is necessary.
+                if available_outbound and not self.buffer and not self.ledger:
+                    self.poller.register(self.inbound, zmq.POLLIN)
+
             elif self.inbound in event:
+                broker_message = BrokerMessage()
                 self.logger.debug('Handling inbound event')
                 component, empty, message_data = self.inbound.recv_multipart()
+                broker_message.ParseFromString(message_data)
 
                 # Start internal routing
                 route_to = self.inbound_components[component]['route']
+                block = self.inbound_components[component]['block']
 
                 # If no routing needed
-                if route_to == component:
+                if not route_to:
                     self.logger.debug('Message back to {}'.format(route_to))
-                    self.inbound.send_multipart([component, empty, message_data])
+                    self.inbound.send_multipart([component, empty, b'1'])
 
                 # If an outbound is listening
                 elif route_to in available_outbound:
                     self.logger.debug('Broker routing to {}'.format(route_to))
                     available_outbound.remove(route_to)
-                    self.outbound.send_multipart([route_to, empty, message_data])
+                    self.outbound.send_multipart([route_to, empty, broker_message.SerializeToString()])
 
                     # Unblock the component
-                    self.logger.debug('Unblocking inbound')
-                    self.inbound.send_multipart([component, empty, b'1'])
+                    if not block:
+                        self.logger.debug('Unblocking inbound')
+                        self.inbound.send_multipart([component, empty, b'1'])
+                    else:
+                        self.ledger[broker_message.key] = component
+                        self.logger.debug('Inbound waiting for feedback: {}'.format(self.ledger))
+                        # TODO: Check if ledger condition is necessary
+                        self.poller.unregister(self.inbound)
 
                 # If the corresponding outbound not is listening, buffer the message
                 else:
+                    self.buffer[route_to] = broker_message.SerializeToString()
                     self.logger.info('Sent to buffer.')
-                    if route_to in self.buffer:
-                        self.buffer[route_to].append(message_data)
-                    else:
-                        self.buffer[route_to] = [message_data]
-
-                    if sum([len(v) for v in self.buffer.values()]) >= self.max_buffer_size:
-                        self.logger.info('Broker buffering messages')
-                        self.poller.unregister(self.inbound)
-                        buffering = True
-
-                    self.logger.debug('Unblocking inbound')
-                    self.inbound.send_multipart([component, empty, b'1'])
+                    self.poller.unregister(self.inbound)
 
             else:
                 self.logger.critical('Socket not known.')
@@ -239,6 +238,27 @@ class ComponentInbound(object):
         broker_message.payload = payload
 
         return broker_message.SerializeToString()
+
+    def _translate_from_broker(self, message_data):
+        """
+        Translate the message that the component gets from the broker to the output format
+        :param message_data:
+        :return:
+        """
+        broker_message = BrokerMessage()
+        broker_message.ParseFromString(message_data)
+
+        if self.palm:
+            message_data = self.cache.get(broker_message.key)
+            palm_message = PalmMessage()
+            palm_message.ParseFromString(message_data)
+            palm_message.payload = broker_message.payload
+            message_data = palm_message.SerializeToString()
+
+        else:
+            message_data = broker_message.payload
+
+        return message_data
 
     def scatter(self, message_data):
         """
@@ -326,9 +346,33 @@ class ComponentOutbound(object):
         self.messages = messages
         self.reply = reply
 
-    def _translate_from_broker(self, message_data):
+    def _translate_to_broker(self, message_data):
         """
         Translate the message that the component has got to be digestible by the broker
+        :param message_data:
+        :return:
+        """
+        broker_message_key = str(uuid4())
+        if self.palm:
+            palm_message = PalmMessage()
+            palm_message.ParseFromString(message_data)
+            payload = palm_message.payload
+
+            # I store the message to get it later when the message is outbound. See that
+            # if I am just sending binary messages, I do not need to assign any envelope.
+            self.cache.set(broker_message_key, message_data)
+        else:
+            payload = message_data
+
+        broker_message = BrokerMessage()
+        broker_message.key = broker_message_key
+        broker_message.payload = payload
+
+        return broker_message.SerializeToString()
+
+    def _translate_from_broker(self, message_data):
+        """
+        Translate the message that the component gets from the broker to the output format
         :param message_data:
         :return:
         """
@@ -336,7 +380,6 @@ class ComponentOutbound(object):
         broker_message.ParseFromString(message_data)
 
         if self.palm:
-            # Get the envelope of the message from the cache.
             message_data = self.cache.get(broker_message.key)
             palm_message = PalmMessage()
             palm_message.ParseFromString(message_data)
@@ -374,11 +417,14 @@ class ComponentOutbound(object):
 
     def start(self):
         self.logger.info('Launch component {}'.format(self.name))
-        self.broker.send(b'1')
+        initial_broker_message = BrokerMessage()
+        initial_broker_message.key = '0'
+        initial_broker_message.payload = b'0'
+        self.broker.send(initial_broker_message.SerializeToString())
 
         for i in range(self.messages):
             self.logger.debug('Component {} blocked waiting for broker'.format(self.name))
-            message_data = self.broker.recv()
+            message_data = self._translate_from_broker(self.broker.recv())
             self.logger.debug('Got message from broker')
             for scattered in self.scatter(message_data):
                 self.listen_to.send(scattered)
@@ -386,7 +432,7 @@ class ComponentOutbound(object):
                 if self.reply:
                     self.handle_feedback(self.listen_to.recv())
 
-            self.broker.send(self.reply_feedback())
+            self.broker.send(self._translate_to_broker(self.reply_feedback()))
 
 
 class ComponentBypassInbound(object):
