@@ -9,12 +9,13 @@ class RepConnection(ComponentInbound):
     RepConnection is a component that connects a REQ socket to the broker, and a REP
     socket to an external service.
     """
-    def __init__(self, name, listen_address, broker_address="inproc://broker",
+    def __init__(self, name, listen_address, broker_address="inproc://broker", palm=False,
                  logger=None, messages=sys.maxsize):
         """
         :param name: Name of the component
         :param listen_address: ZMQ socket address to listen to
         :param broker_address: ZMQ socket address for the broker
+        :param palm: True if the connection will get PALM messages. False if they are binary
         :param logger: Logger instance
         :param messages: Maximum number of inbound messages. Defaults to infinity.
         :return:
@@ -25,6 +26,7 @@ class RepConnection(ComponentInbound):
             zmq.REP,
             reply=True,
             broker_address=broker_address,
+            palm=palm,
             logger=logger,
             messages=messages
         )
@@ -35,12 +37,13 @@ class PullConnection(ComponentInbound):
     PullConnection is a component that connects a REQ socket to the broker, and a PULL
     socket to an external service.
     """
-    def __init__(self, name, listen_address, broker_address="inproc://broker",
+    def __init__(self, name, listen_address, broker_address="inproc://broker", palm=False,
                  logger=None, messages=sys.maxsize):
         """
         :param name: Name of the component
         :param listen_address: ZMQ socket address to listen to
         :param broker_address: ZMQ socket address for the broker
+        :param palm: True if the connection will get PALM messages. False if they are binary.
         :param logger: Logger instance
         :param messages: Maximum number of inbound messages. Defaults to infinity.
         :return:
@@ -51,6 +54,7 @@ class PullConnection(ComponentInbound):
             zmq.PULL,
             reply=False,
             broker_address=broker_address,
+            palm=palm,
             logger=logger,
             messages=messages
         )
@@ -61,12 +65,13 @@ class PushConnection(ComponentOutbound):
     PushConnection is a component that connects a REQ socket to the broker, and a PUSH
     socket to an external service.
     """
-    def __init__(self, name, listen_address, broker_address="inproc://broker",
+    def __init__(self, name, listen_address, broker_address="inproc://broker", palm=False,
                  logger=None, messages=sys.maxsize):
         """
         :param name: Name of the component
         :param listen_address: ZMQ socket address to listen to
         :param broker_address: ZMQ socket address for the broker
+        :param palm: True if the component gets a PALM message. False if it is binary
         :param logger: Logger instance
         :param messages: Maximum number of inbound messages. Defaults to infinity.
         :return:
@@ -77,6 +82,7 @@ class PushConnection(ComponentOutbound):
             zmq.PUSH,
             reply=False,
             broker_address=broker_address,
+            palm=palm,
             logger=logger,
             messages=messages
         )

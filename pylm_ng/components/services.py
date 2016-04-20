@@ -10,13 +10,14 @@ class RepService(ComponentInbound):
     """
     RepService binds to a given socket and returns something.
     """
-    def __init__(self, name, listen_address, broker_address="inproc://broker",
+    def __init__(self, name, listen_address, broker_address="inproc://broker", palm=False,
                  logger=None, messages=sys.maxsize):
         """
         :param name: Name of the service
         :param listen_address: ZMQ socket address to bind to
         :param broker_address: ZMQ socket address of the broker
         :param logger: Logger instance
+        :param palm: True if the service gets PALM messages. False if they are binary
         :param messages: Maximum number of messages. Defaults to infinity
         :return:
         """
@@ -27,6 +28,7 @@ class RepService(ComponentInbound):
             reply=True,
             broker_address=broker_address,
             bind=True,
+            palm=palm,
             logger=logger,
             messages=messages
         )
@@ -36,13 +38,14 @@ class PullService(ComponentInbound):
     """
     PullService binds to a socket waits for messages from a push-pull queue.
     """
-    def __init__(self, name, listen_address, broker_address="inproc_//broker",
+    def __init__(self, name, listen_address, broker_address="inproc_//broker", palm=False,
                  logger=None, messages=sys.maxsize):
         """
         :param name: Name of the service
         :param listen_address: ZMQ socket address to bind to
         :param broker_address: ZMQ socket address of the broker
         :param logger: Logger instance
+        :param palm: True if service gets PALM messages. False if they are binary
         :param messages: Maximum number of messages. Defaults to infinity.
         :return:
         """
@@ -53,6 +56,7 @@ class PullService(ComponentInbound):
             reply=False,
             broker_address=broker_address,
             bind=True,
+            palm=palm,
             logger=logger,
             messages=messages
         )
