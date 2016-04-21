@@ -111,25 +111,32 @@ class Broker(object):
                     self.logger.debug('The message was buffered')
                     message_data = self.buffer.pop(component)
                     self.outbound.send_multipart([component, empty, message_data])
+
+                    # Check if some socket is waiting for the response.
+                    if broker_message.key in self.ledger:
+                        self.logger.debug('Message ID found in ledger')
+                        component = self.ledger.pop(broker_message.key)
+                        self.logger.debug('Unblocking pending inbound: {}'.format(component))
+                        self.inbound.send_multipart([component, empty, broker_message.payload])
+
                 else:
                     self.logger.debug('Component added as available')
                     available_outbound.append(component)
 
-                # Check if some socket is waiting for the response.
-                if broker_message.key in self.ledger:
-                    self.logger.debug('Message ID found in ledger')
-                    component = self.ledger.pop(broker_message.key)
-                    self.logger.debug('Unblocking pending inbound: {}'.format(component))
-                    self.inbound.send_multipart([component, empty, broker_message.payload])
+                    # Check if some socket is waiting for the response.
+                    if broker_message.key in self.ledger:
+                        self.logger.debug('Message ID found in ledger')
+                        component = self.ledger.pop(broker_message.key)
+                        self.logger.debug('Unblocking pending inbound: {}'.format(component))
+                        self.inbound.send_multipart([component, empty, broker_message.payload])
 
-                # TODO: Check if the ledger condition is necessary.
                 if available_outbound and not self.buffer and not self.ledger:
                     self.poller.register(self.inbound, zmq.POLLIN)
 
             elif self.inbound in event:
                 broker_message = BrokerMessage()
-                self.logger.debug('Handling inbound event')
                 component, empty, message_data = self.inbound.recv_multipart()
+                self.logger.debug('Handling inbound event from {}'.format(component))
                 broker_message.ParseFromString(message_data)
 
                 # Start internal routing
@@ -162,6 +169,10 @@ class Broker(object):
                     self.buffer[route_to] = broker_message.SerializeToString()
                     self.logger.info('Sent to buffer.')
                     self.poller.unregister(self.inbound)
+
+                    if block:
+                        self.ledger[broker_message.key] = component
+                        self.logger.debug('Inbound waiting for feedback: {}'.format(self.ledger))
 
             else:
                 self.logger.critical('Socket not known.')
