@@ -90,6 +90,42 @@ class PushService(ComponentOutbound):
         )
 
 
+class WorkerPushService(PushService):
+    def _translate_from_broker(self, message_data):
+        """
+        See help of parent
+        :param message_data:
+        :return:
+        """
+        return message_data
+
+    def _translate_to_broker(self, message_data):
+        """
+        See help of parent
+        :param message_data:
+        :return:
+        """
+        return message_data
+
+
+class WorkerPullService(PullService):
+    def _translate_to_broker(self, message_data):
+        """
+        See help of parent
+        :param message_data:
+        :return:
+        """
+        return message_data
+
+    def _translate_from_broker(self, message_data):
+        """
+        See help of parent
+        :param message_data:
+        :return:
+        """
+        return message_data
+
+
 class PushPullService(object):
     """
     Push-Pull Service to connect to workers

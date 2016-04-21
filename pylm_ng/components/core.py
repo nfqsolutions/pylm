@@ -94,6 +94,7 @@ class Broker(object):
         self.logger.info('Launch broker')
         self.logger.info('Inbound socket: {}'.format(self.inbound))
         self.logger.info('Outbound socket: {}'.format(self.outbound))
+        self.logger.info('Outbound components: {}'.format(self.outbound_components))
 
         for i in range(self.messages):
             # Polls the outbound socket for inbound and outbound connections
