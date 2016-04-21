@@ -4,7 +4,8 @@ import sys
 
 
 class EndPoint(object):
-    def __init__(self, name, log_address, perf_address, ping_address):
+    def __init__(self, name, log_address, perf_address, ping_address,
+                 messages=sys.maxsize):
         self.poller = zmq.Poller()
         self.name = name
 
@@ -24,8 +25,10 @@ class EndPoint(object):
         self.poller.register(self.perf, zmq.POLLIN)
         self.poller.register(self.ping, zmq.POLLIN)
 
-    def _start_debug(self, messages=sys.maxsize):
-        for i in range(messages):
+        self.messages = messages
+
+    def _start_debug(self):
+        for i in range(self.messages):
             event = dict(self.poller.poll())
 
             if self.logs in event:

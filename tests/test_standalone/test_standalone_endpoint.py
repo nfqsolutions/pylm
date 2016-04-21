@@ -16,7 +16,7 @@ def test_endpoint():
     perf_address = "inproc://perf2"
     ping_address = "inproc://ping2"
     endpoint = EndPoint('EndPoint', log_address, perf_address,
-                        ping_address)
+                        ping_address, messages=30)
 
     log_generator = zmq_context.socket(zmq.PUSH)
     log_generator.connect(log_address)
@@ -28,7 +28,7 @@ def test_endpoint():
     ping_generator.connect(ping_address)
 
     threads = [
-        Thread(target=endpoint._start_debug, args=(30,)),
+        Thread(target=endpoint._start_debug),
         Thread(target=send_ten, args=(log_generator,)),
         Thread(target=send_ten, args=(perf_generator,)),
         Thread(target=send_ten, args=(ping_generator,))

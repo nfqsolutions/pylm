@@ -1,8 +1,7 @@
 # The difference between connections and services is that connections
 # connect, while services bind.
 from pylm_ng.components.core import ComponentInbound, zmq_context
-from pylm_ng.components.messages_pb2 import PalmMessage, BrokerMessage
-from uuid import uuid4
+from pylm_ng.components.messages_pb2 import BrokerMessage
 import zmq
 import sys
 
@@ -108,50 +107,7 @@ class PushPullService(object):
         self.cache = cache
         self.messages = messages
 
-    def _translate_to_broker(self, message_data):
-        """
-        Translate the message that the component has got to be digestible by the broker
-        :param message_data:
-        :return:
-        """
-        broker_message_key = str(uuid4())
-        if self.palm:
-            palm_message = PalmMessage()
-            palm_message.ParseFromString(message_data)
-            payload = palm_message.payload
-
-            # I store the message to get it later when the message is outbound. See that
-            # if I am just sending binary messages, I do not need to assign any envelope.
-            self.cache.set(broker_message_key, message_data)
-        else:
-            payload = message_data
-
-        broker_message = BrokerMessage()
-        broker_message.key = broker_message_key
-        broker_message.payload = payload
-
-        return broker_message.SerializeToString()
-
-    def _translate_from_broker(self, message_data):
-        """
-        Translate the message that the component gets from the broker to the output format
-        :param message_data:
-        :return:
-        """
-        broker_message = BrokerMessage()
-        broker_message.ParseFromString(message_data)
-
-        if self.palm:
-            message_data = self.cache.get(broker_message.key)
-            palm_message = PalmMessage()
-            palm_message.ParseFromString(message_data)
-            palm_message.payload = broker_message.payload
-            message_data = palm_message.SerializeToString()
-
-        else:
-            message_data = broker_message.payload
-
-        return message_data
+        self.last_message = b''
 
     def scatter(self, message_data):
         """
@@ -168,14 +124,14 @@ class PushPullService(object):
         :param message_data:
         :return:
         """
-        pass
+        self.last_message = message_data
 
     def reply_feedback(self):
         """
         To be overriden. Returns the feedback if the component has to reply.
         :return:
         """
-        return b'0'
+        return self.last_message
 
     def start(self):
         self.logger.info('Launch component {}'.format(self.name))
@@ -188,7 +144,7 @@ class PushPullService(object):
             self.logger.debug('Component {} blocked waiting for broker'.format(self.name))
             # Workers use BrokerMessages, because they want to know the message ID.
             message_data = self.broker.recv()
-            self.logger.debug('Got message from broker')
+            self.logger.debug('Got message {} from broker'.format(i))
             for scattered in self.scatter(message_data):
                 self.push.send(scattered)
                 self.handle_feedback(self.pull.recv())

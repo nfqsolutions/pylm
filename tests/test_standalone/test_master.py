@@ -17,7 +17,9 @@ def inbound1(listen_addr):
         broker_message.key = str(uuid4())
         broker_message.payload = str(i).encode('utf-8')
         broker.send(broker_message.SerializeToString())
+        print('Inbound1 sent', i)
         returned = broker.recv()
+        print('Inbound1 recv', i)
         assert int(returned) == i
 
         
@@ -31,7 +33,9 @@ def inbound2(listen_addr):
         broker_message.key = str(uuid4())
         broker_message.payload = str(i).encode('utf-8')
         broker.send(broker_message.SerializeToString())
+        print('Inbound2 sent', i)
         returned = broker.recv()
+        print('Inbound2 recv', i)
         assert int(returned) == 1
 
 
@@ -41,26 +45,28 @@ def worker(listen_push, listen_pull):
     push = zmq_context.socket(zmq.PUSH)
     push.connect(listen_pull)
 
+    print('****', 'Worker waiting...')
     for i in range(10):
-        message = pull.recv()
-        push.send(message)
+        message_data = pull.recv()
+        print('********', 'Worker got message.', i)
+        push.send(message_data)
 
 
 def test_feedback():
-    broker = Broker(logger=logger, messages=20)
-    broker.register_inbound('inbound1', route='outbound', block=True, log='inbound1')
-    broker.register_inbound('inbound2', route='outbound', log='inbound2')
-    broker.register_outbound('outbound', log='outbound')
+    broker = Broker(logger=logger, messages=200)
+    broker.register_inbound('inbound1', route='PushPull', block=True, log='inbound1')
+    broker.register_inbound('inbound2', route='PushPull', log='inbound2')
+    broker.register_outbound('PushPull', log='outbound')
 
-    pushpull = PushPullService('PushPull', 'inproc://push', 'inproc://pull',
-                               broker.outbound_address, logger=logger,
-                               messages=20)
-
+    push_pull = PushPullService('PushPull', 'inproc://push', 'inproc://pull',
+                                broker.outbound_address, logger=logger,
+                                messages=10)
     threads = [
         Thread(target=broker.start),
         Thread(target=inbound1, args=(broker.inbound_address,)),
         Thread(target=inbound2, args=(broker.inbound_address,)),
-        Thread(target=pushpull, args=(broker.outbound_address,))
+        Thread(target=push_pull.start),
+        Thread(target=worker, args=(push_pull.push_address, push_pull.pull_address))
         ]
 
     for t in threads:
