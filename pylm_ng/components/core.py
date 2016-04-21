@@ -382,11 +382,15 @@ class ComponentOutbound(object):
         """
         broker_message = BrokerMessage()
         broker_message.ParseFromString(message_data)
-        message_data = self.cache.get(broker_message.key)
-        palm_message = PalmMessage()
-        palm_message.ParseFromString(message_data)
-        palm_message.payload = broker_message.payload
-        message_data = palm_message.SerializeToString()
+
+        if self.palm:
+            message_data = self.cache.get(broker_message.key)
+            palm_message = PalmMessage()
+            palm_message.ParseFromString(message_data)
+            palm_message.payload = broker_message.payload
+            message_data = palm_message.SerializeToString()
+        else:
+            message_data = broker_message.payload
 
         return message_data
 
@@ -424,19 +428,18 @@ class ComponentOutbound(object):
         for i in range(self.messages):
             self.logger.debug('Component {} blocked waiting for broker'.format(self.name))
             message_data = self.broker.recv()
-            if self.palm:
-                message_data = self._translate_from_broker(message_data)
+            message_data = self._translate_from_broker(message_data)
 
             self.logger.debug('Got message from broker')
             for scattered in self.scatter(message_data):
                 self.listen_to.send(scattered)
 
                 if self.reply:
-                    self.handle_feedback(self.listen_to.recv())
+                    feedback = self.listen_to.recv()
+                    feedback = self._translate_to_broker(feedback)
+                    self.handle_feedback(feedback)
 
-            feedback = self.reply_feedback()
-            feedback = self._translate_to_broker(feedback)
-            self.broker.send(feedback)
+            self.broker.send(self.reply_feedback())
 
     def cleanup(self):
         self.listen_to.close()

@@ -60,7 +60,7 @@ def test_feedback():
         Thread(target=broker.start),
         Thread(target=inbound1, args=(broker.inbound_address,)),
         Thread(target=inbound2, args=(broker.inbound_address,)),
-        Thread(target=outbound, args=(broker.outbound_address,))
+        Thread(target=pushpull, args=(broker.outbound_address,))
         ]
 
     for t in threads:
