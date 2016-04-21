@@ -161,7 +161,6 @@ class Broker(object):
                     else:
                         self.ledger[broker_message.key] = component
                         self.logger.debug('Inbound waiting for feedback: {}'.format(self.ledger))
-                        # TODO: Check if ledger condition is necessary
                         self.poller.unregister(self.inbound)
 
                 # If the corresponding outbound not is listening, buffer the message
@@ -171,6 +170,7 @@ class Broker(object):
                     self.poller.unregister(self.inbound)
 
                     if block:
+                        # Blocked messages should be buffered too.
                         self.ledger[broker_message.key] = component
                         self.logger.debug('Inbound waiting for feedback: {}'.format(self.ledger))
 
