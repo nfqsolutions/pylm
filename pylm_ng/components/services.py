@@ -91,6 +91,10 @@ class PushService(ComponentOutbound):
 
 
 class WorkerPushService(PushService):
+    """
+    This is a particular push service that does not modify the messages that
+    the broker sends.
+    """
     def _translate_from_broker(self, message_data):
         """
         See help of parent
@@ -109,6 +113,10 @@ class WorkerPushService(PushService):
 
 
 class WorkerPullService(PullService):
+    """
+    This is a particular pull service that does not modify the messages that
+    the broker sends.
+    """
     def _translate_to_broker(self, message_data):
         """
         See help of parent
