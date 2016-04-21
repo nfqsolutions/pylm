@@ -23,16 +23,29 @@ def outbound(listen_addr):
         print('**********', 'Outbound got response', i)
 
 
-def worker(listen_push, listen_pull):
+def worker1(listen_push, listen_pull):
     pull = zmq_context.socket(zmq.PULL)
     pull.connect(listen_push)
     push = zmq_context.socket(zmq.PUSH)
     push.connect(listen_pull)
 
     print('****', 'Worker waiting...')
-    for i in range(10):
+    for i in range(5):
         message_data = pull.recv()
-        print('********', 'Worker got message.', i)
+        print('********', 'Worker1 got message.', i)
+        push.send(message_data)
+
+
+def worker2(listen_push, listen_pull):
+    pull = zmq_context.socket(zmq.PULL)
+    pull.connect(listen_push)
+    push = zmq_context.socket(zmq.PUSH)
+    push.connect(listen_pull)
+
+    print('****', 'Worker waiting...')
+    for i in range(5):
+        message_data = pull.recv()
+        print('********', 'Worker2 got message.', i)
         push.send(message_data)
 
 
@@ -64,9 +77,11 @@ def test_feedback():
         Thread(target=worker_pull_service.start),
         Thread(target=inbound, args=(pull_service.listen_address,)),
         Thread(target=outbound, args=(push_service.listen_address,)),
-        Thread(target=worker,
+        Thread(target=worker1,
+               args=(worker_push_service.listen_address, worker_pull_service.listen_address)),
+        Thread(target=worker2,
                args=(worker_push_service.listen_address, worker_pull_service.listen_address))
-        ]
+    ]
 
     for t in threads:
         t.start()
