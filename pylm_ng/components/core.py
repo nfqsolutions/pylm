@@ -300,7 +300,7 @@ class ComponentInbound(object):
         for i in range(self.messages):
             self.logger.debug('Component {} blocked waiting messages'.format(self.name))
             message_data = self.listen_to.recv()
-            self.logger.debug('Got inbound message')
+            self.logger.debug('{} Got inbound message'.format(self.name))
 
             for scattered in self.scatter(message_data):
                 scattered = self._translate_to_broker(scattered)

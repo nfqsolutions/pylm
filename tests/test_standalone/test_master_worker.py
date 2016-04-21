@@ -20,6 +20,7 @@ def outbound(listen_addr):
 
     for i in range(10):
         socket.recv()
+        print('**********', 'Outbound got response', i)
 
 
 def worker(listen_push, listen_pull):
@@ -36,11 +37,19 @@ def worker(listen_push, listen_pull):
 
 
 def test_feedback():
-    broker = Broker(logger=logger, messages=20)
-    pull_service = PullService('Pull', 'inproc://pull', logger=logger, messages=10)
-    push_service = PushService('Push', 'inproc://push', logger=logger, messages=10)
-    worker_pull_service = WorkerPullService('WorkerPull', 'inproc://worker_pull', logger=logger, messages=10)
-    worker_push_service = WorkerPushService('WorkerPush', 'inproc://worker_push', logger=logger, messages=10)
+    broker = Broker(logger=logger, messages=42)
+    pull_service = PullService('Pull', 'inproc://pull',
+                               broker_address=broker.inbound_address,
+                               logger=logger, messages=10)
+    push_service = PushService('Push', 'inproc://push',
+                               broker_address=broker.outbound_address,
+                               logger=logger, messages=10)
+    worker_pull_service = WorkerPullService('WorkerPull', 'inproc://worker_pull',
+                                            broker_address=broker.inbound_address,
+                                            logger=logger, messages=10)
+    worker_push_service = WorkerPushService('WorkerPush', 'inproc://worker_push',
+                                            broker_address=broker.outbound_address,
+                                            logger=logger, messages=10)
 
     broker.register_inbound('Pull', route='WorkerPush', log='to_broker')
     broker.register_inbound('WorkerPull', route='Push', log='from_broker')
