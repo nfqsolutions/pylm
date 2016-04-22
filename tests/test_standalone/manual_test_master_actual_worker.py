@@ -1,3 +1,6 @@
+# ACHTUNG! You have to run this test manually,
+# because it cannot die.
+
 from threading import Thread
 from pylm_ng.components.core import zmq_context
 from pylm_ng.standalone import Master, EndPoint
@@ -71,8 +74,8 @@ def test_feedback():
                args=(master.worker_push_address, master.worker_pull_address))
     ]
 
-    for t in threads[:2]:
-        t.daemon = True
+    # for t in threads[:2]:
+    #     t.daemon = True
 
     for t in threads:
         t.start()
