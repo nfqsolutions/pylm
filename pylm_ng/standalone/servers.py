@@ -2,7 +2,7 @@ from pylm_ng.components.core import zmq_context, Broker
 from pylm_ng.components.services import WorkerPullService, WorkerPushService
 from pylm_ng.components.services import PullService, PushService
 from pylm_ng.components.utils import PushHandler, Pinger, PerformanceCounter
-from pylm_ng.components.messages_pb2 import PalmMessage
+from pylm_ng.components.messages_pb2 import PalmMessage, BrokerMessage
 from google.protobuf.message import DecodeError
 from threading import Thread
 from uuid import uuid4
@@ -170,7 +170,7 @@ class Worker(object):
     """
     Standalone worker for the standalone master.
     """
-    def __init__(self, name, pull_address, push_address,
+    def __init__(self, name, push_address, pull_address,
                  log_address, perf_address,
                  ping_address, debug_level=logging.DEBUG,
                  messages=sys.maxsize):
@@ -187,14 +187,16 @@ class Worker(object):
         self.perfcounter = PerformanceCounter(listen_address=perf_address)
 
         # Configure the pinger.
-        self.pinger = Pinger(listen_address=ping_address,
-                             every=10.0)
+        self.pinger = Pinger(listen_address=ping_address, every=10.0)
 
         # Configure the push and pull connections.
+        self.push_address = push_address
         self.pull = zmq_context.socket(zmq.PULL)
-        self.pull.connect(pull_address)
+        self.pull.connect(push_address)
+
+        self.pull_address = pull_address
         self.push = zmq_context.socket(zmq.PUSH)
-        self.push.connect(push_address)
+        self.push.connect(pull_address)
 
         self.messages = messages
 
@@ -205,30 +207,24 @@ class Worker(object):
 
     def start(self):
         for i in range(self.messages):
-            message_data = self.rep.recv()
-            self.logger.info('Got a message')
+            message_data = self.pull.recv()
+            self.logger.info('{} Got a message'.format(self.name))
             result = b'0'
-            message = PalmMessage()
+            message = BrokerMessage()
             try:
                 message.ParseFromString(message_data)
-                [server, function] = message.function.split('.')
-
-                if not self.name == server:
-                    self.logger.error('You called the wrong server')
-                else:
+                instruction = message.instruction
+                try:
+                    user_function = getattr(self, instruction)
+                    self.logger.info('Loking for {}'.format(instruction))
                     try:
-                        user_function = getattr(self, function)
-                        self.logger.info('Loking for {}'.format(function))
-                        try:
-                            result = user_function(message.payload)
-                        except:
-                            self.logger.error('User function gave an error')
-                    except KeyError:
-                        self.logger.error(
-                            'Function {} was not found'.format(function)
-                        )
+                        result = user_function(message.payload)
+                    except:
+                        self.logger.error('{} User function gave an error'.format(self.name))
+                except AttributeError:
+                    self.logger.error('Function {} was not found'.format(instruction))
             except DecodeError:
                 self.logger.error('Message could not be decoded')
 
             message.payload = result
-            self.rep.send(message.SerializeToString())
+            self.push.send(message.SerializeToString())
