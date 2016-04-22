@@ -43,7 +43,7 @@ def test_feedback():
                      this_log_address,
                      this_perf_address,
                      this_ping_address)
-    worker2 = Worker('worker1',
+    worker2 = Worker('worker2',
                      master.worker_push_address,
                      master.worker_pull_address,
                      this_log_address,
