@@ -1,4 +1,6 @@
-from pylm_ng.components.core import zmq_context
+from pylm_ng.components.core import zmq_context, Broker
+from pylm_ng.components.services import WorkerPullService, WorkerPushService
+from pylm_ng.components.services import PullService, PushService
 from pylm_ng.components.utils import PushHandler, Pinger, PerformanceCounter
 from pylm_ng.components.messages_pb2 import PalmMessage
 from google.protobuf.message import DecodeError
@@ -97,7 +99,71 @@ class Server(object):
 
 
 class Master(object):
-    pass
+    """
+    Standalone master server, intended to send workload to workers
+    """
+    def __init__(self, name, pull_address, push_address,
+                 worker_pull_address, worker_push_address,
+                 log_address, perf_address, ping_address,
+                 debug_level=logging.DEBUG):
+        self.name = name
+        self.cache = {}
+
+        # Addresses:
+        self.pull_address = pull_address
+        self.push_address = push_address
+        self.worker_pull_address = worker_pull_address
+        self.worker_push_address = worker_push_address
+
+        # Configure the log handler
+        handler = PushHandler(log_address)
+        self.logger = logging.getLogger(name)
+        self.logger.addHandler(handler)
+        self.logger.setLevel(debug_level)
+
+        # Configure the performance counter
+        self.perfcounter = PerformanceCounter(listen_address=perf_address)
+
+        # Configure the pinger.
+        self.pinger = Pinger(listen_address=ping_address, every=10.0)
+
+        # Configure the broker and the connectors
+        broker = Broker(logger=self.logger)
+        pull_service = PullService('Pull', pull_address,
+                                   broker_address=broker.inbound_address,
+                                   logger=self.logger)
+        push_service = PushService('Push', push_address,
+                                   broker_address=broker.outbound_address,
+                                   logger=self.logger)
+        worker_pull_service = WorkerPullService('WorkerPull', worker_pull_address,
+                                                broker_address=broker.inbound_address,
+                                                logger=self.logger)
+        worker_push_service = WorkerPushService('WorkerPush', worker_push_address,
+                                                broker_address=broker.outbound_address,
+                                                logger=self.logger)
+
+        broker.register_inbound('Pull', route='WorkerPush', log='to_broker')
+        broker.register_inbound('WorkerPull', route='Push', log='from_broker')
+        broker.register_outbound('WorkerPush', log='to_broker')
+        broker.register_outbound('Push', log='to_sink')
+
+        self.threads = [
+            Thread(target=broker.start),
+            Thread(target=push_service.start),
+            Thread(target=pull_service.start),
+            Thread(target=worker_push_service.start),
+            Thread(target=worker_pull_service.start)
+        ]
+
+        # This is the pinger thread that keeps the pinger alive.
+        pinger_thread = Thread(target=self.pinger.start)
+        pinger_thread.daemon = True
+        pinger_thread.start()
+
+    def start(self):
+        for t in self.threads:
+            t.daemon = True
+            t.start()
 
 
 class Worker(object):
@@ -137,33 +203,32 @@ class Worker(object):
         pinger_thread.daemon = True
         pinger_thread.start()
 
+    def start(self):
+        for i in range(self.messages):
+            message_data = self.rep.recv()
+            self.logger.info('Got a message')
+            result = b'0'
+            message = PalmMessage()
+            try:
+                message.ParseFromString(message_data)
+                [server, function] = message.function.split('.')
 
-def start(self):
-    for i in range(self.messages):
-        message_data = self.rep.recv()
-        self.logger.info('Got a message')
-        result = b'0'
-        message = PalmMessage()
-        try:
-            message.ParseFromString(message_data)
-            [server, function] = message.function.split('.')
-
-            if not self.name == server:
-                self.logger.error('You called the wrong server')
-            else:
-                try:
-                    user_function = getattr(self, function)
-                    self.logger.info('Loking for {}'.format(function))
+                if not self.name == server:
+                    self.logger.error('You called the wrong server')
+                else:
                     try:
-                        result = user_function(message.payload)
-                    except:
-                        self.logger.error('User function gave an error')
-                except KeyError:
-                    self.logger.error(
-                        'Function {} was not found'.format(function)
-                    )
-        except DecodeError:
-            self.logger.error('Message could not be decoded')
+                        user_function = getattr(self, function)
+                        self.logger.info('Loking for {}'.format(function))
+                        try:
+                            result = user_function(message.payload)
+                        except:
+                            self.logger.error('User function gave an error')
+                    except KeyError:
+                        self.logger.error(
+                            'Function {} was not found'.format(function)
+                        )
+            except DecodeError:
+                self.logger.error('Message could not be decoded')
 
-        message.payload = result
-        self.rep.send(message.SerializeToString())
+            message.payload = result
+            self.rep.send(message.SerializeToString())
