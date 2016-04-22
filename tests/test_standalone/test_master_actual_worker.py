@@ -66,9 +66,9 @@ def test_feedback():
         Thread(target=inbound, args=(master.pull_address,)),
         Thread(target=outbound, args=(master.push_address,)),
         Thread(target=worker1,
-               args=(master.worker_pull_address, master.worker_push_address)),
+               args=(master.worker_push_address, master.worker_pull_address)),
         Thread(target=worker2,
-               args=(master.worker_pull_address, master.worker_push_address))
+               args=(master.worker_push_address, master.worker_pull_address))
     ]
 
     for t in threads:
