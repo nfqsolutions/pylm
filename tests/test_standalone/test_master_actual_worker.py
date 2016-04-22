@@ -71,6 +71,9 @@ def test_feedback():
                args=(master.worker_push_address, master.worker_pull_address))
     ]
 
+    for t in threads[:2]:
+        t.daemon = True
+
     for t in threads:
         t.start()
 
