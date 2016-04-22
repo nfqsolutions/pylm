@@ -243,15 +243,18 @@ class ComponentInbound(object):
             palm_message = PalmMessage()
             palm_message.ParseFromString(message_data)
             payload = palm_message.payload
+            instruction = palm_message.function.split('.')[1]
 
             # I store the message to get it later when the message is outbound. See that
             # if I am just sending binary messages, I do not need to assign any envelope.
             self.cache.set(broker_message_key, message_data)
         else:
             payload = message_data
+            instruction = ''
 
         broker_message = BrokerMessage()
         broker_message.key = broker_message_key
+        broker_message.instruction = instruction
         broker_message.payload = payload
 
         return broker_message.SerializeToString()
@@ -373,15 +376,18 @@ class ComponentOutbound(object):
             palm_message = PalmMessage()
             palm_message.ParseFromString(message_data)
             payload = palm_message.payload
+            instruction = palm_message.function.split('.')[1]
 
             # I store the message to get it later when the message is outbound. See that
             # if I am just sending binary messages, I do not need to assign any envelope.
             self.cache.set(broker_message_key, message_data)
         else:
             payload = message_data
+            instruction = ''
 
         broker_message = BrokerMessage()
         broker_message.key = broker_message_key
+        broker_message.instruction = instruction
         broker_message.payload = payload
 
         return broker_message.SerializeToString()

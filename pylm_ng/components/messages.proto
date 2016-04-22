@@ -13,4 +13,5 @@ message PalmMessage {
 message BrokerMessage {
   required string key =    1;
   required bytes payload = 2;
+  optional string instruction = 3;
 }
