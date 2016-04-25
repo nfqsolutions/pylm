@@ -13,7 +13,7 @@ class Client(object):
         self.server_name = server_name
         self.uuid = str(uuid4())
 
-    def set(self, data):
+    def set(self, data, key=None):
         """
         Sets some data in the server's internal cache.
         :param data: Data to be cached.
@@ -25,6 +25,8 @@ class Client(object):
         message.stage = 0
         message.function = '.'.join([self.server_name, 'set'])
         message.payload = data
+        if key:
+            message.cache = key
         self.req.send(message.SerializeToString())
         message.ParseFromString(self.req.recv())
         return message.payload
@@ -64,7 +66,7 @@ class Client(object):
 
 
 class ParallelClient(object):
-    def __init__(self, push_address, pull_address, server_name):
+    def __init__(self, push_address, pull_address, db_address, server_name):
         self.server_name = server_name
         self.push_address = push_address
         self.push = zmq_context.socket(zmq.PUSH)
@@ -73,6 +75,10 @@ class ParallelClient(object):
         self.pull_address = pull_address
         self.pull = zmq_context.socket(zmq.PULL)
         self.pull.connect(push_address)
+
+        self.db_address = db_address
+        self.db = zmq_context.socket(zmq.REQ)
+        self.db.connect(db_address)
 
         self.function = ''
         self.job_generator = None
@@ -120,3 +126,37 @@ class ParallelClient(object):
         yield from self._launch_job_from_generator(generator, messages)
         self.clean()
 
+    def set(self, value, key=None):
+        """
+        Sets a key value pare in the remote database.
+        :param key:
+        :param value:
+        :return:
+        """
+        message = PalmMessage()
+        message.pipeline = str(uuid4())
+        message.client = self.uuid
+        message.stage = 0
+        message.function = '.'.join([self.server_name, 'set'])
+        message.payload = value
+        if key:
+            message.cache = key
+        self.req.send(message.SerializeToString())
+        message.ParseFromString(self.req.recv())
+        return message.payload
+
+    def delete(self, key):
+        """
+        Deletes data in the server's internal cache.
+        :param key: Key of the data to be deleted
+        :return:
+        """
+        message = PalmMessage()
+        message.pipeline = str(uuid4())
+        message.client = self.uuid
+        message.stage = 0
+        message.function = '.'.join([self.server_name, 'delete'])
+        message.payload = key
+        self.req.send(message.SerializeToString())
+        message.ParseFromString(self.req.recv())
+        return message.payload

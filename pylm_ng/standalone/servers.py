@@ -1,7 +1,7 @@
 from pylm_ng.components.core import zmq_context, Broker
 from pylm_ng.components.services import WorkerPullService, WorkerPushService
 from pylm_ng.components.services import PullService, PushService
-from pylm_ng.components.utils import PushHandler, Pinger, PerformanceCounter
+from pylm_ng.components.utils import PushHandler, Pinger, PerformanceCounter, CacheService
 from pylm_ng.components.messages_pb2 import PalmMessage, BrokerMessage
 from pylm_ng.persistence.kv import DictDB
 from google.protobuf.message import DecodeError
@@ -56,8 +56,10 @@ class Server(object):
         pinger_thread.daemon = True
         pinger_thread.start()
 
-    def set(self, data):
-        key = str(uuid4()).encode('utf-8')
+    def set(self, data, key=None):
+        if not key:
+            key = str(uuid4()).encode('utf-8')
+
         self.cache[key] = data
         return key
 
@@ -85,7 +87,12 @@ class Server(object):
                         user_function = getattr(self, function)
                         self.logger.info('Looking for {}'.format(function))
                         try:
-                            result = user_function(message.payload)
+                            # This is a little exception for the cache to accept
+                            # a value
+                            if message.hasField('cache'):
+                                result = user_function(message.payload, message.cache)
+                            else:
+                                result = user_function(message.payload)
                         except:
                             self.logger.error('User function gave an error')
                     except KeyError:
@@ -188,10 +195,9 @@ class Worker(object):
     """
     Standalone worker for the standalone master.
     """
-    def __init__(self, name, push_address, pull_address,
-                 log_address, perf_address,
-                 ping_address, debug_level=logging.DEBUG,
-                 messages=sys.maxsize):
+    def __init__(self, name, push_address, pull_address, db_address,
+                 log_address, perf_address, ping_address,
+                 debug_level=logging.DEBUG, messages=sys.maxsize):
         self.name = name
         self.cache = DictDB()
 
@@ -216,6 +222,12 @@ class Worker(object):
         self.push = zmq_context.socket(zmq.PUSH)
         self.push.connect(pull_address)
 
+        self.db_address = db_address
+        self.cache_service = CacheService(self.name,
+                                          db_address,
+                                          self.logger,
+                                          cache=self.cache)
+
         self.messages = messages
 
         # This is the pinger thread that keeps the pinger alive.
@@ -234,7 +246,7 @@ class Worker(object):
                 instruction = message.instruction
                 try:
                     user_function = getattr(self, instruction)
-                    self.logger.info('Loking for {}'.format(instruction))
+                    self.logger.info('Looking for {}'.format(instruction))
                     try:
                         result = user_function(message.payload)
                     except:

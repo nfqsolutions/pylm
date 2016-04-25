@@ -1,5 +1,7 @@
 from pylm_ng.components.connections import PushBypassConnection
+from pylm_ng.components.services import RepBypassService
 from pylm_ng.components.core import zmq_context
+from pylm_ng.components.messages_pb2 import PalmMessage
 from logging import Handler, Formatter, NOTSET
 import zmq
 import sys
@@ -119,3 +121,35 @@ class Pinger(PushBypassConnection):
         for i in range(self.pings):
             time.sleep(self.every)
             self.send(b'ping')
+
+
+class CacheService(RepBypassService):
+    def recv(self):
+        message_data = self.listen_to.recv()
+        message = PalmMessage()
+        message.ParseFromString(message_data)
+        instruction = message.function.split('.')[1]
+
+        if instruction == 'set':
+            key = message.cache
+            value = message.payload
+            self.cache.set(key, value)
+            return_value = key
+
+        elif instruction == 'get':
+            key = message.cache
+            value = self.cache.get(key)
+            return_value = value
+
+        elif instruction == 'delete':
+            key = message.cache
+            self.cache.delete(key)
+            return_value = key
+
+        else:
+            self.logger.error(
+                'Cache {}:Key not found in the database'.format(self.name)
+            )
+            return_value = None
+
+        self.listen_to.send(return_value)
