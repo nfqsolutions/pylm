@@ -25,7 +25,13 @@ class ParallelClient(object):
     def __init__(self, push_address, pull_address, server_name):
         self.server_name = server_name
         self.push_address = push_address
+        self.push = zmq_context.socket(zmq.PUSH)
+        self.push.connect(push_address)
+
         self.pull_address = pull_address
+        self.pull = zmq_context.socket(zmq.PULL)
+        self.pull.connect(pull_address)
+
         self.function = ''
         self.job_generator = None
         self.messages = 0
@@ -49,3 +55,24 @@ class ParallelClient(object):
         job_thread.start()
 
         for i in range(self.messages):
+            message_data = self.pull.recv()
+            message = PalmMessage()
+            message.ParseFromString(message_data)
+            yield message.payload
+
+    def clean(self):
+        self.push.close()
+        self.pull.close()
+
+    def job(self, function, generator, messages=sys.maxsize):
+        """
+        Submit a job for the cluster given a function to be executed, and a generator
+        that provides the payloads for each message
+        :param function: String. Function to be executed
+        :param generator: Generator of messages.
+        :param messages: Number of expected messages before shutting down the client.
+        :return:
+        """
+        self.function = function
+        yield from self._launch_job_from_generator(generator, messages)
+        self.clean()
