@@ -105,7 +105,7 @@ class Master(object):
     def __init__(self, name, pull_address, push_address,
                  worker_pull_address, worker_push_address,
                  log_address, perf_address, ping_address,
-                 debug_level=logging.DEBUG):
+                 palm=False, debug_level=logging.DEBUG):
         self.name = name
         self.cache = {}
 
@@ -121,6 +121,9 @@ class Master(object):
         self.logger.addHandler(handler)
         self.logger.setLevel(debug_level)
 
+        # Handle that controls if the messages have to be processed
+        self.palm = palm
+
         # Configure the performance counter
         self.perfcounter = PerformanceCounter(listen_address=perf_address)
 
@@ -131,16 +134,16 @@ class Master(object):
         broker = Broker(logger=self.logger)
         pull_service = PullService('Pull', pull_address,
                                    broker_address=broker.inbound_address,
-                                   logger=self.logger)
+                                   logger=self.logger, palm=palm)
         push_service = PushService('Push', push_address,
                                    broker_address=broker.outbound_address,
-                                   logger=self.logger)
+                                   logger=self.logger, palm=palm)
         worker_pull_service = WorkerPullService('WorkerPull', worker_pull_address,
                                                 broker_address=broker.inbound_address,
-                                                logger=self.logger)
+                                                logger=self.logger, palm=palm)
         worker_push_service = WorkerPushService('WorkerPush', worker_push_address,
                                                 broker_address=broker.outbound_address,
-                                                logger=self.logger)
+                                                logger=self.logger, palm=palm)
 
         broker.register_inbound('Pull', route='WorkerPush', log='to_broker')
         broker.register_inbound('WorkerPull', route='Push', log='from_broker')

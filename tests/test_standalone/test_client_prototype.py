@@ -44,10 +44,10 @@ class ParallelClient(object):
             message.pipeline = str(uuid4())
             message.client = self.uuid
             message.stage = 0
-            message.function = self.function
+            message.function = '.'.join([self.server_name, self.function])
             message.payload = m
 
-            #print('Client:: send message')
+            print('Client:: send message')
             self.push.send(message.SerializeToString())
 
     def _launch_job_from_generator(self, generator, messages=sys.maxsize):
@@ -58,10 +58,10 @@ class ParallelClient(object):
 
         for i in range(self.messages):
             message_data = self.pull.recv()
-            #message = PalmMessage()
-            #message.ParseFromString(message_data)
-            #yield message.payload
-            yield message_data
+            message = PalmMessage()
+            message.ParseFromString(message_data)
+            yield message.payload
+            #yield message_data
 
     def clean(self):
         self.push.close()
@@ -92,7 +92,7 @@ def test_standalone_parallel_client():
     master = Master('master', 'inproc://pull6', 'inproc://push6',
                     'inproc://worker_pull6', 'inproc://worker_push6',
                     endpoint.log_address, endpoint.perf_address,
-                    endpoint.ping_address)
+                    endpoint.ping_address, palm=True)
 
     worker1 = Worker('worker1',
                      master.worker_push_address,
@@ -126,8 +126,8 @@ def test_standalone_parallel_client():
             yield str(i).encode('utf-8')
 
     print('******* Launch client')
-    for m in client.job('somefunction', message_generator(), 10):
-        print('************ Got something back', m)
+    for i, m in enumerate(client.job('somefunction', message_generator(), 10)):
+        print('************ Got something back', m, i)
 
     for t in threads:
         t.join(1)
