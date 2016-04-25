@@ -1,3 +1,4 @@
+from threading import Lock
 import plyvel
 import pickle
 import tempfile
@@ -7,6 +8,26 @@ import shutil
 # Class that implements a simple on-disk key value data store for the servers
 # and the services. This is a required service, but it does not have to be
 # implemented exactly like the Python version
+
+class DictDB(dict):
+    """
+    DictDB is just a dictionary with a lock that keeps threads from colliding.
+    """
+    lock = Lock()
+
+    def get(self, key):
+        try:
+            return self.__getitem__(key)
+        except KeyError:
+            return None
+
+    def set(self, key, value):
+        with self.lock:
+            self.__setitem__(key, value)
+
+    def delete(self, key):
+        with self.lock:
+            self.__delitem__(key)
 
 
 class IndexedLevelDB(object):

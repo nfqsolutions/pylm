@@ -10,8 +10,14 @@ class RepService(ComponentInbound):
     """
     RepService binds to a given socket and returns something.
     """
-    def __init__(self, name, listen_address, broker_address="inproc://broker", palm=False,
-                 logger=None, messages=sys.maxsize):
+    def __init__(self,
+                 name,
+                 listen_address,
+                 broker_address="inproc://broker",
+                 palm=False,
+                 logger=None,
+                 cache=None,
+                 messages=sys.maxsize):
         """
         :param name: Name of the service
         :param listen_address: ZMQ socket address to bind to
@@ -30,6 +36,7 @@ class RepService(ComponentInbound):
             bind=True,
             palm=palm,
             logger=logger,
+            cache=cache,
             messages=messages
         )
 
@@ -38,8 +45,14 @@ class PullService(ComponentInbound):
     """
     PullService binds to a socket waits for messages from a push-pull queue.
     """
-    def __init__(self, name, listen_address, broker_address="inproc://broker", palm=False,
-                 logger=None, messages=sys.maxsize):
+    def __init__(self,
+                 name,
+                 listen_address,
+                 broker_address="inproc://broker",
+                 palm=False,
+                 logger=None,
+                 cache=None,
+                 messages=sys.maxsize):
         """
         :param name: Name of the service
         :param listen_address: ZMQ socket address to bind to
@@ -58,6 +71,7 @@ class PullService(ComponentInbound):
             bind=True,
             palm=palm,
             logger=logger,
+            cache=cache,
             messages=messages
         )
 
@@ -66,8 +80,14 @@ class PushService(ComponentOutbound):
     """
     PullService binds to a socket waits for messages from a push-pull queue.
     """
-    def __init__(self, name, listen_address, broker_address="inproc://broker", palm=False,
-                 logger=None, messages=sys.maxsize):
+    def __init__(self,
+                 name,
+                 listen_address,
+                 broker_address="inproc://broker",
+                 palm=False,
+                 logger=None,
+                 cache=None,
+                 messages=sys.maxsize):
         """
         :param name: Name of the service
         :param listen_address: ZMQ socket address to bind to
@@ -86,6 +106,7 @@ class PushService(ComponentOutbound):
             bind=True,
             palm=palm,
             logger=logger,
+            cache=cache,
             messages=messages
         )
 
