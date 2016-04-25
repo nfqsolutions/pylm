@@ -3,6 +3,7 @@
 from threading import Thread
 from pylm_ng.components.core import zmq_context
 from pylm_ng.components.messages_pb2 import PalmMessage
+from pylm_ng.standalone import Master, EndPoint, Worker
 from uuid import uuid4
 import zmq
 import sys
@@ -26,11 +27,11 @@ class ParallelClient(object):
         self.server_name = server_name
         self.push_address = push_address
         self.push = zmq_context.socket(zmq.PUSH)
-        self.push.connect(push_address)
+        self.push.connect(pull_address)
 
         self.pull_address = pull_address
         self.pull = zmq_context.socket(zmq.PULL)
-        self.pull.connect(pull_address)
+        self.pull.connect(push_address)
 
         self.function = ''
         self.job_generator = None
@@ -46,6 +47,7 @@ class ParallelClient(object):
             message.function = self.function
             message.payload = m
 
+            #print('Client:: send message')
             self.push.send(message.SerializeToString())
 
     def _launch_job_from_generator(self, generator, messages=sys.maxsize):
@@ -56,9 +58,10 @@ class ParallelClient(object):
 
         for i in range(self.messages):
             message_data = self.pull.recv()
-            message = PalmMessage()
-            message.ParseFromString(message_data)
-            yield message.payload
+            #message = PalmMessage()
+            #message.ParseFromString(message_data)
+            #yield message.payload
+            yield message_data
 
     def clean(self):
         self.push.close()
@@ -76,3 +79,59 @@ class ParallelClient(object):
         self.function = function
         yield from self._launch_job_from_generator(generator, messages)
         self.clean()
+
+
+def test_standalone_parallel_client():
+    this_log_address = "inproc://log6"
+    this_perf_address = "inproc://perf6"
+    this_ping_address = "inproc://ping6"
+    endpoint = EndPoint('EndPoint',
+                        this_log_address,
+                        this_perf_address,
+                        this_ping_address)
+    master = Master('master', 'inproc://pull6', 'inproc://push6',
+                    'inproc://worker_pull6', 'inproc://worker_push6',
+                    endpoint.log_address, endpoint.perf_address,
+                    endpoint.ping_address)
+
+    worker1 = Worker('worker1',
+                     master.worker_push_address,
+                     master.worker_pull_address,
+                     this_log_address,
+                     this_perf_address,
+                     this_ping_address)
+    worker2 = Worker('worker2',
+                     master.worker_push_address,
+                     master.worker_pull_address,
+                     this_log_address,
+                     this_perf_address,
+                     this_ping_address)
+
+    client = ParallelClient(master.push_address,
+                            master.pull_address,
+                            'master')
+
+    threads = [
+        Thread(target=endpoint._start_debug),
+        Thread(target=master.start),
+        Thread(target=worker1.start),
+        Thread(target=worker2.start)
+    ]
+
+    for t in threads:
+        t.start()
+
+    def message_generator():
+        for i in range(10):
+            yield str(i).encode('utf-8')
+
+    print('******* Launch client')
+    for m in client.job('somefunction', message_generator(), 10):
+        print('************ Got something back', m)
+
+    for t in threads:
+        t.join(1)
+
+
+if __name__ == '__main__':
+    test_standalone_parallel_client()
