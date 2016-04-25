@@ -131,42 +131,40 @@ class Master(object):
         self.pinger = Pinger(listen_address=ping_address, every=10.0)
 
         # Configure the broker and the connectors
-        broker = Broker(logger=self.logger)
-        pull_service = PullService('Pull', pull_address,
-                                   broker_address=broker.inbound_address,
-                                   logger=self.logger,
-                                   palm=palm,
-                                   cache=cache)
-        push_service = PushService('Push', push_address,
-                                   broker_address=broker.outbound_address,
-                                   logger=self.logger,
-                                   palm=palm,
-                                   cache=cache)
-        worker_pull_service = WorkerPullService('WorkerPull',
-                                                worker_pull_address,
-                                                broker_address=broker.inbound_address,
-                                                logger=self.logger,
-                                                palm=palm,
-                                                cache=cache)
-        worker_push_service = WorkerPushService('WorkerPush',
-                                                worker_push_address,
-                                                broker_address=broker.outbound_address,
-                                                logger=self.logger,
-                                                palm=palm,
-                                                cache=cache)
+        self.broker = Broker(logger=self.logger)
+        self.pull_service = PullService(
+            'Pull',
+            pull_address,
+            broker_address=self.broker.inbound_address,
+            logger=self.logger,
+            palm=palm,
+            cache=cache)
+        self.push_service = PushService(
+            'Push',
+            push_address,
+            broker_address=self.broker.outbound_address,
+            logger=self.logger,
+            palm=palm,
+            cache=cache)
+        self.worker_pull_service = WorkerPullService(
+            'WorkerPull',
+            worker_pull_address,
+            broker_address=self.broker.inbound_address,
+            logger=self.logger,
+            palm=palm,
+            cache=cache)
+        self.worker_push_service = WorkerPushService(
+            'WorkerPush',
+            worker_push_address,
+            broker_address=self.broker.outbound_address,
+            logger=self.logger,
+            palm=palm,
+            cache=cache)
 
-        broker.register_inbound('Pull', route='WorkerPush', log='to_broker')
-        broker.register_inbound('WorkerPull', route='Push', log='from_broker')
-        broker.register_outbound('WorkerPush', log='to_broker')
-        broker.register_outbound('Push', log='to_sink')
-
-        self.threads = [
-            Thread(target=broker.start),
-            Thread(target=push_service.start),
-            Thread(target=pull_service.start),
-            Thread(target=worker_push_service.start),
-            Thread(target=worker_pull_service.start)
-        ]
+        self.broker.register_inbound('Pull', route='WorkerPush', log='to_broker')
+        self.broker.register_inbound('WorkerPull', route='Push', log='from_broker')
+        self.broker.register_outbound('WorkerPush', log='to_broker')
+        self.broker.register_outbound('Push', log='to_sink')
 
         # This is the pinger thread that keeps the pinger alive.
         pinger_thread = Thread(target=self.pinger.start)
@@ -174,7 +172,14 @@ class Master(object):
         pinger_thread.start()
 
     def start(self):
-        for t in self.threads:
+        threads = [
+            Thread(target=self.broker.start),
+            Thread(target=self.push_service.start),
+            Thread(target=self.pull_service.start),
+            Thread(target=self.worker_push_service.start),
+            Thread(target=self.worker_pull_service.start)
+        ]
+        for t in threads:
             t.daemon = True
             t.start()
 

@@ -478,7 +478,8 @@ class ComponentBypassInbound(object):
                  reply=True,
                  bind=False,
                  logger=None,
-                 cache=None):
+                 cache=None,
+                 messages=sys.maxsize):
         """
         :param name: Name of the component
         :param listen_address: ZMQ socket address to listen to
@@ -499,6 +500,7 @@ class ComponentBypassInbound(object):
         self.logger = logger
         self.reply = reply
         self.cache = cache
+        self.messages = messages
 
     def recv(self, reply_data=None):
         """
@@ -513,6 +515,13 @@ class ComponentBypassInbound(object):
 
         return message_data
 
+    def start(self):
+        for i in range(self.messages):
+            self.recv()
+
+    def cleanup(self):
+        self.listen_to.close()
+
 
 class ComponentBypassOutbound(object):
     """
@@ -525,7 +534,8 @@ class ComponentBypassOutbound(object):
                  reply=True,
                  bind=False,
                  logger=None,
-                 cache=None):
+                 cache=None,
+                 messages=sys.maxsize):
         """
         :param name: Name of the component
         :param listen_address: ZMQ socket address to listen to
@@ -546,6 +556,7 @@ class ComponentBypassOutbound(object):
         self.logger = logger
         self.reply = reply
         self.cache = cache
+        self.messages = messages
 
     def send(self, message_data):
         self.listen_to.send(message_data)
@@ -553,4 +564,3 @@ class ComponentBypassOutbound(object):
         if self.reply:
             message_data = self.listen_to.recv()
             return message_data
-

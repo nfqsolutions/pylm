@@ -1,6 +1,7 @@
 # The difference between connections and services is that connections
 # connect, while services bind.
-from pylm_ng.components.core import ComponentInbound, ComponentOutbound, zmq_context
+from pylm_ng.components.core import ComponentInbound, ComponentOutbound,\
+    zmq_context, ComponentBypassInbound
 from pylm_ng.components.messages_pb2 import BrokerMessage
 import zmq
 import sys
@@ -248,3 +249,23 @@ class PushPullService(object):
         self.push.close()
         self.pull.close()
         self.broker.close()
+
+
+class RepBypassService(ComponentBypassInbound):
+    """
+    Generic connection that opens a Rep socket and bypasses the broker.
+    """
+    def __init__(self, name, listen_address, logger=None,
+                 cache=None, messages=sys.maxsize):
+        """
+        :param name: Name of the connection
+        :param listen_address: ZMQ socket address to listen to
+        :param logger: Logger instance
+        :param messages:
+        :return:
+        """
+        super(RepBypassService, self).__init__(name, listen_address, zmq.REP,
+                                               reply=True, bind=True,
+                                               logger=logger, cache=cache,
+                                               messages=messages)
+
