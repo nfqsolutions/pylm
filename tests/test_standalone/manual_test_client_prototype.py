@@ -1,22 +1,7 @@
 # Test for the prototype of the client for the parallel client.
 
 from threading import Thread
-from pylm_ng.components.core import zmq_context
 from pylm_ng.standalone import Master, EndPoint, Worker, ParallelClient
-import zmq
-
-
-def worker(listen_pull, listen_push, messages):
-    pull = zmq_context.socket(zmq.PULL)
-    pull.bind(listen_pull)
-    push = zmq_context.socket(zmq.PUSH)
-    push.bind(listen_push)
-
-    print('****', 'Worker waiting...')
-    for i in range(messages):
-        message_data = pull.recv()
-        print('********', 'Worker1 got message.', i)
-        push.send(message_data)
 
 
 def test_standalone_parallel_client():
