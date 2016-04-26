@@ -20,6 +20,9 @@ class Client(object):
         :param key: Sets a key. Otherwise it returns an automatically generated key
         :return: UUID of the key
         """
+        if not type(data) == bytes:
+            raise TypeError('First argument *data* must be of type <bytes>')
+
         message = PalmMessage()
         message.pipeline = str(uuid4())
         message.client = self.uuid
@@ -28,6 +31,23 @@ class Client(object):
         message.payload = data
         if key:
             message.cache = key
+        self.req.send(message.SerializeToString())
+        message.ParseFromString(self.req.recv())
+        return message.payload.decode('utf-8')
+
+    def get(self, key):
+        """
+        Gets data from the server's internal cache.
+        :param data:
+        :param key:
+        :return:
+        """
+        message = PalmMessage()
+        message.pipeline = str(uuid4())
+        message.client = self.uuid
+        message.stage = 0
+        message.function = '.'.join([self.server_name, 'get'])
+        message.payload = key.encode('utf-8')
         self.req.send(message.SerializeToString())
         message.ParseFromString(self.req.recv())
         return message.payload
@@ -43,12 +63,12 @@ class Client(object):
         message.client = self.uuid
         message.stage = 0
         message.function = '.'.join([self.server_name, 'delete'])
-        message.payload = key
+        message.payload = key.encode('utf-8')
         self.req.send(message.SerializeToString())
         message.ParseFromString(self.req.recv())
-        return message.payload
+        return message.payload.decode('utf-8')
 
-    def call(self, function, data):
+    def job(self, function, data):
         """
         RPC function with data
         :param function: Function name as string, already defined in the server

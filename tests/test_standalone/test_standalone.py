@@ -56,7 +56,7 @@ def test_standalone():
         t.start()
 
     for i in range(1, 10):
-        retval = client.call('echo_data', str(i).encode('utf-8'))
+        retval = client.job('echo_data', str(i).encode('utf-8'))
         print(retval)
 
 

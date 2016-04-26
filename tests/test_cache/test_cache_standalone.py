@@ -11,11 +11,12 @@ def test_standalone_server():
     endpoint = EndPoint("EndPoint",
                         this_log_address,
                         this_perf_address,
-                        this_ping_address)
+                        this_ping_address,
+                        messages=11)
 
     server = Server("cache_test", this_rep_address,
                     this_log_address, this_perf_address,
-                    this_ping_address)
+                    this_ping_address, messages=6)
 
     threads = [
         Thread(target=endpoint._start_debug),
@@ -30,8 +31,19 @@ def test_standalone_server():
     print('***** Got key', key)
 
     new_key = client.set(b'otherthing', 'otherkey')
-    print('***** Set a known key', new_key)
+    assert new_key == 'otherkey'
 
+    data = client.get(key)
+    assert data == b'something'
+
+    data = client.get(new_key)
+    assert data == b'otherthing'
+
+    assert key == client.delete(key)
+    assert new_key == client.delete(new_key)
+
+    for t in threads:
+        t.join()
 
 if __name__ == '__main__':
     test_standalone_server()

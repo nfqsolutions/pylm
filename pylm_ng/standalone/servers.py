@@ -65,16 +65,16 @@ class Server(object):
         return key.encode('utf-8')
 
     def delete(self, key):
-        del self.cache[key]
-        return key.encode('utf-8')
+        del self.cache[key.decode('utf-8')]
+        return key
 
     def get(self, key):
-        return self.cache[key]
+        return self.cache[key.decode('utf-8')]
 
     def start(self):
         for i in range(self.messages):
             message_data = self.rep.recv()
-            self.logger.info('Got a message')
+            self.logger.info('Got message {}'.format(i+1))
             result = b'0'
             message = PalmMessage()
             try:

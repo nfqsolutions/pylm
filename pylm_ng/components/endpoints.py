@@ -26,7 +26,7 @@ class ReqEndPoint(object):
     def start(self, function='none', payload=b'0', nmessages=10):
         """
         Start the endpoint, sending several test messages
-        :param function: User defined function to call
+        :param function: User defined function to job
         :param payload: Payload to send within the message
         :param nmessages: Number of test messages to send.
         :return: No return value
@@ -63,7 +63,7 @@ class ReqConnection(object):
     def start(self, function='none', payload=b'0', nmessages=10):
         """
         Start the endpoint, sending several test messages
-        :param function: User defined function to call
+        :param function: User defined function to job
         :param payload: Payload to send within the message
         :param nmessages: Number of test messages to send.
         :return: No return value
@@ -100,7 +100,7 @@ class PushEndPoint(object):
     def start(self, function='none', payload=b'0', nmessages=10):
         """
         Start the endpoint, sending several test messages
-        :param function: User defined function to call
+        :param function: User defined function to job
         :param payload: Payload to send within the message
         :param nmessages: Number of test messages to send.
         :return: No return value
