@@ -24,7 +24,7 @@ def test_cache_worker():
                         this_log_address,
                         this_perf_address,
                         this_ping_address,
-                        messages=60)
+                        messages=86)
 
     master = Master('master', this_pull_address, this_push_address,
                     this_worker_pull_address, this_worker_push_address,
@@ -73,14 +73,13 @@ def test_cache_worker():
     assert data == b'otherthing'
 
     key_list = [key.encode('utf-8'), new_key.encode('utf-8')]
-    for i, m in enumerate(client.job('test_cache', key_list), 2):
-        print('********* Got something back', m, i)
-
-    assert key == client.delete(key)
-    assert new_key == client.delete(new_key)
+    value_list = [b'something', b'otherthing']
+    for k, m in zip(value_list, client.job('test_cache', key_list, 2)):
+        print('Assertion:', k, m)
+        assert k == m
 
     for t in threads:
-        t.join()
+        t.join(1)
 
 
 if __name__ == '__main__':

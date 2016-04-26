@@ -215,6 +215,7 @@ class Worker(object):
                  log_address, perf_address, ping_address,
                  debug_level=logging.DEBUG, messages=sys.maxsize):
         self.name = name
+        self.uuid = str(uuid4())
 
         # Configure the log handler
         handler = PushHandler(log_address)
@@ -288,7 +289,7 @@ class Worker(object):
         message.pipeline = str(uuid4())
         message.client = self.uuid
         message.stage = 0
-        message.function = '.'.join([self.server_name, 'set'])
+        message.function = '.'.join(['_', 'set'])
         message.payload = value
         if key:
             message.cache = key
@@ -306,7 +307,7 @@ class Worker(object):
         message.pipeline = str(uuid4())
         message.client = self.uuid
         message.stage = 0
-        message.function = '.'.join([self.server_name, 'get'])
+        message.function = '.'.join(['_', 'get'])
         message.payload = key.encode('utf-8')
         self.db.send(message.SerializeToString())
         return self.db.recv()
@@ -321,7 +322,7 @@ class Worker(object):
         message.pipeline = str(uuid4())
         message.client = self.uuid
         message.stage = 0
-        message.function = '.'.join([self.server_name, 'delete'])
+        message.function = '.'.join(['_', 'delete'])
         message.payload = key.encode('utf-8')
         self.db.send(message.SerializeToString())
         return self.db.recv().decode('utf-8')

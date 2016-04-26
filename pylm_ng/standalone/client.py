@@ -115,7 +115,6 @@ class ParallelClient(object):
             message.function = '.'.join([self.server_name, self.function])
             message.payload = m
 
-            print('Client:: send message')
             self.push.send(message.SerializeToString())
 
     def _launch_job_from_generator(self, generator, messages=sys.maxsize):
