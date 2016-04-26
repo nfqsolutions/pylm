@@ -264,6 +264,11 @@ class Worker(object):
                         result = user_function(message.payload)
                     except:
                         self.logger.error('{} User function gave an error'.format(self.name))
+                        exc_type, exc_value, exc_traceback = sys.exc_info()
+                        lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+                        for l in lines:
+                            self.logger.exception(l)
+
                 except AttributeError:
                     self.logger.error('Function {} was not found'.format(instruction))
             except DecodeError:

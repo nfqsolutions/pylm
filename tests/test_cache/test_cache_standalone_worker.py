@@ -3,10 +3,8 @@ from threading import Thread
 
 
 class NewWorker(Worker):
-    @staticmethod
-    def echo(message):
-        print('Echoing message---')
-        return message
+    def test_cache(self, message):
+        return self.get(message.decode('utf-8'))
 
 
 def test_cache_worker():
@@ -26,7 +24,7 @@ def test_cache_worker():
                         this_log_address,
                         this_perf_address,
                         this_ping_address,
-                        messages=26)
+                        messages=60)
 
     master = Master('master', this_pull_address, this_push_address,
                     this_worker_pull_address, this_worker_push_address,
@@ -52,7 +50,9 @@ def test_cache_worker():
 
     threads = [
         Thread(target=endpoint._start_debug),
-        Thread(target=master.start)
+        Thread(target=master.start),
+        Thread(target=worker1.start),
+        Thread(target=worker2.start)
     ]
 
     for t in threads:
@@ -71,6 +71,10 @@ def test_cache_worker():
 
     data = client.get(new_key)
     assert data == b'otherthing'
+
+    key_list = [key.encode('utf-8'), new_key.encode('utf-8')]
+    for i, m in enumerate(client.job('test_cache', key_list), 2):
+        print('********* Got something back', m, i)
 
     assert key == client.delete(key)
     assert new_key == client.delete(new_key)
