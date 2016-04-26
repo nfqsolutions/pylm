@@ -39,3 +39,9 @@ class EndPoint(object):
 
             elif self.ping in event:
                 print('PNG:', self.ping.recv())
+
+    def cleanup(self):
+        self.ping.close()
+        self.perf.close()
+        self.logs.close()
+

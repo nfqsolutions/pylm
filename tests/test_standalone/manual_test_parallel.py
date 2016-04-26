@@ -30,12 +30,14 @@ def test_standalone_parallel_client():
     worker1 = NewWorker('worker1',
                         master.worker_push_address,
                         master.worker_pull_address,
+                        master.db_address,
                         this_log_address,
                         this_perf_address,
                         this_ping_address)
     worker2 = NewWorker('worker2',
                         master.worker_push_address,
                         master.worker_pull_address,
+                        master.db_address,
                         this_log_address,
                         this_perf_address,
                         this_ping_address)

@@ -3,6 +3,7 @@ from pylm_ng.components.services import RepBypassService
 from pylm_ng.components.core import zmq_context
 from pylm_ng.components.messages_pb2 import PalmMessage
 from logging import Handler, Formatter, NOTSET
+from uuid import uuid4
 import zmq
 import sys
 import time
@@ -131,20 +132,27 @@ class CacheService(RepBypassService):
         instruction = message.function.split('.')[1]
 
         if instruction == 'set':
-            key = message.cache
+            if message.HasField('cache'):
+                key = message.cache
+            else:
+                key = str(uuid4())
+
+            self.logger.debug('Cache Service: Set key {}'.format(key))
             value = message.payload
             self.cache.set(key, value)
-            return_value = key
+            return_value = key.encode('utf-8')
 
         elif instruction == 'get':
-            key = message.cache
+            key = message.payload.decode('utf-8')
+            self.logger.debug('Cache Service: Get key {}'.format(key))
             value = self.cache.get(key)
             return_value = value
 
         elif instruction == 'delete':
-            key = message.cache
+            key = message.payload.decode('utf-8')
+            self.logger.debug('Cache Service: Delete key {}'.format(key))
             self.cache.delete(key)
-            return_value = key
+            return_value = key.encode('utf-8')
 
         else:
             self.logger.error(

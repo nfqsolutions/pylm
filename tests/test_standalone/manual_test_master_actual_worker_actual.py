@@ -43,6 +43,7 @@ def test_feedback():
     worker1 = Worker('worker1',
                      master.worker_push_address,
                      master.worker_pull_address,
+                     master.db_address,
                      this_log_address,
                      this_perf_address,
                      this_ping_address)
@@ -50,6 +51,7 @@ def test_feedback():
     worker2 = Worker('worker2',
                      master.worker_push_address,
                      master.worker_pull_address,
+                     master.db_address,
                      this_log_address,
                      this_perf_address,
                      this_ping_address)

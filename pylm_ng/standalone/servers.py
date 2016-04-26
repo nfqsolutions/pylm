@@ -199,7 +199,8 @@ class Master(object):
             Thread(target=self.push_service.start),
             Thread(target=self.pull_service.start),
             Thread(target=self.worker_push_service.start),
-            Thread(target=self.worker_pull_service.start)
+            Thread(target=self.worker_pull_service.start),
+            Thread(target=self.cache_service.start)
         ]
         for t in threads:
             t.daemon = True
@@ -210,7 +211,7 @@ class Worker(object):
     """
     Standalone worker for the standalone master.
     """
-    def __init__(self, name, push_address, pull_address,
+    def __init__(self, name, push_address, pull_address, db_address,
                  log_address, perf_address, ping_address,
                  debug_level=logging.DEBUG, messages=sys.maxsize):
         self.name = name
@@ -235,6 +236,10 @@ class Worker(object):
         self.pull_address = pull_address
         self.push = zmq_context.socket(zmq.PUSH)
         self.push.connect(pull_address)
+
+        self.db_address = db_address
+        self.req = zmq_context.socket(zmq.REQ)
+        self.req.connect(db_address)
 
         self.messages = messages
 
