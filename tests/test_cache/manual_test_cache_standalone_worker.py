@@ -4,7 +4,10 @@ from threading import Thread
 
 class NewWorker(Worker):
     def test_cache(self, message):
-        return self.get(message.decode('utf-8'))
+        self.perfcounter.tick('Pre-get {}'.format(self.name))
+        value = self.get(message.decode('utf-8'))
+        self.perfcounter.tick('Post-get {}'.format(self.name))
+        return value
 
 
 def test_cache_worker():
@@ -23,8 +26,7 @@ def test_cache_worker():
     endpoint = EndPoint("EndPoint",
                         this_log_address,
                         this_perf_address,
-                        this_ping_address,
-                        messages=86)
+                        this_ping_address)
 
     master = Master('master', this_pull_address, this_push_address,
                     this_worker_pull_address, this_worker_push_address,

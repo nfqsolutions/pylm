@@ -35,10 +35,10 @@ class EndPoint(object):
                 print('LOG:', self.logs.recv().decode('utf-8'))
 
             elif self.perf in event:
-                print('PRF:', self.perf.recv())
+                print('PRF:', self.perf.recv().decode('utf-8'))
 
             elif self.ping in event:
-                print('PNG:', self.ping.recv())
+                print('PNG:', self.ping.recv().decode('utf-8'))
 
     def cleanup(self):
         self.ping.close()

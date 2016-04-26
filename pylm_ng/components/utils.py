@@ -69,9 +69,22 @@ class PerformanceCounter(PushBypassConnection):
             self.timer = time.perf_counter
 
         self.zero = self.timer()
+        self.tick_db = {}
+
+    def get_loop(self, label):
+        if label not in self.tick_db:
+            self.tick_db[label] = 1
+        else:
+            self.tick_db[label] += 1
+
+        return self.tick_db[label]
 
     def tick(self, label):
-        self.send('{}: {}'.format(label, self.timer()-self.zero).encode('utf-8'))
+        loop = self.get_loop(label)
+        message = '{}: #{}: {}'.format(
+            label, loop, self.timer()-self.zero
+        ).encode('utf-8')
+        self.send(message)
 
 
 class PerformanceCollector(object):
