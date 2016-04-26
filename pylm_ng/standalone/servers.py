@@ -7,6 +7,7 @@ from pylm_ng.persistence.kv import DictDB
 from google.protobuf.message import DecodeError
 from threading import Thread
 from uuid import uuid4
+import traceback
 import logging
 import zmq
 import sys
@@ -58,14 +59,14 @@ class Server(object):
 
     def set(self, data, key=None):
         if not key:
-            key = str(uuid4()).encode('utf-8')
+            key = str(uuid4())
 
         self.cache[key] = data
-        return key
+        return key.encode('utf-8')
 
     def delete(self, key):
         del self.cache[key]
-        return key
+        return key.encode('utf-8')
 
     def get(self, key):
         return self.cache[key]
@@ -89,12 +90,18 @@ class Server(object):
                         try:
                             # This is a little exception for the cache to accept
                             # a value
-                            if message.hasField('cache'):
-                                result = user_function(message.payload, message.cache)
+                            if message.HasField('cache'):
+                                result = user_function(message.payload,
+                                                       message.cache)
                             else:
                                 result = user_function(message.payload)
                         except:
                             self.logger.error('User function gave an error')
+                            exc_type, exc_value, exc_traceback = sys.exc_info()
+                            lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+                            for l in lines:
+                                self.logger.exception(l)
+
                     except KeyError:
                         self.logger.error(
                             'Function {} was not found'.format(function)
@@ -196,10 +203,10 @@ class Worker(object):
     Standalone worker for the standalone master.
     """
     def __init__(self, name, push_address, pull_address, db_address,
-                 log_address, perf_address, ping_address,
+                 log_address, perf_address, ping_address, cache=DictDB(),
                  debug_level=logging.DEBUG, messages=sys.maxsize):
         self.name = name
-        self.cache = DictDB()
+        self.cache = cache
 
         # Configure the log handler
         handler = PushHandler(log_address)

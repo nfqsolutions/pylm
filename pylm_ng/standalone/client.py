@@ -17,6 +17,7 @@ class Client(object):
         """
         Sets some data in the server's internal cache.
         :param data: Data to be cached.
+        :param key: Sets a key. Otherwise it returns an automatically generated key
         :return: UUID of the key
         """
         message = PalmMessage()

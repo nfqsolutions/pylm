@@ -32,7 +32,7 @@ class EndPoint(object):
             event = dict(self.poller.poll())
 
             if self.logs in event:
-                print('LOG:', self.logs.recv())
+                print('LOG:', self.logs.recv().decode('utf-8'))
 
             elif self.perf in event:
                 print('PRF:', self.perf.recv())
