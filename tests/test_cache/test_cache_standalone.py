@@ -45,5 +45,9 @@ def test_standalone_server():
     for t in threads:
         t.join()
 
+
+def test_cache_component():
+    pass
+
 if __name__ == '__main__':
     test_standalone_server()

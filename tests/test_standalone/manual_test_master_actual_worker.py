@@ -54,12 +54,14 @@ def test_feedback():
     this_log_address = "inproc://log5"
     this_perf_address = "inproc://perf5"
     this_ping_address = "inproc://ping5"
+    this_db_address = "inproc://db"
     endpoint = EndPoint('EndPoint',
                         this_log_address,
                         this_perf_address,
                         this_ping_address)
     master = Master('master', 'inproc://pull5', 'inproc://push5',
                     'inproc://worker_pull5', 'inproc://worker_push5',
+                    this_db_address,
                     endpoint.log_address, endpoint.perf_address,
                     endpoint.ping_address)
 

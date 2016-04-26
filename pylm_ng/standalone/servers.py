@@ -118,10 +118,11 @@ class Master(object):
     Standalone master server, intended to send workload to workers
     """
     def __init__(self, name, pull_address, push_address,
-                 worker_pull_address, worker_push_address,
-                 log_address, perf_address, ping_address,
-                 palm=False, cache=DictDB(), debug_level=logging.DEBUG):
+                 worker_pull_address, worker_push_address, db_address,
+                 log_address, perf_address, ping_address, cache=DictDB(),
+                 palm=False, debug_level=logging.DEBUG):
         self.name = name
+        self.cache = cache
 
         # Addresses:
         self.pull_address = pull_address
@@ -180,6 +181,13 @@ class Master(object):
         self.broker.register_outbound('WorkerPush', log='to_broker')
         self.broker.register_outbound('Push', log='to_sink')
 
+        # Configure the cache server
+        self.db_address = db_address
+        self.cache_service = CacheService(self.name,
+                                          db_address,
+                                          self.logger,
+                                          cache=self.cache)
+
         # This is the pinger thread that keeps the pinger alive.
         pinger_thread = Thread(target=self.pinger.start)
         pinger_thread.daemon = True
@@ -202,11 +210,10 @@ class Worker(object):
     """
     Standalone worker for the standalone master.
     """
-    def __init__(self, name, push_address, pull_address, db_address,
-                 log_address, perf_address, ping_address, cache=DictDB(),
+    def __init__(self, name, push_address, pull_address,
+                 log_address, perf_address, ping_address,
                  debug_level=logging.DEBUG, messages=sys.maxsize):
         self.name = name
-        self.cache = cache
 
         # Configure the log handler
         handler = PushHandler(log_address)
@@ -228,12 +235,6 @@ class Worker(object):
         self.pull_address = pull_address
         self.push = zmq_context.socket(zmq.PUSH)
         self.push.connect(pull_address)
-
-        self.db_address = db_address
-        self.cache_service = CacheService(self.name,
-                                          db_address,
-                                          self.logger,
-                                          cache=self.cache)
 
         self.messages = messages
 
