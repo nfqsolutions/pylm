@@ -238,8 +238,8 @@ class Worker(object):
         self.push.connect(pull_address)
 
         self.db_address = db_address
-        self.req = zmq_context.socket(zmq.REQ)
-        self.req.connect(db_address)
+        self.db = zmq_context.socket(zmq.REQ)
+        self.db.connect(db_address)
 
         self.messages = messages
 
@@ -271,3 +271,52 @@ class Worker(object):
 
             message.payload = result
             self.push.send(message.SerializeToString())
+
+    def set(self, value, key=None):
+        """
+        Sets a key value pare in the remote database.
+        :param key:
+        :param value:
+        :return:
+        """
+        message = PalmMessage()
+        message.pipeline = str(uuid4())
+        message.client = self.uuid
+        message.stage = 0
+        message.function = '.'.join([self.server_name, 'set'])
+        message.payload = value
+        if key:
+            message.cache = key
+
+        self.db.send(message.SerializeToString())
+        return self.db.recv().decode('utf-8')
+
+    def get(self, key):
+        """
+        Gets a value from server's internal cache
+        :param key: Key for the data to be selected.
+        :return:
+        """
+        message = PalmMessage()
+        message.pipeline = str(uuid4())
+        message.client = self.uuid
+        message.stage = 0
+        message.function = '.'.join([self.server_name, 'get'])
+        message.payload = key.encode('utf-8')
+        self.db.send(message.SerializeToString())
+        return self.db.recv()
+
+    def delete(self, key):
+        """
+        Deletes data in the server's internal cache.
+        :param key: Key of the data to be deleted
+        :return:
+        """
+        message = PalmMessage()
+        message.pipeline = str(uuid4())
+        message.client = self.uuid
+        message.stage = 0
+        message.function = '.'.join([self.server_name, 'delete'])
+        message.payload = key.encode('utf-8')
+        self.db.send(message.SerializeToString())
+        return self.db.recv().decode('utf-8')
