@@ -247,7 +247,7 @@ class ComponentInbound(object):
 
             # I store the message to get it later when the message is outbound. See that
             # if I am just sending binary messages, I do not need to assign any envelope.
-            self.cache.set(broker_message_key, message_data)
+            self.cache.set(message_data, broker_message_key)
         else:
             payload = message_data
             instruction = ''
@@ -380,7 +380,7 @@ class ComponentOutbound(object):
 
             # I store the message to get it later when the message is outbound. See that
             # if I am just sending binary messages, I do not need to assign any envelope.
-            self.cache.set(broker_message_key, message_data)
+            self.cache.set(message_data, broker_message_key)
         else:
             payload = message_data
             instruction = ''

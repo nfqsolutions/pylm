@@ -10,6 +10,8 @@ setup(name='pylm_ng',
       packages=['pylm_ng',
                 'pylm_ng.components',
                 'pylm_ng.persistence',
-                'pylm_ng.standalone'],
+                'pylm_ng.standalone',
+                'pylm_ng.chained',
+                'pylm_ng.pipelined'],
       install_requires=['protobuf>=3.0.0b2', 'requests', 'pyzmq', 'plyvel', 'requests']
       )
