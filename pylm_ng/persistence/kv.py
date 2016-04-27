@@ -69,6 +69,7 @@ class IndexedLevelDB(object):
         >>> db.set('key2', 0.01, serialize=True)
         >>> shutil.rmtree(tempdir)
         """
+        # TODO: CHANGE THE SET TO CONFORM THE NEW V, K CONVENTION.
         self.index[key] = 0
         if serialize:
             self.db.put(key.encode("UTF-8"), pickle.dumps(value))
