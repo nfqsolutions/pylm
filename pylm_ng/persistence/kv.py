@@ -9,25 +9,28 @@ import shutil
 # and the services. This is a required service, but it does not have to be
 # implemented exactly like the Python version
 
-class DictDB(dict):
+class DictDB(object):
     """
     DictDB is just a dictionary with a lock that keeps threads from colliding.
     """
     lock = Lock()
 
+    def __init__(self):
+        self.store = {}
+
     def get(self, key):
         try:
-            return self.__getitem__(key)
+            return self.store[key]
         except KeyError:
             return None
 
     def set(self, key, value):
         with self.lock:
-            self.__setitem__(key, value)
+            self.store[key] = value
 
     def delete(self, key):
         with self.lock:
-            self.__delitem__(key)
+            del self.store[key]
 
 
 class IndexedLevelDB(object):

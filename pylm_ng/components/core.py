@@ -247,7 +247,8 @@ class ComponentInbound(object):
 
             # I store the message to get it later when the message is outbound. See that
             # if I am just sending binary messages, I do not need to assign any envelope.
-            self.cache.set(message_data, broker_message_key)
+            self.logger.debug('Set message key {}'.format(broker_message_key))
+            self.cache.set(broker_message_key, message_data)
         else:
             payload = message_data
             instruction = ''
@@ -380,7 +381,7 @@ class ComponentOutbound(object):
 
             # I store the message to get it later when the message is outbound. See that
             # if I am just sending binary messages, I do not need to assign any envelope.
-            self.cache.set(message_data, broker_message_key)
+            self.cache.set(broker_message_key, message_data)
         else:
             payload = message_data
             instruction = ''
@@ -403,7 +404,7 @@ class ComponentOutbound(object):
 
         if self.palm:
             message_data = self.cache.get(broker_message.key)
-            # Clean up the cache. It is an outbound message and noone will
+            # Clean up the cache. It is an outbound message and no one will
             # ever need the full message again.
             self.cache.delete(broker_message.key)
             palm_message = PalmMessage()
