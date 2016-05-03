@@ -2,11 +2,11 @@
 import logging
 import sys
 import zmq
-from pylm_ng.components.core import zmq_context
-from pylm_ng.components.messages_pb2 import PalmMessage
+from pylm.components.core import zmq_context
+from pylm.components.messages_pb2 import PalmMessage
 
 # A logger
-logger = logging.getLogger('test-pylm_ng')
+logger = logging.getLogger('test-pylm')
 handler = logging.StreamHandler(sys.stdout)
 handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
 logger.addHandler(handler)

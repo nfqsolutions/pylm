@@ -1,8 +1,8 @@
 # The difference between connections and services is that connections
 # connect, while services bind.
-from pylm_ng.components.core import ComponentInbound, ComponentOutbound,\
+from pylm.components.core import ComponentInbound, ComponentOutbound,\
     zmq_context, ComponentBypassInbound
-from pylm_ng.components.messages_pb2 import BrokerMessage
+from pylm.components.messages_pb2 import BrokerMessage
 import zmq
 import sys
 

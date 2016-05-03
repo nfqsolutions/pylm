@@ -1,8 +1,8 @@
 from threading import Thread
 
-from pylm_ng.components.core import Broker
-from pylm_ng.components.endpoints import ReqConnection, logger
-from pylm_ng.components.services import RepService
+from pylm.components.core import Broker
+from pylm.components.endpoints import ReqConnection, logger
+from pylm.components.services import RepService
 
 
 def test_request_reply():

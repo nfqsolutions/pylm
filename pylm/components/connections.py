@@ -1,6 +1,6 @@
 import zmq
 import sys
-from pylm_ng.components.core import ComponentInbound, ComponentOutbound, \
+from pylm.components.core import ComponentInbound, ComponentOutbound, \
     ComponentBypassInbound, ComponentBypassOutbound
 
 

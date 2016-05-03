@@ -1,9 +1,9 @@
-from pylm_ng.components.core import zmq_context, Broker
-from pylm_ng.components.services import WorkerPullService, WorkerPushService
-from pylm_ng.components.services import PullService, PushService
-from pylm_ng.components.utils import PushHandler, Pinger, PerformanceCounter, CacheService
-from pylm_ng.components.messages_pb2 import PalmMessage, BrokerMessage
-from pylm_ng.persistence.kv import DictDB
+from pylm.components.core import zmq_context, Broker
+from pylm.components.services import WorkerPullService, WorkerPushService
+from pylm.components.services import PullService, PushService
+from pylm.components.utils import PushHandler, Pinger, PerformanceCounter, CacheService
+from pylm.components.messages_pb2 import PalmMessage, BrokerMessage
+from pylm.persistence.kv import DictDB
 from google.protobuf.message import DecodeError
 from threading import Thread
 from uuid import uuid4

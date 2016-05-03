@@ -1,7 +1,7 @@
-from pylm_ng.components.connections import PushBypassConnection
-from pylm_ng.components.services import RepBypassService
-from pylm_ng.components.core import zmq_context
-from pylm_ng.components.messages_pb2 import PalmMessage
+from pylm.components.connections import PushBypassConnection
+from pylm.components.services import RepBypassService
+from pylm.components.core import zmq_context
+from pylm.components.messages_pb2 import PalmMessage
 from logging import Handler, Formatter, NOTSET
 from uuid import uuid4
 import zmq

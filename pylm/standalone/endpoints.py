@@ -1,4 +1,4 @@
-from pylm_ng.components.core import zmq_context
+from pylm.components.core import zmq_context
 import zmq
 import sys
 

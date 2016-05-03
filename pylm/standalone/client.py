@@ -1,5 +1,5 @@
-from pylm_ng.components.core import zmq_context
-from pylm_ng.components.messages_pb2 import PalmMessage
+from pylm.components.core import zmq_context
+from pylm.components.messages_pb2 import PalmMessage
 from threading import Thread
 from uuid import uuid4
 import zmq

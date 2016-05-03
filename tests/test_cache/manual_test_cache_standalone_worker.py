@@ -1,4 +1,4 @@
-from pylm_ng.standalone import ParallelClient, Master, Worker, EndPoint
+from pylm.standalone import ParallelClient, Master, Worker, EndPoint
 from threading import Thread
 
 

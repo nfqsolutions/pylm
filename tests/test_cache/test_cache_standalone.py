@@ -1,6 +1,6 @@
-from pylm_ng.standalone import Client, ParallelClient, Server, Master, EndPoint
-from pylm_ng.components.utils import PushHandler, CacheService
-from pylm_ng.persistence.kv import DictDB
+from pylm.standalone import Client, ParallelClient, Server, Master, EndPoint
+from pylm.components.utils import PushHandler, CacheService
+from pylm.persistence.kv import DictDB
 from threading import Thread
 import logging
 

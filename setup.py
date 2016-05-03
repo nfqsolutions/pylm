@@ -2,16 +2,16 @@
 
 from setuptools import setup
 
-setup(name='pylm_ng',
-      version='0.3',
+setup(name='pylm',
+      version='0.4',
       description='New Python prototype of PALM pipelines',
       author='Guillem Borrell',
       author_email='guillemborrell@gmail.com',
-      packages=['pylm_ng',
-                'pylm_ng.components',
-                'pylm_ng.persistence',
-                'pylm_ng.standalone',
-                'pylm_ng.chained',
-                'pylm_ng.pipelined'],
+      packages=['pylm',
+                'pylm.components',
+                'pylm.persistence',
+                'pylm.standalone',
+                'pylm.chained',
+                'pylm.pipelined'],
       install_requires=['protobuf>=3.0.0b2', 'requests', 'pyzmq', 'plyvel', 'requests']
       )

@@ -1,7 +1,7 @@
 # Test for the prototype of the client for the parallel client.
 
 from threading import Thread
-from pylm_ng.standalone import Master, EndPoint, Worker, ParallelClient
+from pylm.standalone import Master, EndPoint, Worker, ParallelClient
 
 
 class NewWorker(Worker):

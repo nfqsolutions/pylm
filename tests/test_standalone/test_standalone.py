@@ -1,7 +1,7 @@
 import logging
 import sys
 from threading import Thread
-from pylm_ng.standalone import Client, Server, EndPoint
+from pylm.standalone import Client, Server, EndPoint
 
 this_log_address = "inproc://log3"
 this_perf_address = "inproc://perf3"

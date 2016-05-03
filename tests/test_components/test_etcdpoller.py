@@ -2,10 +2,10 @@ from threading import Thread
 
 import requests
 
-from pylm_ng.components.connections import PushConnection
-from pylm_ng.components.core import Broker
-from pylm_ng.components.endpoints import PullEndPoint, logger
-from pylm_ng.persistence.etcd import EtcdPoller
+from pylm.components.connections import PushConnection
+from pylm.components.core import Broker
+from pylm.components.endpoints import PullEndPoint, logger
+from pylm.persistence.etcd import EtcdPoller
 
 
 def test_etcd_poller():

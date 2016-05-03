@@ -2,8 +2,8 @@ from threading import Thread
 
 import zmq
 
-from pylm_ng.components.core import zmq_context
-from pylm_ng.standalone import EndPoint
+from pylm.components.core import zmq_context
+from pylm.standalone import EndPoint
 
 
 def send_ten(socket):

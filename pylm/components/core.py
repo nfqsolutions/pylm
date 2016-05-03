@@ -1,4 +1,4 @@
-from pylm_ng.components.messages_pb2 import PalmMessage, BrokerMessage
+from pylm.components.messages_pb2 import PalmMessage, BrokerMessage
 from uuid import uuid4
 import zmq
 import sys

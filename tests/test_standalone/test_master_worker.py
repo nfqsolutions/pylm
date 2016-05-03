@@ -1,8 +1,8 @@
 from threading import Thread
-from pylm_ng.components.core import zmq_context, Broker
-from pylm_ng.components.endpoints import logger
-from pylm_ng.components.services import WorkerPullService, WorkerPushService
-from pylm_ng.components.services import PullService, PushService
+from pylm.components.core import zmq_context, Broker
+from pylm.components.endpoints import logger
+from pylm.components.services import WorkerPullService, WorkerPushService
+from pylm.components.services import PullService, PushService
 import zmq
 
 

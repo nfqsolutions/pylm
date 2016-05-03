@@ -1,6 +1,6 @@
-from pylm_ng.components.connections import RepConnection, PushConnection, PullConnection
-from pylm_ng.components.core import Broker
-from pylm_ng.components.endpoints import logger, ReqEndPoint, PullEndPoint, PushEndPoint
+from pylm.components.connections import RepConnection, PushConnection, PullConnection
+from pylm.components.core import Broker
+from pylm.components.endpoints import logger, ReqEndPoint, PullEndPoint, PushEndPoint
 from threading import Thread
 import atexit
 
