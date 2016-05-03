@@ -57,7 +57,7 @@ def test_feedback():
                      this_ping_address)
 
     threads = [
-        Thread(target=endpoint._start_debug),
+        Thread(target=endpoint.start_debug),
         Thread(target=master.start),
         Thread(target=inbound, args=(master.pull_address,)),
         Thread(target=outbound, args=(master.push_address,)),

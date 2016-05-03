@@ -48,7 +48,7 @@ def test_standalone():
     print('Starting')
 
     threads = [
-        Thread(target=endpoint._start_debug),
+        Thread(target=endpoint.start_debug),
         Thread(target=server.start),
     ]
 

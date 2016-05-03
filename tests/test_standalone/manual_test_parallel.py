@@ -48,7 +48,7 @@ def test_standalone_parallel_client():
                             'master')
 
     threads = [
-        Thread(target=endpoint._start_debug),
+        Thread(target=endpoint.start_debug),
         Thread(target=master.start),
         Thread(target=worker1.start),
         Thread(target=worker2.start)

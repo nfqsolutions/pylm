@@ -28,7 +28,7 @@ def test_endpoint():
     ping_generator.connect(ping_address)
 
     threads = [
-        Thread(target=endpoint._start_debug),
+        Thread(target=endpoint.start_debug),
         Thread(target=send_ten, args=(log_generator,)),
         Thread(target=send_ten, args=(perf_generator,)),
         Thread(target=send_ten, args=(ping_generator,))

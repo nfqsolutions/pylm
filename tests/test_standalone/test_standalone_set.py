@@ -43,7 +43,7 @@ def test_standalone():
     client = Client(this_rep_address, 'Echo_server')
 
     print('Starting')
-    t1 = Thread(target=endpoint._start_debug)
+    t1 = Thread(target=endpoint.start_debug)
     t1.daemon = True
     t1.start()
 

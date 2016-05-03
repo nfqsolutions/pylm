@@ -27,7 +27,7 @@ class EndPoint(object):
 
         self.messages = messages
 
-    def _start_debug(self):
+    def start_debug(self):
         for i in range(self.messages):
             event = dict(self.poller.poll())
 

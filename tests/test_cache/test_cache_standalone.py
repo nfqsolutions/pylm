@@ -22,7 +22,7 @@ def test_standalone_server():
                     this_ping_address, messages=6)
 
     threads = [
-        Thread(target=endpoint._start_debug),
+        Thread(target=endpoint.start_debug),
         Thread(target=server.start)
     ]
 
@@ -80,7 +80,7 @@ def test_cache_component():
                                  messages=6)
 
     threads = [
-        Thread(target=endpoint._start_debug),
+        Thread(target=endpoint.start_debug),
         Thread(target=cache_service.start)
     ]
 
@@ -137,7 +137,7 @@ def test_cache_master():
                     endpoint.ping_address, palm=True)
 
     threads = [
-        Thread(target=endpoint._start_debug),
+        Thread(target=endpoint.start_debug),
         Thread(target=master.start)
     ]
 
