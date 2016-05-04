@@ -203,7 +203,6 @@ class Master(object):
             Thread(target=self.cache_service.start)
         ]
         for t in threads:
-            t.daemon = True
             t.start()
 
 

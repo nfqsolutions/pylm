@@ -1,9 +1,10 @@
 from pylm.components.connections import PushBypassConnection
-from pylm.components.services import RepBypassService
+from pylm.components.services import RepBypassService, RepService
 from pylm.components.core import zmq_context
-from pylm.components.messages_pb2 import PalmMessage
+from pylm.components.messages_pb2 import PalmMessage, BrokerMessage
 from logging import Handler, Formatter, NOTSET
 from uuid import uuid4
+from threading import Thread
 import zmq
 import sys
 import time
@@ -12,9 +13,7 @@ import time
 class PushHandler(Handler):
     def __init__(self, listen_address):
         """
-        :param name:
-        :param address:
-        :param level:
+        :param listen_address: Address for the handler to be connected to
         :return:
         """
         self.connection = PushBypassConnection('PushLogger', listen_address=listen_address)
@@ -174,3 +173,94 @@ class CacheService(RepBypassService):
             return_value = None
 
         self.listen_to.send(return_value)
+
+
+class ResilienceService(RepService):
+    """
+    Keeps track of the messages that have not been processed by the
+    workers, and sends them again if some conditions are met. It
+    communicates with the worker push and worker pull components.
+    """
+    def __init__(self, name, listen_address, broker_address,
+                 logger=None, cache=None, messages=sys.maxsize):
+        super(ResilienceService, self).__init__(name,
+                                                listen_address,
+                                                broker_address,
+                                                palm=False,
+                                                logger=logger,
+                                                cache=cache,
+                                                messages=messages)
+
+        self.flush_socket = zmq_context.socket(zmq.REQ)
+        self.flush_socket.connect(listen_address)
+        self.flush_time = 10  # seconds. Parameter to be trained.
+        self.redundancy = 0.01  # Training target. Ratio of messages that are repeated.
+
+        # Started the thread that flushes periodically.
+        flush_thread = Thread(target=self.flush_routine)
+        flush_thread.daemon = True
+        flush_thread.start()
+
+    def flush_routine(self):
+        """
+        Little scheduler that flushes the waiting messages periodically.
+        :return:
+        """
+        while True:
+            time.sleep(self.flush_time)
+            self.logger.info('{}: Flushing messages'.format(self.name))
+            self.flush_socket.send(b'flush')
+            self.flush_socket.recv()
+
+    def start(self):
+        # Dicts to temporarily store messages, and statistics. These
+        # are dictionaries, hence only this thread can change them.
+        waiting = {}
+        resent = {}
+        omit = {}
+        messages_waiting = 1
+        messages_flushed = 1
+        messages_resent = 1
+        messages_failure = 1
+
+        for i in range(self.messages):
+            message_data = self.listen_to.recv_multipart()
+
+            # If the message is simple, it is time to flush
+            if len(message_data) == 1:
+                for message_key in waiting:
+                    # Message data from the flusher is useless.
+                    message_data = waiting.pop(message_key)
+                    messages_resent += 1
+                    self.broker.send(message_data)
+                    if message_key not in resent:
+                        resent[message_key] = message_data
+                    else:
+                        pass
+
+            # If the message is multipart, then it is from the push-pull
+            # queue, and requires further action.
+            elif len(message_data) == 2:
+                message = BrokerMessage()
+                if message_data[0] == b'from':
+                    message.ParseFromString(message_data[1])
+
+                    # If the message was one of those resent messages
+                    if message.key in resent:
+                        # Put in omit list to avoid getting the message twice
+                        omit[message.key] = message_data[1]
+                        resent.pop(message.key)
+
+                    elif message.key in omit:
+                        # Do nothing and get it out the list.
+                        omit.pop(message.key)
+
+                elif message_data[0] == b'to':
+                    message.ParseFromString(message_data[1])
+
+                    # The message is being sent to the workers, register accordingly
+                    waiting[message.key] = message_data[1]
+                    messages_waiting += 1
+
+                else:
+                    self.logger.error('{} Got an invalid message'.format(self.name))
