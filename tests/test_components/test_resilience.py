@@ -13,7 +13,7 @@ def resilience_routine():
                                            'inproc://resilience',
                                            'inproc://false_broker',
                                            logger=logging)
-
+    print('Starting {}'.format(resilience_service.name))
     resilience_service.start()
 
 
@@ -32,6 +32,7 @@ def false_broker_routine():
     message_stream.identity = b'message_stream'
     message_stream.connect('inproc://false_broker')
 
+    # Generate a bunch of messages and send all of them asynchronously.
     def generate_messages():
         for i in range(100):
             message_stream.send(str(i).encode('utf-8'))
@@ -41,6 +42,7 @@ def false_broker_routine():
     message_stream_thread.start()
 
     for j in range(100):
+        print('Blocked waiting...')
         [client, empty, message_data] = false_broker.recv_multipart()
         print(client, message_data)
         false_broker.send_multipart([client, empty, b'0'])
@@ -53,7 +55,7 @@ def false_broker_routine():
         print(before_worker.recv())
 
         # Here's where the worker does his stuff.
-        time.sleep('0.2')
+        time.sleep(0.2)
 
         after_worker.send_multipart([b'from', message.SerializeToString()])
         print(after_worker.recv())

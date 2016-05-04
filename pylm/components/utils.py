@@ -225,14 +225,19 @@ class ResilienceService(RepService):
 
         for i in range(self.messages):
             message_data = self.listen_to.recv_multipart()
+            print(message_data)
 
             # If the message is simple, it is time to flush
             if len(message_data) == 1:
-                for message_key in waiting:
+                self.listen_to.send(b'0')
+
+                for message_key in list(waiting.keys()):
                     # Message data from the flusher is useless.
                     message_data = waiting.pop(message_key)
                     messages_resent += 1
                     self.broker.send(message_data)
+                    print("Waiting for broker")
+                    self.broker.recv()
                     if message_key not in resent:
                         resent[message_key] = message_data
                     else:
@@ -250,10 +255,15 @@ class ResilienceService(RepService):
                         # Put in omit list to avoid getting the message twice
                         omit[message.key] = message_data[1]
                         resent.pop(message.key)
+                        self.listen_to.send(b'0')
 
                     elif message.key in omit:
                         # Do nothing and get it out the list.
                         omit.pop(message.key)
+                        self.listen_to.send(b'0')
+
+                    else:
+                        self.listen_to.send(b'0')
 
                 elif message_data[0] == b'to':
                     message.ParseFromString(message_data[1])
@@ -261,6 +271,8 @@ class ResilienceService(RepService):
                     # The message is being sent to the workers, register accordingly
                     waiting[message.key] = message_data[1]
                     messages_waiting += 1
+                    self.listen_to.send(b'0')
 
                 else:
                     self.logger.error('{} Got an invalid message'.format(self.name))
+                    self.listen_to.send(b'0')
