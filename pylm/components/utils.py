@@ -4,7 +4,7 @@ from pylm.components.core import zmq_context
 from pylm.components.messages_pb2 import PalmMessage, BrokerMessage
 from logging import Handler, Formatter, NOTSET
 from uuid import uuid4
-from threading import Thread
+from threading import Thread, Lock
 import zmq
 import sys
 import time
@@ -191,10 +191,16 @@ class ResilienceService(RepService):
                                                 cache=cache,
                                                 messages=messages)
 
-        self.flush_socket = zmq_context.socket(zmq.REQ)
-        self.flush_socket.connect(listen_address)
         self.flush_time = 10  # seconds. Parameter to be trained.
         self.redundancy = 0.01  # Training target. Ratio of messages that are repeated.
+        self.waiting = {}
+        self.resent = {}
+        self.omit = {}
+        self.messages_waiting = 1
+        self.messages_flushed = 1
+        self.messages_resent = 1
+        self.messages_failure = 1
+        self.buffer_lock = Lock()
 
         # Started the thread that flushes periodically.
         flush_thread = Thread(target=self.flush_routine)
@@ -208,71 +214,44 @@ class ResilienceService(RepService):
         """
         while True:
             time.sleep(self.flush_time)
-            self.logger.info('{}: Flushing messages'.format(self.name))
-            self.flush_socket.send(b'flush')
-            self.flush_socket.recv()
+            print('{}: Flushing messages'.format(self.name))
+            self.broker.send(b'0')
+            self.broker.recv()
 
     def start(self):
         # Dicts to temporarily store messages, and statistics. These
         # are dictionaries, hence only this thread can change them.
-        waiting = {}
-        resent = {}
-        omit = {}
-        messages_waiting = 1
-        messages_flushed = 1
-        messages_resent = 1
-        messages_failure = 1
 
         for i in range(self.messages):
             message_data = self.listen_to.recv_multipart()
             print(message_data)
+            message = BrokerMessage()
+            if message_data[0] == b'from':
+                message.ParseFromString(message_data[1])
 
-            # If the message is simple, it is time to flush
-            if len(message_data) == 1:
-                self.listen_to.send(b'0')
+                # If the message was one of those resent messages
+                if message.key in self.resent:
+                    # Put in omit list to avoid getting the message twice
+                    self.omit[message.key] = message_data[1]
+                    self.resent.pop(message.key)
+                    self.listen_to.send(b'0')
 
-                for message_key in list(waiting.keys()):
-                    # Message data from the flusher is useless.
-                    message_data = waiting.pop(message_key)
-                    messages_resent += 1
-                    self.broker.send(message_data)
-                    print("Waiting for broker")
-                    self.broker.recv()
-                    if message_key not in resent:
-                        resent[message_key] = message_data
-                    else:
-                        pass
-
-            # If the message is multipart, then it is from the push-pull
-            # queue, and requires further action.
-            elif len(message_data) == 2:
-                message = BrokerMessage()
-                if message_data[0] == b'from':
-                    message.ParseFromString(message_data[1])
-
-                    # If the message was one of those resent messages
-                    if message.key in resent:
-                        # Put in omit list to avoid getting the message twice
-                        omit[message.key] = message_data[1]
-                        resent.pop(message.key)
-                        self.listen_to.send(b'0')
-
-                    elif message.key in omit:
-                        # Do nothing and get it out the list.
-                        omit.pop(message.key)
-                        self.listen_to.send(b'0')
-
-                    else:
-                        self.listen_to.send(b'0')
-
-                elif message_data[0] == b'to':
-                    message.ParseFromString(message_data[1])
-
-                    # The message is being sent to the workers, register accordingly
-                    waiting[message.key] = message_data[1]
-                    messages_waiting += 1
+                elif message.key in self.omit:
+                    # Do nothing and get it out the list.
+                    self.omit.pop(message.key)
                     self.listen_to.send(b'0')
 
                 else:
-                    self.logger.error('{} Got an invalid message'.format(self.name))
                     self.listen_to.send(b'0')
+
+            elif message_data[0] == b'to':
+                message.ParseFromString(message_data[1])
+
+                # The message is being sent to the workers, register accordingly
+                self.waiting[message.key] = message_data[1]
+                self.messages_waiting += 1
+                self.listen_to.send(b'0')
+
+            else:
+                self.logger.error('{} Got an invalid message'.format(self.name))
+                self.listen_to.send(b'0')
