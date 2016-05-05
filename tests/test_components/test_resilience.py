@@ -60,9 +60,9 @@ def false_broker_routine():
         after_worker.send_multipart([b'from', message.SerializeToString()])
         action = after_worker.recv()
         if action == b'1':
-            print('Message processed: ', message.payload)
+            print('Message processed: ', message.key)
         else:
-            print('Message ignored')
+            print('Message ignored:', message.key)
 
     false_broker.close()
     before_worker.close()

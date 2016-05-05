@@ -232,12 +232,12 @@ class ResilienceService(RepService):
                 self.broker.send(v)
                 self.broker.recv()
 
-            print('Redundancy ratio', len(self.waiting) / self.messages_sent)
+            print('Redundancy ratio', len(waiting_dict) / self.messages_sent)
             self.messages_sent = 1
 
     def start(self):
         # Dicts to temporarily store messages, and statistics. These
-        # are dictionaries, hence only this thread can change them.
+        # are dictionaries, hence there is particular care to prevent collisions.
 
         for i in range(self.messages):
             message_data = self.listen_to.recv_multipart()
