@@ -232,7 +232,9 @@ class ResilienceService(RepService):
                 self.broker.send(v)
                 self.broker.recv()
 
-            print('Redundancy ratio', len(waiting_dict) / self.messages_sent)
+            actual_redundancy = len(waiting_dict) / self.messages_sent
+            print('Redundancy ratio', actual_redundancy)
+
             self.messages_sent = 1
 
     def start(self):
