@@ -75,6 +75,16 @@ class PullService(ComponentInbound):
             cache=cache,
             messages=messages
         )
+        self.resilience_socket = None
+
+    def connect_resilience(self, resilience_address):
+        """
+        Creates and connects a socket to the resilience server
+        :param resilience_address:
+        :return:
+        """
+        self.resilience_socket = zmq_context.socket(zmq.REQ)
+        self.resilience_socket.connect(resilience_address)
 
 
 class PushService(ComponentOutbound):
@@ -110,6 +120,16 @@ class PushService(ComponentOutbound):
             cache=cache,
             messages=messages
         )
+        self.resilience_socket = None
+
+    def connect_resilience(self, resilience_address):
+        """
+        Connect a socket to the resilience service
+        :param resilience_address:
+        :return:
+        """
+        self.resilience_socket = zmq_context.socket(zmq.REQ)
+        self.resilience_socket.connect(resilience_address)
 
 
 class WorkerPushService(PushService):
@@ -123,6 +143,10 @@ class WorkerPushService(PushService):
         :param message_data:
         :return:
         """
+        if self.resilience_socket:
+            self.resilience_socket.send_multipart([b'to', message_data])
+            self.resilience_socket.recv()
+
         return message_data
 
     def _translate_to_broker(self, message_data):
@@ -145,7 +169,13 @@ class WorkerPullService(PullService):
         :param message_data:
         :return:
         """
-        return message_data
+        if self.resilience_socket:
+            self.resilience_socket.send_multipart([b'from', message_data])
+            action = self.resilience_socket.recv()
+            if action == b'1':
+                return message_data
+            else:
+                pass
 
     def _translate_from_broker(self, message_data):
         """
