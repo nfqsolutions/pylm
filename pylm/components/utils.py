@@ -213,8 +213,9 @@ class ResilienceService(RepService):
         will never be mistaken as good.
         :return:
         """
+        new_time = self.flush_time
         while True:
-            time.sleep(self.flush_time)
+            time.sleep(max([self.flush_time, new_time]))
             print('{}: Flushing messages'.format(self.name))
 
             # Copy the dictionary to prevent collisions:
@@ -232,8 +233,15 @@ class ResilienceService(RepService):
                 self.broker.send(v)
                 self.broker.recv()
 
+            # Algorithm that trains the flush time according to the redundancy
+            # parameter, which is the target.
             actual_redundancy = len(waiting_dict) / self.messages_sent
-            print('Redundancy ratio', actual_redundancy)
+
+            # Recalibrate flush time to be according to the redundancy rate.
+            new_time = max([self.flush_time, new_time]) *\
+                actual_redundancy / self.redundancy
+            print('Redundancy ratio', actual_redundancy,
+                  'New time', max([self.flush_time, new_time]))
 
             self.messages_sent = 1
 
