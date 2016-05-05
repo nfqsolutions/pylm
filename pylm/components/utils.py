@@ -216,12 +216,11 @@ class ResilienceService(RepService):
         new_time = self.flush_time
         while True:
             time.sleep(max([self.flush_time, new_time]))
-            print('{}: Flushing messages'.format(self.name))
+            self.logger.info('{}: Flushing messages'.format(self.name))
 
             # Copy the dictionary to prevent collisions:
             waiting_dict = copy(self.waiting)
 
-            print('Waiting', [k for k in waiting_dict])
             for k, v in waiting_dict.items():
                 with self.resent_lock:
                     # Resent tracks how much time the message has been resent.
@@ -240,9 +239,11 @@ class ResilienceService(RepService):
             # Recalibrate flush time to be according to the redundancy rate.
             new_time = max([self.flush_time, new_time]) *\
                 actual_redundancy / self.redundancy
-            print('Redundancy ratio', actual_redundancy,
-                  'New time', max([self.flush_time, new_time]))
-
+            self.logger.info(
+                'Redundancy ratio: {}, New time: {}'.format(
+                    actual_redundancy, max([self.flush_time, new_time])
+                )
+            )
             self.messages_sent = 1
 
     def start(self):
