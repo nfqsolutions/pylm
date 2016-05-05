@@ -6,6 +6,8 @@ from uuid import uuid4
 import logging
 import zmq
 import time
+import random
+import collections
 
 
 def resilience_routine():
@@ -18,6 +20,8 @@ def resilience_routine():
 
 
 def false_broker_routine():
+    messages_created = []
+    messages_received = []
     """Broker + worker only for resilience testing"""
     false_broker = zmq_context.socket(zmq.ROUTER)
     false_broker.bind('inproc://false_broker')
@@ -38,6 +42,7 @@ def false_broker_routine():
             broker_message = BrokerMessage()
             broker_message.key = str(uuid4())
             broker_message.payload = str(i).encode('utf-8')
+            messages_created.append(broker_message.key)
             message_stream.send(broker_message.SerializeToString())
             message_stream.recv()
 
@@ -57,12 +62,23 @@ def false_broker_routine():
         # Here's where the worker does his stuff.
         time.sleep(0.1)
 
-        after_worker.send_multipart([b'from', message.SerializeToString()])
-        action = after_worker.recv()
-        if action == b'1':
-            print('Message processed: ', message.key)
+        if not random.randint(0, 5) == 1:
+            after_worker.send_multipart([b'from', message.SerializeToString()])
+            action = after_worker.recv()
         else:
+            action = False
+            print('Message failed: ', message.key)
+
+        if action == b'1':
+            print('Message processed: ', message.key, message.payload)
+            messages_received.append(message.key)
+        else:
+            action = False
             print('Message ignored:', message.key)
+
+        print(len(messages_created),
+              len(messages_received),
+              [item for item, count in collections.Counter(messages_received).items() if count > 1])
 
     false_broker.close()
     before_worker.close()

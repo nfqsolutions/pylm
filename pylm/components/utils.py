@@ -194,6 +194,7 @@ class ResilienceService(RepService):
                                                 messages=messages)
 
         self.flush_time = 1  # seconds. Parameter to be trained.
+        self.max_flush_time = 10
         self.redundancy = 0.01  # Training target. Ratio of messages that are repeated.
         self.waiting = {}
         self.resent = {}
@@ -216,7 +217,7 @@ class ResilienceService(RepService):
         new_time = self.flush_time
         while True:
             time.sleep(max([self.flush_time, new_time]))
-            self.logger.info('{}: Flushing messages'.format(self.name))
+            self.logger.warning('{}: Flushing messages'.format(self.name))
 
             # Copy the dictionary to prevent collisions:
             waiting_dict = copy(self.waiting)
@@ -237,9 +238,9 @@ class ResilienceService(RepService):
             actual_redundancy = len(waiting_dict) / self.messages_sent
 
             # Recalibrate flush time to be according to the redundancy rate.
-            new_time = max([self.flush_time, new_time]) *\
-                actual_redundancy / self.redundancy
-            self.logger.info(
+            new_time = self.flush_time * actual_redundancy / self.redundancy
+            new_time = min([new_time, self.max_flush_time])
+            self.logger.warning(
                 'Redundancy ratio: {}, New time: {}'.format(
                     actual_redundancy, max([self.flush_time, new_time])
                 )
