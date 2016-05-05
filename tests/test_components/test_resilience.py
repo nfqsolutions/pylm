@@ -73,7 +73,6 @@ def false_broker_routine():
             print('Message processed: ', message.key, message.payload)
             messages_received.append(message.key)
         else:
-            action = False
             print('Message ignored:', message.key)
 
         print(len(messages_created),
