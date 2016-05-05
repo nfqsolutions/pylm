@@ -1,3 +1,4 @@
+from __future__ import division
 from pylm.components.connections import PushBypassConnection
 from pylm.components.services import RepBypassService, RepService
 from pylm.components.core import zmq_context
@@ -5,6 +6,7 @@ from pylm.components.messages_pb2 import PalmMessage, BrokerMessage
 from logging import Handler, Formatter, NOTSET
 from uuid import uuid4
 from threading import Thread, Lock
+from copy import copy
 import zmq
 import sys
 import time
@@ -191,15 +193,12 @@ class ResilienceService(RepService):
                                                 cache=cache,
                                                 messages=messages)
 
-        self.flush_time = 10  # seconds. Parameter to be trained.
+        self.flush_time = 1  # seconds. Parameter to be trained.
         self.redundancy = 0.01  # Training target. Ratio of messages that are repeated.
         self.waiting = {}
         self.resent = {}
         self.omit = {}
-        self.messages_waiting = 1
-        self.messages_flushed = 1
-        self.messages_resent = 1
-        self.messages_failure = 1
+        self.messages_sent = 1
         self.buffer_lock = Lock()
 
         # Started the thread that flushes periodically.
@@ -209,14 +208,32 @@ class ResilienceService(RepService):
 
     def flush_routine(self):
         """
-        Little scheduler that flushes the waiting messages periodically.
+        Little scheduler that flushes the waiting messages periodically. Some
+        messages may be mistakenly considered to be failed, but a failed message
+        will never be mistaken as good.
         :return:
         """
         while True:
             time.sleep(self.flush_time)
             print('{}: Flushing messages'.format(self.name))
-            self.broker.send(b'0')
-            self.broker.recv()
+
+            # Copy the dictionary to prevent collisions:
+            waiting_dict = copy(self.waiting)
+
+            print('Waiting', [k for k in waiting_dict])
+            for k, v in waiting_dict.items():
+                with self.buffer_lock:
+                    # Resent tracks how much time the message has been resent.
+                    if k not in self.resent:
+                        self.resent[k] = 1
+                    else:
+                        self.resent[k] += 1
+
+                self.broker.send(v)
+                self.broker.recv()
+
+            print('Redundancy ratio', len(self.waiting) / self.messages_sent)
+            self.messages_sent = 1
 
     def start(self):
         # Dicts to temporarily store messages, and statistics. These
@@ -224,34 +241,54 @@ class ResilienceService(RepService):
 
         for i in range(self.messages):
             message_data = self.listen_to.recv_multipart()
-            print(message_data)
             message = BrokerMessage()
-            if message_data[0] == b'from':
+
+            # Registers any message as pending in a local dict
+            if message_data[0] == b'to':
                 message.ParseFromString(message_data[1])
 
-                # If the message was one of those resent messages
+                self.waiting[message.key] = message_data[1]
+
+                self.messages_sent += 1
+                # Send a dummy message, since no action is required
+                self.listen_to.send(b'0')
+
+            # This is more complex. These are the messages that come from
+            # the workers. This section manages the local message cache,
+            # and updates the statistics accordingly
+            elif message_data[0] == b'from':
+                message.ParseFromString(message_data[1])
+
+                # First thing is to remove the message from the waiting list
+                self.waiting.pop(message.key)
+
                 if message.key in self.resent:
                     # Put in omit list to avoid getting the message twice
-                    self.omit[message.key] = message_data[1]
-                    self.resent.pop(message.key)
-                    self.listen_to.send(b'0')
+                    with self.buffer_lock:
+                        self.resent[message.key] -= 1
+                        if self.resent[message.key] == 0:
+                            self.resent.pop(message.key)
 
+                    self.omit[message.key] = 1
+
+                    # This one means that the message should be processed
+                    self.listen_to.send(b'1')
+
+                # The omit set are the messages that were mistakenly set
+                # as failed, and they should not be processed
                 elif message.key in self.omit:
-                    # Do nothing and get it out the list.
-                    self.omit.pop(message.key)
+                    # If the message was resent only once, purge from omit list.
+                    if message.key not in self.resent:
+                        self.omit.pop(message.key)
+
+                    # This zero means that the message should not be processed
                     self.listen_to.send(b'0')
 
+                # If the message is not registered in any way, process it.
                 else:
-                    self.listen_to.send(b'0')
-
-            elif message_data[0] == b'to':
-                message.ParseFromString(message_data[1])
-
-                # The message is being sent to the workers, register accordingly
-                self.waiting[message.key] = message_data[1]
-                self.messages_waiting += 1
-                self.listen_to.send(b'0')
+                    self.listen_to.send(b'1')
 
             else:
+                # Just unblock
                 self.logger.error('{} Got an invalid message'.format(self.name))
-                self.listen_to.send(b'0')
+                self.listen_to.send(b'1')

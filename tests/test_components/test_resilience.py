@@ -35,30 +35,34 @@ def false_broker_routine():
     # Generate a bunch of messages and send all of them asynchronously.
     def generate_messages():
         for i in range(100):
-            message_stream.send(str(i).encode('utf-8'))
+            broker_message = BrokerMessage()
+            broker_message.key = str(uuid4())
+            broker_message.payload = str(i).encode('utf-8')
+            message_stream.send(broker_message.SerializeToString())
             message_stream.recv()
 
     message_stream_thread = Thread(target=generate_messages)
     message_stream_thread.start()
 
-    for j in range(100):
-        print('Blocked waiting...')
+    while True:
         [client, empty, message_data] = false_broker.recv_multipart()
-        print(client, message_data)
         false_broker.send_multipart([client, empty, b'0'])
 
         message = BrokerMessage()
-        message.key = str(uuid4())
-        message.payload = message_data
+        message.ParseFromString(message_data)
+        print(message)
 
         before_worker.send_multipart([b'to', message.SerializeToString()])
-        print(before_worker.recv())
-
+        before_worker.recv()
         # Here's where the worker does his stuff.
-        time.sleep(0.2)
+        time.sleep(0.1)
 
         after_worker.send_multipart([b'from', message.SerializeToString()])
-        print(after_worker.recv())
+        action = after_worker.recv()
+        if action == b'1':
+            print('Message processed: ', message.payload)
+        else:
+            print('Message ignored')
 
     false_broker.close()
     before_worker.close()
