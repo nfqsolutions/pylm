@@ -199,7 +199,7 @@ class ResilienceService(RepService):
         self.resent = {}
         self.omit = {}
         self.messages_sent = 1
-        self.buffer_lock = Lock()
+        self.resent_lock = Lock()
 
         # Started the thread that flushes periodically.
         flush_thread = Thread(target=self.flush_routine)
@@ -222,7 +222,7 @@ class ResilienceService(RepService):
 
             print('Waiting', [k for k in waiting_dict])
             for k, v in waiting_dict.items():
-                with self.buffer_lock:
+                with self.resent_lock:
                     # Resent tracks how much time the message has been resent.
                     if k not in self.resent:
                         self.resent[k] = 1
@@ -266,7 +266,7 @@ class ResilienceService(RepService):
 
                 if message.key in self.resent:
                     # Put in omit list to avoid getting the message twice
-                    with self.buffer_lock:
+                    with self.resent_lock:
                         self.resent[message.key] -= 1
                         if self.resent[message.key] == 0:
                             self.resent.pop(message.key)
