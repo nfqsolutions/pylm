@@ -308,9 +308,11 @@ class ComponentInbound(object):
 
             for scattered in self.scatter(message_data):
                 scattered = self._translate_to_broker(scattered)
-                self.broker.send(scattered)
-                self.logger.debug('Component {} blocked waiting for broker'.format(self.name))
-                self.handle_feedback(self.broker.recv())
+                # The translation may delete the message in the WorkerPull case
+                if scattered:
+                    self.broker.send(scattered)
+                    self.logger.debug('Component {} blocked waiting for broker'.format(self.name))
+                    self.handle_feedback(self.broker.recv())
 
             if self.reply:
                 self.listen_to.send(self.reply_feedback())
