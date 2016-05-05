@@ -176,6 +176,8 @@ class WorkerPullService(PullService):
                 return message_data
             else:
                 pass
+        else:
+            return message_data
 
     def _translate_from_broker(self, message_data):
         """
