@@ -220,16 +220,18 @@ class ResilienceService(RepService):
             self.logger.warning('{}: Flushing messages'.format(self.name))
 
             # Copy the dictionary to prevent collisions:
-            waiting_dict = copy(self.waiting)
+            waiting_dict = {}
 
-            for k, v in waiting_dict.items():
-                with self.resent_lock:
+            with self.resent_lock:
+                for k, v in self.waiting.items():
                     # Resent tracks how much time the message has been resent.
                     if k not in self.resent:
                         self.resent[k] = 1
                     else:
                         self.resent[k] += 1
+                    waiting_dict[k] = v
 
+            for k, v in waiting_dict.items():
                 self.broker.send(v)
                 self.broker.recv()
 
@@ -270,7 +272,6 @@ class ResilienceService(RepService):
             # and updates the statistics accordingly
             elif message_data[0] == b'from':
                 message.ParseFromString(message_data[1])
-
                 # First thing is to remove the message from the waiting list
                 self.waiting.pop(message.key)
 
