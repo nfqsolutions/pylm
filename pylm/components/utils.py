@@ -6,7 +6,6 @@ from pylm.components.messages_pb2 import PalmMessage, BrokerMessage
 from logging import Handler, Formatter, NOTSET
 from uuid import uuid4
 from threading import Thread, Lock
-from copy import copy
 import zmq
 import sys
 import time
