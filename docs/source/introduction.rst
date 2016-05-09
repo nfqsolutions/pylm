@@ -3,7 +3,7 @@ Introduction
 
 PALM is a library to create clusters of high-performance micro-services with
 simple and reusable components. In PALM, all servers are equal, and they have
-the same capabilities: a RPC mechanism, a cache, logging, performance
+the same capabilities: inbound and outbound ports, calling conventions, cache, logging, performance
 counters... PALM also provides the required infrastructure to configure and
 monitor the cluster.
 
@@ -45,6 +45,27 @@ message stream, or a self-balancing ventilator-sink parallel computation. In
 consequence, PALM can be used to build custom applications with dynamic
 parallelism, with some of the nice features expected in high performance
 applications: efficient messaging, memory efficiency, load balancing and so on.
+
+The pipeline is a powerful concept, but it takes some effort to configure. For
+this reason PALM provides a stripped-down version of the servers that can be
+configured manually to work completely standalone. This variant is particularly
+convenient when testing. If the computation pipeline works in the standalone case,
+it will also work as a step of a pipeline.
+
+Data-parallel and task-parallel
+-------------------------------
+
+Distributed architectures are often classified as data-parallel, where the data
+domain is partitioned and each chunk is crunched by a separated node; and task-parallel,
+where a group of tasks transforms a stream of messages. The first set includes
+many map-reduce libraries like Hadoop and Spark, while the second one includes
+streaming libraries like Storm and Flink. This separation is more often philosophical
+than technical, and PALM does not follow it in any way. Data-parallel tend to use
+domain decomposition, but PALM uses messages. Task-parallel is usually implemented
+as a graph of stateless servers, but PALM servers are stateful.
+
+The ambitious goal here is to fetch the best of each side of the big-data ecosystem
+to provide powerful patterns to design and to implement distributed applications.
 
 Pylm
 ----

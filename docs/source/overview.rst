@@ -1,6 +1,8 @@
 The ten thousand feet view
 ==========================
 
+This has to be updated. A lot.
+
 Introduction and example
 ------------------------
 
@@ -111,6 +113,8 @@ are supported.
 
 Similar technologies
 --------------------
+
+To be updated
 
 The most similar technology to PALM is
 `Google's Cloud Dataflow (GCDF) <https://cloud.google.com/dataflow/>`_, although
