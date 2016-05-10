@@ -21,8 +21,12 @@ def test_standalone_parallel_client():
                         this_log_address,
                         this_perf_address,
                         this_ping_address)
-    master = Master('master', 'inproc://pull6', 'inproc://push6',
-                    'inproc://worker_pull6', 'inproc://worker_push6',
+
+    master = Master('master',
+                    'inproc://pull6',
+                    'inproc://push6',
+                    'inproc://worker_pull6',
+                    'inproc://worker_push6',
                     this_db_address,
                     endpoint.log_address, endpoint.perf_address,
                     endpoint.ping_address, palm=True)
