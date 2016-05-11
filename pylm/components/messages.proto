@@ -14,5 +14,5 @@ message BrokerMessage {
   required string key =    1;
   required bytes payload = 2;
   optional string instruction = 3;
-  optional string cache = 4;
+  optional string pipeline = 4;
 }

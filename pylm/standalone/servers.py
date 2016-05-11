@@ -242,6 +242,7 @@ class Worker(object):
         self.db.connect(db_address)
 
         self.messages = messages
+        self.message = BrokerMessage()
 
         # This is the pinger thread that keeps the pinger alive.
         pinger_thread = Thread(target=self.pinger.start)
@@ -253,15 +254,14 @@ class Worker(object):
             message_data = self.pull.recv()
             self.logger.info('{} Got a message'.format(self.name))
             result = b'0'
-            message = BrokerMessage()
             try:
-                message.ParseFromString(message_data)
-                instruction = message.instruction
+                self.message.ParseFromString(message_data)
+                instruction = self.message.instruction
                 try:
                     user_function = getattr(self, instruction)
                     self.logger.info('Looking for {}'.format(instruction))
                     try:
-                        result = user_function(message.payload)
+                        result = user_function(self.message.payload)
                         self.logger.info('{} Ok'.format(instruction))
                     except:
                         self.logger.error('{} User function gave an error'.format(self.name))
@@ -275,8 +275,8 @@ class Worker(object):
             except DecodeError:
                 self.logger.error('Message could not be decoded')
 
-            message.payload = result
-            self.push.send(message.SerializeToString())
+            self.message.payload = result
+            self.push.send(self.message.SerializeToString())
 
     def set(self, value, key=None):
         """
