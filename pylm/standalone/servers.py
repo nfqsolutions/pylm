@@ -74,7 +74,7 @@ class Server(object):
     def start(self):
         for i in range(self.messages):
             message_data = self.rep.recv()
-            self.logger.info('Got message {}'.format(i+1))
+            self.logger.debug('Got message {}'.format(i+1))
             result = b'0'
             message = PalmMessage()
             try:
@@ -86,7 +86,7 @@ class Server(object):
                 else:
                     try:
                         user_function = getattr(self, function)
-                        self.logger.info('Looking for {}'.format(function))
+                        self.logger.debug('Looking for {}'.format(function))
                         try:
                             # This is a little exception for the cache to accept
                             # a value
@@ -252,17 +252,17 @@ class Worker(object):
     def start(self):
         for i in range(self.messages):
             message_data = self.pull.recv()
-            self.logger.info('{} Got a message'.format(self.name))
+            self.logger.debug('{} Got a message'.format(self.name))
             result = b'0'
             try:
                 self.message.ParseFromString(message_data)
                 instruction = self.message.instruction
                 try:
                     user_function = getattr(self, instruction)
-                    self.logger.info('Looking for {}'.format(instruction))
+                    self.logger.debug('Looking for {}'.format(instruction))
                     try:
                         result = user_function(self.message.payload)
-                        self.logger.info('{} Ok'.format(instruction))
+                        self.logger.debug('{} Ok'.format(instruction))
                     except:
                         self.logger.error('{} User function gave an error'.format(self.name))
                         exc_type, exc_value, exc_traceback = sys.exc_info()
