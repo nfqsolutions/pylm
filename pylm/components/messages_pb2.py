@@ -18,7 +18,7 @@ _sym_db = _symbol_database.Default()
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='messages.proto',
   package='',
-  serialized_pb=_b('\n\x0emessages.proto\"\x8a\x01\n\x0bPalmMessage\x12\x10\n\x08pipeline\x18\x01 \x02(\t\x12\x0e\n\x06\x63lient\x18\x02 \x02(\t\x12\r\n\x05stage\x18\x03 \x02(\x03\x12\x10\n\x08\x66unction\x18\x04 \x02(\t\x12\x0b\n\x03idx\x18\x05 \x01(\x03\x12\x0b\n\x03\x65nd\x18\x06 \x01(\x08\x12\r\n\x05\x63\x61\x63he\x18\x07 \x01(\t\x12\x0f\n\x07payload\x18\x08 \x01(\x0c\"T\n\rBrokerMessage\x12\x0b\n\x03key\x18\x01 \x02(\t\x12\x0f\n\x07payload\x18\x02 \x02(\x0c\x12\x13\n\x0binstruction\x18\x03 \x01(\t\x12\x10\n\x08pipeline\x18\x04 \x01(\t')
+  serialized_pb=_b('\n\x0emessages.proto\"\x8a\x01\n\x0bPalmMessage\x12\x10\n\x08pipeline\x18\x01 \x02(\t\x12\x0e\n\x06\x63lient\x18\x02 \x02(\t\x12\r\n\x05stage\x18\x03 \x02(\x03\x12\x10\n\x08\x66unction\x18\x04 \x02(\t\x12\x0b\n\x03idx\x18\x05 \x01(\x03\x12\x0b\n\x03\x65nd\x18\x06 \x01(\x08\x12\r\n\x05\x63\x61\x63he\x18\x07 \x01(\t\x12\x0f\n\x07payload\x18\x08 \x01(\x0c\"Q\n\rBrokerMessage\x12\x0b\n\x03key\x18\x01 \x02(\t\x12\x0f\n\x07payload\x18\x02 \x02(\x0c\x12\x13\n\x0binstruction\x18\x03 \x01(\t\x12\r\n\x05\x63\x61\x63he\x18\x04 \x01(\t')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -133,7 +133,7 @@ _BROKERMESSAGE = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='pipeline', full_name='BrokerMessage.pipeline', index=3,
+      name='cache', full_name='BrokerMessage.cache', index=3,
       number=4, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -151,7 +151,7 @@ _BROKERMESSAGE = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=159,
-  serialized_end=243,
+  serialized_end=240,
 )
 
 DESCRIPTOR.message_types_by_name['PalmMessage'] = _PALMMESSAGE
