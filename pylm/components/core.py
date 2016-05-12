@@ -97,7 +97,6 @@ class Broker(object):
         self.logger.info('Outbound components: {}'.format(self.outbound_components))
 
         for i in range(self.messages):
-            #time.sleep(0.0001)
             # Polls the outbound socket for inbound and outbound connections
             event = dict(self.poller.poll())
             self.logger.debug('Event {}'.format(event))
