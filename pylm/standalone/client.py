@@ -4,6 +4,7 @@ from threading import Thread
 from uuid import uuid4
 import zmq
 import sys
+import time
 
 
 class Client(object):
@@ -107,15 +108,19 @@ class ParallelClient(object):
         self.uuid = str(uuid4())
 
     def _push_job(self):
+        pipeline_id = str(uuid4())
         for m in self.job_generator:
             message = PalmMessage()
-            message.pipeline = str(uuid4())
+            message.pipeline = pipeline_id
             message.client = self.uuid
             message.stage = 0
             message.function = '.'.join([self.server_name, self.function])
             message.payload = m
-
             self.push.send(message.SerializeToString())
+            time.sleep(0.001)  # Flushing the socket the wrong way.
+
+        print('**************** killing job')
+        time.sleep(10)
 
     def _launch_job_from_generator(self, generator, messages=sys.maxsize):
         self.job_generator = generator
@@ -145,7 +150,6 @@ class ParallelClient(object):
         """
         self.function = function
         yield from self._launch_job_from_generator(generator, messages)
-        self.clean()
 
     def set(self, value, key=None):
         """

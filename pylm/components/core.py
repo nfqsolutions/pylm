@@ -2,7 +2,6 @@ from pylm.components.messages_pb2 import PalmMessage, BrokerMessage
 from uuid import uuid4
 import zmq
 import sys
-import time
 
 
 zmq_context = zmq.Context.instance()
