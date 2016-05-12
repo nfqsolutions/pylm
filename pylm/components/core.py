@@ -7,8 +7,6 @@ import time
 
 zmq_context = zmq.Context.instance()
 
-# TODO: Make binds and connects at start, not at __init__
-
 
 class Broker(object):
     """
@@ -222,10 +220,7 @@ class ComponentInbound(object):
         """
         self.name = name.encode('utf-8')
         self.listen_to = zmq_context.socket(socket_type)
-        if bind:
-            self.listen_to.bind(listen_address)
-        else:
-            self.listen_to.connect(listen_address)
+        self.bind = bind
         self.listen_address = listen_address
         self.broker = zmq_context.socket(zmq.REQ)
         self.broker.identity = self.name
@@ -307,6 +302,11 @@ class ComponentInbound(object):
         return self.last_message
 
     def start(self):
+        if self.bind:
+            self.listen_to.bind(self.listen_address)
+        else:
+            self.listen_to.connect(self.listen_address)
+
         self.logger.info('Launch component {}'.format(self.name))
         for i in range(self.messages):
             self.logger.debug('Component {} blocked waiting messages'.format(self.name))
@@ -360,10 +360,7 @@ class ComponentOutbound(object):
         """
         self.name = name.encode('utf-8')
         self.listen_to = zmq_context.socket(socket_type)
-        if bind:
-            self.listen_to.bind(listen_address)
-        else:
-            self.listen_to.connect(listen_address)
+        self.bind = bind
         self.listen_address = listen_address
         self.broker = zmq_context.socket(zmq.REQ)
         self.broker.identity = self.name
@@ -452,6 +449,11 @@ class ComponentOutbound(object):
         return self.last_message
 
     def start(self):
+        if self.bind:
+            self.listen_to.bind(self.listen_address)
+        else:
+            self.listen_to.connect(self.listen_address)
+
         self.logger.info('Launch component {}'.format(self.name))
         initial_broker_message = BrokerMessage()
         initial_broker_message.key = '0'
@@ -504,10 +506,7 @@ class ComponentBypassInbound(object):
         """
         self.name = name.encode('utf-8')
         self.listen_to = zmq_context.socket(socket_type)
-        if bind:
-            self.listen_to.bind(listen_address)
-        else:
-            self.listen_to.connect(listen_address)
+        self.bind = bind
         self.listen_address = listen_address
         self.logger = logger
         self.reply = reply
@@ -528,6 +527,11 @@ class ComponentBypassInbound(object):
         return message_data
 
     def start(self):
+        if self.bind:
+            self.listen_to.bind(self.listen_address)
+        else:
+            self.listen_to.connect(self.listen_address)
+
         for i in range(self.messages):
             self.recv()
 
