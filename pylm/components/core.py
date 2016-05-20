@@ -2,7 +2,6 @@ from pylm.components.messages_pb2 import PalmMessage, BrokerMessage
 from uuid import uuid4
 import zmq
 import sys
-import time
 
 # TODO: To improve performance, maybe the inbound and outbound in the broker should be replaced
 # by two coroutines. The change would not be really aggressive, because the broker
@@ -104,7 +103,6 @@ class Broker(object):
         self.logger.info('Outbound components: {}'.format(self.outbound_components))
 
         for i in range(self.messages):
-            time.sleep(0.00001)
             # Polls the outbound socket for inbound and outbound connections
             event = dict(self.poller.poll())
 
