@@ -3,12 +3,6 @@ from uuid import uuid4
 import zmq
 import sys
 
-# TODO: To improve performance, maybe the inbound and outbound in the broker should be replaced
-# by two coroutines. The change would not be really aggressive, because the broker
-# and the router sockets are pretty much contained. This would save a lot of internal
-# messaging and make the code a lot more pythonic. But it will also be more difficult
-# to understand.
-
 
 zmq_context = zmq.Context.instance()
 
