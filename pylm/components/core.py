@@ -45,11 +45,6 @@ class Broker(object):
         self.logger = logger
         self.messages = messages
 
-        # Poller for the event loop
-        self.poller = zmq.Poller()
-        # Register only inbound to avoid having to buffer stuff
-        self.poller.register(self.outbound, zmq.POLLIN)
-
         # Cache for the server
         self.cache = cache
 
@@ -77,80 +72,26 @@ class Broker(object):
         }
 
     def start(self):
-        # List of available outbound components
-        available_outbound = []
-
-        # To avoid complaints from static analysers.
-        block = False
-
-        # If no outbound components are expected, just register inbound
-        # to allow inbound connections
-        if not self.outbound_components:
-            self.logger.warning('No outbound components registered!')
-            self.poller.register(self.inbound, zmq.POLLIN)
-
         self.logger.info('Launch broker')
         self.logger.info('Inbound socket: {}'.format(self.inbound))
         self.logger.info('Outbound socket: {}'.format(self.outbound))
         self.logger.info('Outbound components: {}'.format(self.outbound_components))
 
         for i in range(self.messages):
-            # Polls the outbound socket for inbound and outbound connections
-            event = dict(self.poller.poll())
-            self.logger.debug('Event {}'.format(event))
+            component, empty, message_data = self.inbound.recv_multipart()
+            # internal routing
+            route_to = self.inbound_components[component]['route']
+            block = self.inbound_components[component]['block']
 
-            if self.outbound in event:
-                component, empty, feedback = self.outbound.recv_multipart()
-                broker_message = BrokerMessage()
-                broker_message.ParseFromString(feedback)
-
-                self.logger.debug('Handling outbound event: {}'.format(broker_message.key))
-                available_outbound.append(component)
-
-                if broker_message.key != '0' and block:
-                    self.inbound.send_multipart([component, empty, broker_message.payload])
-
-                # If all outbound components are ready, register inbound
-                if set(available_outbound) == set(self.outbound_components):
-                    self.poller.register(self.inbound)
-
-            elif self.inbound in event:
-                broker_message = BrokerMessage()
-                component, empty, message_data = self.inbound.recv_multipart()
-                self.logger.debug('Handling inbound event from {}'.format(component))
-                broker_message.ParseFromString(message_data)
-
-                # Start internal routing
-                route_to = self.inbound_components[component]['route']
-                block = self.inbound_components[component]['block']
-
-                # If no routing needed
-                # Routing needed
-                if route_to:
-                    # Route
-                    self.logger.debug('Broker routing to {}'.format(route_to))
-                    available_outbound.remove(route_to)
-                    self.outbound.send_multipart([route_to, empty, broker_message.SerializeToString()])
-                    self.poller.unregister(self.inbound)
-
-                    # Handling blocked input
-                    if block:
-                        self.logger.debug('Inbound waiting for feedback')
-                        # Block input until message is returned from outbound
-
-                    else:
-                        self.logger.debug('Unblocking inbound')
-                        self.inbound.send_multipart([component, empty, b'1'])
-
+            if route_to:
+                self.outbound.send_multipart([route_to, empty, message_data])
+                route_to, empty, feedback = self.outbound.recv_multipart()
+                if block:
+                    self.inbound.send_multipart([component, empty, feedback])
                 else:
-                    self.logger.debug('Message back to {}'.format(route_to))
-                    # By definition, if it does not route, it does not block
                     self.inbound.send_multipart([component, empty, b'1'])
-
             else:
-                self.logger.critical('Socket not known.')
-
-            self.logger.debug('Finished event cycle.')
+                self.inbound.send_multipart([component, empty, b'1'])
 
     def cleanup(self):
         self.inbound.close()
@@ -279,9 +220,7 @@ class ComponentInbound(object):
         self.logger.info('Launch component {}'.format(self.name))
         for i in range(self.messages):
             self.logger.debug('Component {} blocked waiting messages'.format(self.name))
-            print(self.name, 'recv3 blocked')
             message_data = self.listen_to.recv()
-            print(self.name, 'recv3 released')
             self.logger.debug('{} Got inbound message'.format(self.name))
 
             for scattered in self.scatter(message_data):
@@ -333,7 +272,7 @@ class ComponentOutbound(object):
         self.listen_to = zmq_context.socket(socket_type)
         self.bind = bind
         self.listen_address = listen_address
-        self.broker = zmq_context.socket(zmq.REQ)
+        self.broker = zmq_context.socket(zmq.REP)
         self.broker.identity = self.name
         self.broker.connect(broker_address)
         self.logger = logger
@@ -425,17 +364,9 @@ class ComponentOutbound(object):
         else:
             self.listen_to.connect(self.listen_address)
 
-        self.logger.info('Launch component {}'.format(self.name))
-        initial_broker_message = BrokerMessage()
-        initial_broker_message.key = '0'
-        initial_broker_message.payload = b'0'
-        self.broker.send(initial_broker_message.SerializeToString())
-
         for i in range(self.messages):
             self.logger.debug('Component {} blocked waiting for broker'.format(self.name))
-            print(self.name, 'recv4 blocked')
             message_data = self.broker.recv()
-            print(self.name, 'recv4 released')
             message_data = self._translate_from_broker(message_data)
 
             self.logger.debug('Got message from broker')
