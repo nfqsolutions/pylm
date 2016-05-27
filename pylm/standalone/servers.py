@@ -17,6 +17,8 @@ import sys
 # but on the other hand, hou have a logger and the performance counter, and
 # a convenient endpoint for these services.
 
+# TODO: Maybe this is all wrong, and push-pull is a bad bad idea.
+
 
 class Server(object):
     """
