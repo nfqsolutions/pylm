@@ -2,7 +2,7 @@
 import logging
 from threading import Thread
 
-from pylm.components.core import Broker
+from pylm.components.core import Router
 from pylm.components.endpoints import ReqConnection
 from pylm.components.services import RepService
 from pylm.components.utils import PushHandler, LogCollector
@@ -17,7 +17,7 @@ def test_logger():
     pylm_logger.addHandler(handler)
     pylm_logger.setLevel(logging.DEBUG)
 
-    broker = Broker(logger=pylm_logger, messages=10)
+    broker = Router(logger=pylm_logger, messages=10)
     request_reply = RepService('test',
                                'inproc://repservice',
                                broker_address=broker.inbound_address,

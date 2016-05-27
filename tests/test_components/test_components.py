@@ -1,5 +1,5 @@
 from pylm.components.connections import RepConnection, PushConnection, PullConnection
-from pylm.components.core import Broker
+from pylm.components.core import Router
 from pylm.components.endpoints import logger, ReqEndPoint, PullEndPoint, PushEndPoint
 from threading import Thread
 import atexit
@@ -13,7 +13,7 @@ def test_request_reply():
                  <-                <-
     :return:
     """
-    broker = Broker(logger=logger, messages=10)
+    broker = Router(logger=logger, messages=10)
     endpoint = ReqEndPoint(logger=logger)
     request_reply = RepConnection('test',
                                   listen_address=endpoint.bind_address,
@@ -43,11 +43,11 @@ def test_request_push():
     """
     Tests the following sequence
 
-    Req Endpoint -> Rep component -> Broker -> Push component -> PULL endpoint.
+    Req Endpoint -> Rep component -> Router -> Push component -> PULL endpoint.
                  <-               <-
     :return:
     """
-    broker = Broker(logger=logger, messages=20)
+    broker = Router(logger=logger, messages=20)
     endpoint_req = ReqEndPoint(logger=logger)
     endpoint_pull = PullEndPoint(logger=logger)
 
@@ -90,10 +90,10 @@ def test_pull_push():
     """
     Tests the following sequence
 
-    Push Endpoint -> pull component -> Broker -> Push component -> PULL endpoint.
+    Push Endpoint -> pull component -> Router -> Push component -> PULL endpoint.
     :return:
     """
-    broker = Broker(logger=logger, messages=20)
+    broker = Router(logger=logger, messages=20)
     endpoint_push = PushEndPoint(logger=logger)
     endpoint_pull = PullEndPoint(logger=logger)
 

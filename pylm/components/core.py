@@ -7,9 +7,9 @@ import sys
 zmq_context = zmq.Context.instance()
 
 
-class Broker(object):
+class Router(object):
     """
-    Broker for the internal event-loop. It is a ROUTER socket that blocks
+    Router for the internal event-loop. It is a ROUTER socket that blocks
     waiting for the components to send something. This is more a bus than
     a broker.
     """

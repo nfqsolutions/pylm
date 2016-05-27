@@ -1,5 +1,5 @@
 from threading import Thread
-from pylm.components.core import zmq_context, Broker
+from pylm.components.core import zmq_context, Router
 from pylm.components.endpoints import logger
 from pylm.components.services import WorkerPullService, WorkerPushService
 from pylm.components.services import PullService, PushService
@@ -50,7 +50,7 @@ def worker2(listen_push, listen_pull):
 
 
 def test_feedback():
-    broker = Broker(logger=logger, messages=42)
+    broker = Router(logger=logger, messages=42)
     pull_service = PullService('Pull', 'inproc://pull',
                                broker_address=broker.inbound_address,
                                logger=logger, messages=10)

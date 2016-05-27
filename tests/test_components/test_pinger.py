@@ -1,7 +1,7 @@
 from threading import Thread
 
 from pylm.components.connections import PushConnection
-from pylm.components.core import Broker
+from pylm.components.core import Router
 from pylm.components.endpoints import PullEndPoint, logger
 from pylm.components.services import PullService
 from pylm.components.utils import Pinger
@@ -36,10 +36,10 @@ def test_pinger_with_broker():
     """
     Tests the following sequence
 
-    Pinger -> Pull service -> Broker -> Push connection -> Pull endpoint.
+    Pinger -> Pull service -> Router -> Push connection -> Pull endpoint.
     :return:
     """
-    broker = Broker(logger=logger, messages=20)
+    broker = Router(logger=logger, messages=20)
     pull_service = PullService('test',
                                'inproc://pullservice',
                                broker_address=broker.inbound_address,

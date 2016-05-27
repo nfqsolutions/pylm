@@ -3,7 +3,7 @@ from threading import Thread
 import requests
 
 from pylm.components.connections import PushConnection
-from pylm.components.core import Broker
+from pylm.components.core import Router
 from pylm.components.endpoints import PullEndPoint, logger
 from pylm.persistence.etcd import EtcdPoller
 
@@ -16,7 +16,7 @@ def test_etcd_poller():
     :return:
     """
 
-    broker = Broker(logger=logger, messages=20)
+    broker = Router(logger=logger, messages=20)
     endpoint_pull = PullEndPoint(logger=logger)
     poller = EtcdPoller('etcdpoller',
                         '/servers',

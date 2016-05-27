@@ -1,6 +1,6 @@
 from threading import Thread
 
-from pylm.components.core import Broker
+from pylm.components.core import Router
 from pylm.components.endpoints import ReqConnection, logger
 from pylm.components.services import RepService
 from pylm.components.utils import PerformanceCounter, PerformanceCollector
@@ -10,8 +10,8 @@ def test_perfcounter():
     collector = PerformanceCollector()
     perfcounter = PerformanceCounter(listen_address=collector.bind_address)
 
-    perfcounter.tick('Instantiate Broker')
-    broker = Broker(logger=logger, messages=10)
+    perfcounter.tick('Instantiate Router')
+    broker = Router(logger=logger, messages=10)
 
     perfcounter.tick('Instantiate Reply Service')
     request_reply = RepService('test',

@@ -1,6 +1,6 @@
 from threading import Thread
 
-from pylm.components.core import Broker
+from pylm.components.core import Router
 from pylm.components.endpoints import ReqConnection, logger
 from pylm.components.services import RepService
 
@@ -13,7 +13,7 @@ def test_request_reply():
                    <-             <-
     :return:
     """
-    broker = Broker(logger=logger, messages=10)
+    broker = Router(logger=logger, messages=10)
 
     request_reply = RepService('test',
                                "inproc://repservice",

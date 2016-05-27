@@ -1,4 +1,4 @@
-from pylm.components.core import zmq_context, Broker
+from pylm.components.core import zmq_context, Router
 from pylm.components.services import WorkerPullService, WorkerPushService
 from pylm.components.services import PullService, PushService
 from pylm.components.utils import PushHandler, Pinger, PerformanceCounter, CacheService
@@ -148,7 +148,7 @@ class Master(object):
         self.pinger = Pinger(listen_address=ping_address, every=10.0)
 
         # Configure the broker and the connectors
-        self.broker = Broker(logger=self.logger)
+        self.broker = Router(logger=self.logger)
         self.pull_service = PullService(
             'Pull',
             pull_address,

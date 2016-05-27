@@ -1,5 +1,5 @@
 from threading import Thread
-from pylm.components.core import zmq_context, Broker
+from pylm.components.core import zmq_context, Router
 from pylm.components.messages_pb2 import BrokerMessage
 from pylm.components.endpoints import logger
 from uuid import uuid4
@@ -49,7 +49,7 @@ def outbound(listen_addr):
 
 
 def test_feedback():
-    broker = Broker(logger=logger, messages=20)
+    broker = Router(logger=logger, messages=20)
     broker.register_inbound('inbound1', route='outbound', block=True, log='inbound1')
     broker.register_inbound('inbound2', route='outbound', log='inbound2')
     broker.register_outbound('outbound', log='outbound')
