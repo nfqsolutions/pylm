@@ -2,6 +2,7 @@ from pylm.components.core import zmq_context
 from pylm.components.messages_pb2 import PalmMessage
 from threading import Thread
 from uuid import uuid4
+from itertools import repeat
 import zmq
 import sys
 import time
@@ -69,7 +70,7 @@ class Client(object):
         message.ParseFromString(self.req.recv())
         return message.payload.decode('utf-8')
 
-    def job(self, function, data):
+    def job(self, function, data, pipeline=None, cache=None):
         """
         RPC function with data
         :param function: Function name as string, already defined in the server
@@ -77,7 +78,14 @@ class Client(object):
         :return: Result
         """
         message = PalmMessage()
-        message.pipeline = str(uuid4())
+        if pipeline:
+            message.pipeline = pipeline
+        else:
+            message.pipeline = str(uuid4())
+
+        if cache:
+            message.cache = cache
+
         message.client = self.uuid
         message.stage = 0
         message.function = '.'.join([self.server_name, function])
@@ -88,7 +96,7 @@ class Client(object):
 
 
 class ParallelClient(object):
-    def __init__(self, push_address, pull_address, db_address, server_name):
+    def __init__(self, push_address, pull_address, db_address, server_name, pipeline=None):
         self.server_name = server_name
         self.push_address = push_address
         self.push = zmq_context.socket(zmq.PUSH)
@@ -106,16 +114,27 @@ class ParallelClient(object):
         self.job_generator = None
         self.messages = 0
         self.uuid = str(uuid4())
+        # Pipeline, also session.
+        self.pipeline = pipeline
+        # Cache to tag messages
+        self.cache = None
 
     def _push_job(self):
-        pipeline_id = str(uuid4())
-        for m in self.job_generator:
+        if self.pipeline:
+            pipeline_id = self.pipeline
+        else:
+            pipeline_id = str(uuid4())
+
+        for m, c in zip(self.job_generator, repeat(self.cache)):
             message = PalmMessage()
             message.pipeline = pipeline_id
             message.client = self.uuid
             message.stage = 0
             message.function = '.'.join([self.server_name, self.function])
             message.payload = m
+            if c:
+                message.cache = c
+
             self.push.send(message.SerializeToString())
             time.sleep(0.001)  # Flushing the socket the wrong way.
 
@@ -139,7 +158,7 @@ class ParallelClient(object):
         self.pull.close()
         self.db.close()
 
-    def job(self, function, generator, messages=sys.maxsize):
+    def job(self, function, generator, cache=None, messages=sys.maxsize):
         """
         Submit a job for the cluster given a function to be executed, and a generator
         that provides the payloads for each message
@@ -148,6 +167,9 @@ class ParallelClient(object):
         :param messages: Number of expected messages before shutting down the client.
         :return:
         """
+        if cache:
+            self.cache = cache
+
         self.function = function
         yield from self._launch_job_from_generator(generator, messages)
 

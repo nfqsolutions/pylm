@@ -148,7 +148,6 @@ class ComponentInbound(object):
         :param message_data:
         :return:
         """
-        broker_message_key = str(uuid4())
         if self.palm:
             palm_message = PalmMessage()
             palm_message.ParseFromString(message_data)
@@ -156,11 +155,17 @@ class ComponentInbound(object):
             instruction = palm_message.function.split('.')[1]
             pipeline = palm_message.pipeline
 
+            if palm_message.HasField('cache'):
+                broker_message_key = palm_message.cache
+            else:
+                broker_message_key = str(uuid4())
+
             # I store the message to get it later when the message is outbound. See that
             # if I am just sending binary messages, I do not need to assign any envelope.
             self.logger.debug('Set message key {}'.format(broker_message_key))
             self.cache.set(broker_message_key, message_data)
         else:
+            broker_message_key = str(uuid4())
             payload = message_data
             instruction = ''
 
