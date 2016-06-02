@@ -2,6 +2,11 @@
 
 import asyncio
 import sys
+import zmq
+from source import Source
+
+
+zmq_context = zmq.Context.instance()
 
 
 class Broker(object):
@@ -16,7 +21,7 @@ class Broker(object):
     # Mapping of components (component, outbound)
     components = {}
     # List of futures for the connections
-    futures = []
+    tasks = []
     # Message counter. It has to be a class attribute.
     counter = 0
 
@@ -30,7 +35,7 @@ class Broker(object):
             self.counter += 1
 
         print('Closing event loop')
-        yield from asyncio.wait(self.futures)
+        yield from asyncio.wait(self.tasks)
         self.event_loop.stop()
         self.event_loop.close()
 
@@ -42,16 +47,16 @@ class Broker(object):
 
     def register_inbound(self, component, outbound=None, messages=sys.maxsize):
         self.components[component.name] = (component, outbound)
-        self.futures.append(asyncio.ensure_future(component.start(messages)))
+        self.tasks.append(asyncio.ensure_future(component.start(messages)))
 
     def register_outbound(self, component, messages=sys.maxsize):
         self.outbound[component.name] = component
         self.components[component.name] = (component, None)
-        self.futures.append(asyncio.ensure_future(component.start(messages)))
+        self.tasks.append(asyncio.ensure_future(component.start(messages)))
 
     def start(self):
         print("Starting event loop.")
-        for f in self.futures:
+        for f in self.tasks:
             self.event_loop.run_until_complete(f)
 
     def stop(self):
@@ -62,14 +67,24 @@ class Broker(object):
 
 
 class ConnectorInbound(object):
-    def __init__(self, name, events):
+    def __init__(self, name, events, address='inproc://inbound'):
         self.name = name
         self.events = events
+        self.socket = zmq_context.socket(zmq.REP)
+        self.address = address
+
+    async def recv(self):
+        value = self.socket.recv()
+        self.socket.send(b'0')
+        return value
 
     async def start(self, messages=sys.maxsize):
+        print(self.address)
+        self.socket.bind(self.address)
+        
         for i in range(messages):
-            await asyncio.sleep(1)
-            self.events.send(self.name)
+            message = await self.recv()
+            self.events.send(message)
 
         print('done {}'.format(self.name))
 
@@ -84,7 +99,9 @@ class ConnectorOutbound(object):
             print(self.name)
 
 
-broker = Broker(messages=10)
-broker.register_inbound(ConnectorInbound('connector1', broker.handler), messages=5)
-broker.register_inbound(ConnectorInbound('connector2', broker.handler), messages=5)
+broker = Broker(messages=5)
+broker.register_inbound(ConnectorInbound('connector1',
+                                         broker.handler,
+                                         'tcp://127.0.0.1:5555'),
+                        messages=5)
 broker.start()
