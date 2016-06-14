@@ -117,7 +117,8 @@ class Server(object):
 
 class Master(object):
     """
-    Standalone master server, intended to send workload to workers
+    Standalone master server, intended to send workload to workers.
+    WARNING. This implementation is not using the resilience service.
     """
     def __init__(self, name, pull_address, push_address,
                  worker_pull_address, worker_push_address, db_address,
