@@ -168,6 +168,7 @@ class ComponentInbound(object):
             broker_message_key = str(uuid4())
             payload = message_data
             instruction = ''
+            pipeline = ''
 
         broker_message = BrokerMessage()
         broker_message.key = broker_message_key
@@ -307,6 +308,7 @@ class ComponentOutbound(object):
         else:
             payload = message_data
             instruction = ''
+            pipeline = ''
 
         broker_message = BrokerMessage()
         broker_message.key = broker_message_key
