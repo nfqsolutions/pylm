@@ -136,10 +136,6 @@ class ParallelClient(object):
                 message.cache = c
 
             self.push.send(message.SerializeToString())
-            time.sleep(0.001)  # Flushing the socket the wrong way.
-
-        print('**************** killing job')
-        time.sleep(10)
 
     def _launch_job_from_generator(self, generator, messages=sys.maxsize):
         self.job_generator = generator
