@@ -164,7 +164,10 @@ class ParallelClient(object):
         :return:
         """
         if cache:
-            self.cache = cache
+            if type(cache) == bytes or type(cache) == str:
+                self.cache = cache
+            else:
+                raise TypeError('Cache must be <bytes> or <str>')
 
         self.function = function
         yield from self._launch_job_from_generator(generator, messages)
