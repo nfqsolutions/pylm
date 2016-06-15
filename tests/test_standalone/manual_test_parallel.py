@@ -66,7 +66,7 @@ def test_standalone_parallel_client():
             yield str(j).encode('utf-8')
 
     print('******* Launch client')
-    for i, m in enumerate(client.job('echo', message_generator(), 10)):
+    for i, m in enumerate(client.job('echo', message_generator())):
         print('************ Got something back', m, i)
 
     for t in threads:
