@@ -10,7 +10,7 @@ class RepConnection(ComponentInbound):
     socket to an external service.
     """
     def __init__(self, name, listen_address, broker_address="inproc://broker", palm=False,
-                 logger=None, messages=sys.maxsize):
+                 logger=None, cache=None, messages=sys.maxsize):
         """
         :param name: Name of the component
         :param listen_address: ZMQ socket address to listen to
@@ -28,6 +28,7 @@ class RepConnection(ComponentInbound):
             broker_address=broker_address,
             palm=palm,
             logger=logger,
+            cache=cache,
             messages=messages
         )
 
@@ -38,7 +39,7 @@ class PullConnection(ComponentInbound):
     socket to an external service.
     """
     def __init__(self, name, listen_address, broker_address="inproc://broker", palm=False,
-                 logger=None, messages=sys.maxsize):
+                 logger=None, cache=None, messages=sys.maxsize):
         """
         :param name: Name of the component
         :param listen_address: ZMQ socket address to listen to
@@ -56,6 +57,7 @@ class PullConnection(ComponentInbound):
             broker_address=broker_address,
             palm=palm,
             logger=logger,
+            cache=cache,
             messages=messages
         )
 
@@ -66,7 +68,7 @@ class PushConnection(ComponentOutbound):
     socket to an external service.
     """
     def __init__(self, name, listen_address, broker_address="inproc://broker", palm=False,
-                 logger=None, messages=sys.maxsize):
+                 logger=None, cache=None, messages=sys.maxsize):
         """
         :param name: Name of the component
         :param listen_address: ZMQ socket address to listen to
@@ -84,6 +86,7 @@ class PushConnection(ComponentOutbound):
             broker_address=broker_address,
             palm=palm,
             logger=logger,
+            cache=cache,
             messages=messages
         )
 

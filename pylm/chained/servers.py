@@ -29,18 +29,24 @@ class Master(StandaloneMaster):
         :param debug_level: Debug level for logging
         """
 
-        super(Master, self).__init__(name, pull_address, next_address,
-                                     worker_pull_address, worker_push_address, db_address,
-                                     log_address, perf_address, ping_address, cache,
-                                     palm, debug_level)
+        super(Master, self).__init__(name,
+                                     pull_address,
+                                     next_address,
+                                     worker_pull_address,
+                                     worker_push_address,
+                                     db_address=db_address,
+                                     log_address=log_address,
+                                     perf_address=perf_address,
+                                     ping_address=ping_address,
+                                     cache=cache,
+                                     palm=palm,
+                                     debug_level=debug_level)
 
-    def start(self):
-        self.push_service = PushConnection(
-            'Push',
-            self.push_address,
-            broker_address=self.broker.inbound_address,
-            logger=self.logger,
-            palm=self.palm,
-            cache=self.cache
-        )
-        super(Master, self).start()
+        # self.push_service = PushConnection(
+        #     'Push',
+        #     self.push_address,
+        #     broker_address=self.broker.outbound_address,
+        #     logger=self.logger,
+        #     palm=self.palm,
+        #     cache=self.cache
+        # )

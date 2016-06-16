@@ -84,6 +84,7 @@ class Router(object):
             block = self.inbound_components[component]['block']
 
             if route_to:
+                self.logger.debug('Router: {} routing to {}'.format(component, route_to))
                 self.outbound.send_multipart([route_to, empty, message_data])
                 route_to, empty, feedback = self.outbound.recv_multipart()
                 if block:
@@ -374,9 +375,9 @@ class ComponentOutbound(object):
         for i in range(self.messages):
             self.logger.debug('Component {} blocked waiting for broker'.format(self.name))
             message_data = self.broker.recv()
+            self.logger.debug('Component {} Got message from broker'.format(self.name))
             message_data = self._translate_from_broker(message_data)
 
-            self.logger.debug('Got message from broker')
             for scattered in self.scatter(message_data):
                 self.listen_to.send(scattered)
 
