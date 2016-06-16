@@ -1,5 +1,4 @@
 from pylm.persistence.kv import DictDB
-from pylm.standalone import Worker
 from pylm.components.connections import PushConnection
 from pylm.components.core import Router
 from pylm.components.utils import PushHandler, Pinger, PerformanceCounter, CacheService
