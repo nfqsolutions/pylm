@@ -16,7 +16,7 @@ class NewWorker(Worker):
 
 def listener(addr):
     pull = zmq_context.socket(zmq.PULL)
-    pull.connect(addr)
+    pull.bind(addr)
     while True:
         message = PalmMessage()
         message.ParseFromString(pull.recv())
