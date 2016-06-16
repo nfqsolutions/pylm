@@ -6,7 +6,7 @@ import zmq
 import sys
 
 
-class ParallelClient(StandaloneParallelClient):
+class Client(StandaloneParallelClient):
     def __init__(self, pull_address, db_address, server_name, pipeline=None):
         self.server_name = server_name
         self.push = zmq_context.socket(zmq.PUSH)

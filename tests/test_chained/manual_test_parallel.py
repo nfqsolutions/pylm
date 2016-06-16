@@ -3,7 +3,7 @@
 from threading import Thread
 from pylm.components.core import zmq_context
 from pylm.components.messages_pb2 import PalmMessage
-from pylm.chained import Master, EndPoint, Worker, ParallelClient
+from pylm.chained import Master, EndPoint, Worker, Client
 import zmq
 
 
@@ -58,9 +58,9 @@ def test_standalone_parallel_client():
                         this_perf_address,
                         this_ping_address)
 
-    client = ParallelClient(master.pull_address,
-                            master.db_address,
-                            'master')
+    client = Client(master.pull_address,
+                    master.db_address,
+                    'master')
 
     threads = [
         Thread(target=endpoint.start_debug),

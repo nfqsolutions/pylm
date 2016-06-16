@@ -12,13 +12,11 @@ import logging
 import zmq
 import sys
 
+
 # Standalone servers use some of the infrastructure of PALM, but they
 # are not run-time configurable. You have to wire the connections yourself,
 # but on the other hand, hou have a logger and the performance counter, and
 # a convenient endpoint for these services.
-
-# TODO: Maybe this is all wrong, and push-pull is a bad bad idea.
-
 
 class Server(object):
     """
@@ -76,7 +74,7 @@ class Server(object):
     def start(self):
         for i in range(self.messages):
             message_data = self.rep.recv()
-            self.logger.debug('Got message {}'.format(i+1))
+            self.logger.debug('Got message {}'.format(i + 1))
             result = b'0'
             message = PalmMessage()
             try:
