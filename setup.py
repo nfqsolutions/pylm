@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(name='pylm',
-      version='0.5',
+      version='0.6',
       description='New Python prototype of PALM pipelines',
       author='Guillem Borrell',
       author_email='guillemborrell@gmail.com',
