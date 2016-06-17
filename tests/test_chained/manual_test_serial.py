@@ -1,4 +1,4 @@
-# Test for the prototype of the client for the parallel client.
+# Test for the prototype of the client without workers.
 
 from threading import Thread
 from pylm.components.core import zmq_context
@@ -7,7 +7,7 @@ from pylm.chained import Server, EndPoint, Client
 import zmq
 
 
-class NewMaster(Server):
+class NewServer(Server):
     @staticmethod
     def echo(message):
         print('Echoing message---')
@@ -34,7 +34,7 @@ def test_standalone_parallel_client():
                         this_perf_address,
                         this_ping_address)
 
-    server = NewMaster('master',
+    server = NewServer('master',
                        'inproc://pull',
                        'inproc://next',
                        this_db_address,

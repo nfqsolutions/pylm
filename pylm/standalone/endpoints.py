@@ -1,4 +1,5 @@
 from pylm.components.core import zmq_context
+
 import zmq
 import sys
 
@@ -33,7 +34,10 @@ class EndPoint(object):
             event = dict(self.poller.poll())
 
             if self.logs in event:
-                print('LOG:', self.logs.recv().decode('utf-8'))
+                try:
+                    print('LOG:', self.logs.recv().decode('utf-8'))
+                except UnicodeDecodeError:
+                    print('LOG:', self.logs.recv())
 
             elif self.perf in event:
                 print('PRF:', self.perf.recv().decode('utf-8'))
