@@ -37,7 +37,10 @@ class Client(StandaloneParallelClient):
         :return:
         """
         if cache:
-            self.cache = cache
+            if type(cache) == bytes or type(cache) == str:
+                self.cache = cache
+            else:
+                raise TypeError('Cache must be <bytes> or <str>')
 
         self.function = function
         self.job_generator = generator
