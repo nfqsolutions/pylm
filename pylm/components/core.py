@@ -380,6 +380,7 @@ class ComponentOutbound(object):
 
             for scattered in self.scatter(message_data):
                 self.listen_to.send(scattered)
+                self.logger.debug('Component {} Sent message'.format(self.name))
 
                 if self.reply:
                     feedback = self.listen_to.recv()
