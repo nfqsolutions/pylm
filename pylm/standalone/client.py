@@ -180,12 +180,14 @@ class ParallelClient(object):
         :return:
         """
         message = PalmMessage()
-        message.pipeline = str(uuid4())
+        message.pipeline = str(uuid4())  # For a set job, the pipeline is not important
         message.client = self.uuid
         message.stage = 0
         message.function = '.'.join([self.server_name, 'set'])
         message.payload = value
-        if key:
+        if key and self.pipeline:
+            message.cache = ''.join([self.pipeline, key])
+        elif key:
             message.cache = key
 
         self.db.send(message.SerializeToString())
