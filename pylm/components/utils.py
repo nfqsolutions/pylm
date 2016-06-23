@@ -152,6 +152,7 @@ class CacheService(RepBypassService):
 
             self.logger.debug('Cache Service: Set key {}'.format(key))
             value = message.payload
+            print(self.cache)
             self.cache.set(key, value)
             return_value = key.encode('utf-8')
 
