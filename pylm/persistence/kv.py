@@ -32,6 +32,16 @@ class DictDB(object):
         with self.lock:
             del self.store[key]
 
+    def clean(self, prefix):
+        deleted = list()
+        with self.lock:
+            for key in self.store:
+                if key.startswith(prefix):
+                    deleted.append(key)
+
+            for key in deleted:
+                del self.store[key]
+
 
 class IndexedLevelDB(object):
     """
@@ -108,6 +118,16 @@ class IndexedLevelDB(object):
         if self.index[key] > 0:
             self.list_delete(key)
         else:
+            self.db.delete(key.encode("UTF-8"))
+            del self.index[key]
+
+    def clean(self, prefix):
+        """
+        Cleans a full prefix of keys
+        :param prefix:
+        :return:
+        """
+        for key, _ in self.db.iterator(prefix=prefix.encode("UTF-8")):
             self.db.delete(key.encode("UTF-8"))
             del self.index[key]
 
