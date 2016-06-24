@@ -157,7 +157,7 @@ class ComponentInbound(object):
             pipeline = palm_message.pipeline
 
             if palm_message.HasField('cache'):
-                broker_message_key = palm_message.cache
+                broker_message_key = ''.join([palm_message.pipeline, palm_message.cache])
             else:
                 broker_message_key = str(uuid4())
 
