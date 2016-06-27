@@ -22,7 +22,11 @@ class Client(StandaloneParallelClient):
         self.messages = 0
         self.uuid = str(uuid4())
         # Pipeline, also session.
-        self.pipeline = pipeline
+        if pipeline:
+            self.pipeline = pipeline
+        else:
+            self.pipeline = str(uuid4())
+
         # Cache to tag messages
         self.cache = None
 

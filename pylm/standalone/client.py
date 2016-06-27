@@ -9,11 +9,15 @@ import time
 
 
 class Client(object):
-    def __init__(self, connection, server_name):
+    def __init__(self, connection, server_name, pipeline=None):
         self.req = zmq_context.socket(zmq.REQ)
         self.req.connect(connection)
         self.server_name = server_name
         self.uuid = str(uuid4())
+        if pipeline:
+            self.pipeline = pipeline
+        else:
+            self.pipeline = str(uuid4())
 
     def set(self, data, key=None):
         """
@@ -26,7 +30,7 @@ class Client(object):
             raise TypeError('First argument *data* must be of type <bytes>')
 
         message = PalmMessage()
-        message.pipeline = str(uuid4())
+        message.pipeline = self.pipeline
         message.client = self.uuid
         message.stage = 0
         message.function = '.'.join([self.server_name, 'set'])
@@ -45,7 +49,7 @@ class Client(object):
         :return:
         """
         message = PalmMessage()
-        message.pipeline = str(uuid4())
+        message.pipeline = self.pipeline
         message.client = self.uuid
         message.stage = 0
         message.function = '.'.join([self.server_name, 'get'])
@@ -61,7 +65,7 @@ class Client(object):
         :return:
         """
         message = PalmMessage()
-        message.pipeline = str(uuid4())
+        message.pipeline = self.pipeline
         message.client = self.uuid
         message.stage = 0
         message.function = '.'.join([self.server_name, 'delete'])
@@ -115,19 +119,18 @@ class ParallelClient(object):
         self.messages = 0
         self.uuid = str(uuid4())
         # Pipeline, also session.
-        self.pipeline = pipeline
+        if pipeline:
+            self.pipeline = pipeline
+        else:
+            self.pipeline = str(uuid4())
+
         # Cache to tag messages
         self.cache = None
 
     def _push_job(self):
-        if self.pipeline:
-            pipeline_id = self.pipeline
-        else:
-            pipeline_id = str(uuid4())
-
         for m, c in zip(self.job_generator, repeat(self.cache)):
             message = PalmMessage()
-            message.pipeline = pipeline_id
+            message.pipeline = self.pipeline
             message.client = self.uuid
             message.stage = 0
             message.function = '.'.join([self.server_name, self.function])
