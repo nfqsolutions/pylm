@@ -41,7 +41,7 @@ class Server(object):
 
         # Configure the pinger.
         self.pinger = Pinger(listen_address=ping_address,
-                             every=10.0)
+                             every=30.0)
 
         # Configure the rep connection that binds and blocks.
         self.rep = zmq_context.socket(zmq.REP)
@@ -144,7 +144,7 @@ class Master(object):
         self.perfcounter = PerformanceCounter(listen_address=perf_address)
 
         # Configure the pinger.
-        self.pinger = Pinger(listen_address=ping_address, every=10.0)
+        self.pinger = Pinger(listen_address=ping_address, every=30.0)
 
         # Configure the broker and the connectors
         self.broker = Router(logger=self.logger)
@@ -227,7 +227,7 @@ class Worker(object):
         self.perfcounter = PerformanceCounter(listen_address=perf_address)
 
         # Configure the pinger.
-        self.pinger = Pinger(listen_address=ping_address, every=10.0)
+        self.pinger = Pinger(listen_address=ping_address, every=30.0)
 
         # Configure the push and pull connections.
         self.push_address = push_address

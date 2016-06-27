@@ -50,7 +50,7 @@ class Server(object):
         self.perfcounter = PerformanceCounter(listen_address=perf_address)
 
         # Configure the pinger.
-        self.pinger = Pinger(listen_address=ping_address, every=10.0)
+        self.pinger = Pinger(listen_address=ping_address, every=30.0)
 
         # Configure the cache server
         self.db_address = db_address
@@ -149,7 +149,7 @@ class Master(object):
         self.perfcounter = PerformanceCounter(listen_address=perf_address)
 
         # Configure the pinger.
-        self.pinger = Pinger(listen_address=ping_address, every=10.0)
+        self.pinger = Pinger(listen_address=ping_address, every=30.0)
 
         # Configure the broker and the connectors
         self.broker = Router(logger=self.logger)
