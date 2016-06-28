@@ -20,9 +20,10 @@ def resilience_routine():
 
 
 def false_broker_routine():
+    """Router + worker only for resilience testing"""
     messages_created = []
     messages_received = []
-    """Router + worker only for resilience testing"""
+
     false_broker = zmq_context.socket(zmq.ROUTER)
     false_broker.bind('inproc://false_broker')
 
