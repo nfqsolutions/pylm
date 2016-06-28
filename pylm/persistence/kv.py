@@ -13,6 +13,8 @@ class DictDB(object):
     """
     DictDB is just a dictionary with a lock that keeps threads from colliding.
     """
+    lock = Lock()
+
     def __init__(self):
         self.store = {}
 
@@ -23,19 +25,22 @@ class DictDB(object):
             return None
 
     def set(self, key, value):
-        self.store[key] = value
+        with self.lock:
+            self.store[key] = value
 
     def delete(self, key):
-        del self.store[key]
+        with self.lock:
+            del self.store[key]
 
     def clean(self, prefix):
         deleted = list()
-        for key in self.store:
-            if key.startswith(prefix):
-                deleted.append(key)
+        with self.lock:
+            for key in self.store:
+                if key.startswith(prefix):
+                    deleted.append(key)
 
-        for key in deleted:
-            del self.store[key]
+            for key in deleted:
+                del self.store[key]
 
 
 class IndexedLevelDB(object):
