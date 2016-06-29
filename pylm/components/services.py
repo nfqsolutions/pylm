@@ -175,7 +175,7 @@ class WorkerPullService(PullService):
             if action == b'1':
                 return message_data
             else:
-                pass
+                return ''
         else:
             return message_data
 
