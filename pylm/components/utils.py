@@ -251,9 +251,11 @@ class ResilienceService(RepService):
     def start(self):
         # Dicts to temporarily store messages, and statistics. These
         # are dictionaries, hence there is particular care to prevent collisions.
+        self.logger.info('Resilience service {} started'.format(self.name))
 
         for i in range(self.messages):
             message_data = self.listen_to.recv_multipart()
+            self.logger.debug('Got message')
             message = BrokerMessage()
 
             # Registers any message as pending in a local dict

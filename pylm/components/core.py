@@ -74,6 +74,7 @@ class Router(object):
     def start(self):
         self.logger.info('Launch broker')
         self.logger.info('Inbound socket: {}'.format(self.inbound))
+        self.logger.info('Inbound components: {}'.format(self.inbound_components))
         self.logger.info('Outbound socket: {}'.format(self.outbound))
         self.logger.info('Outbound components: {}'.format(self.outbound_components))
 
