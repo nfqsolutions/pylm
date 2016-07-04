@@ -182,6 +182,9 @@ class ParallelClient(object):
         :param value:
         :return:
         """
+        if not type(value) == bytes:
+            raise TypeError('First argument {} must be of type <bytes>'.format(value))
+
         message = PalmMessage()
         message.pipeline = str(uuid4())  # For a set job, the pipeline is not important
         message.client = self.uuid
