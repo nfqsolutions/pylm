@@ -340,6 +340,7 @@ class ComponentOutbound(object):
             message_data = self.cache.get(broker_message.key)
             # Clean up the cache. It is an outbound message and no one will
             # ever need the full message again.
+            self.logger.debug('DELETE: {}'.format(broker_message.key))
             self.cache.delete(broker_message.key)
             palm_message = PalmMessage()
             palm_message.ParseFromString(message_data)
