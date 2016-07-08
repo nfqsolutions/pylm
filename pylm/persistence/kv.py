@@ -18,6 +18,12 @@ class DictDB(object):
     def __init__(self):
         self.store = {}
 
+    def __contains__(self, item):
+        if item in self.store:
+            return True
+        else:
+            return False
+
     def get(self, key):
         try:
             return self.store[key]

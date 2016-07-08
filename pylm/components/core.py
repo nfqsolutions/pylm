@@ -164,6 +164,16 @@ class ComponentInbound(object):
 
             # I store the message to get it later when the message is outbound. See that
             # if I am just sending binary messages, I do not need to assign any envelope.
+
+            # The same message cannot be used, because it confuses the router.
+            if broker_message_key in self.cache:
+                new_key = ''.join([broker_message_key, str(uuid4())[:8]])
+                self.logger.error(
+                    'Message key {} found, changed to {}'.format(broker_message_key,
+                                                                 new_key)
+                )
+                broker_message_key = new_key
+
             self.logger.debug('Set message key {}'.format(broker_message_key))
             self.cache.set(broker_message_key, message_data)
         else:
