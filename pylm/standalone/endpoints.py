@@ -29,7 +29,6 @@ class EndPoint(object):
         self.messages = messages
 
     def start_debug(self):
-        print('Endpoint waiting for logs...')
         for i in range(self.messages):
             event = dict(self.poller.poll())
 
