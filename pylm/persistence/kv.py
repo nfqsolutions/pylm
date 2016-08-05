@@ -1,5 +1,8 @@
 from threading import Lock
-import plyvel
+try:
+    import plyvel
+except ImportError:
+    print("Module plyvel not found. IndexedLevelDB not available.")
 import pickle
 import tempfile
 import shutil
@@ -65,7 +68,12 @@ class IndexedLevelDB(object):
         >>> db = IndexedLevelDB(tempdir, create_if_missing=True)
         >>> shutil.rmtree(tempdir)
         """
-        self.db = plyvel.DB(path, create_if_missing=create_if_missing)
+        try:
+            self.db = plyvel.DB(path, create_if_missing=create_if_missing)
+        except:
+            raise EnvironmentError(
+                'LevelDB database could not be created. Install plyvel and Leveldb'
+            )
         self.index = {}
 
     def __contains__(self, item):
