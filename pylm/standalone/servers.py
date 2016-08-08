@@ -24,24 +24,34 @@ class Server(object):
     It only offers a REP socket for anyone to connect. It still has a broker.
     Mostly for testing purposes and to implement dumb workers.
     """
-    def __init__(self, name, rep_address, log_address, perf_address,
-                 ping_address, debug_level=logging.DEBUG,
+    def __init__(self, name, rep_address, log_address=None, perf_address=None,
+                 ping_address=None, debug_level=logging.INFO,
                  messages=sys.maxsize):
         self.name = name
         self.cache = {}  # The simplest possible cache
 
         # Configure the log handler
-        handler = PushHandler(log_address)
-        self.logger = logging.getLogger(name)
-        self.logger.addHandler(handler)
-        self.logger.setLevel(debug_level)
+        if log_address:
+            handler = PushHandler(log_address)
+            self.logger = logging.getLogger(name)
+            self.logger.addHandler(handler)
+            self.logger.setLevel(debug_level)
 
-        # Configure the performance counter
-        self.perfcounter = PerformanceCounter(listen_address=perf_address)
+        else:
+            self.logger = logging.getLogger(name=name)
+            self.logger.setLevel(debug_level)
+            handler = logging.StreamHandler(sys.stdout)
+            handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+            self.logger.addHandler(handler)
+            self.logger.setLevel(debug_level)
 
-        # Configure the pinger.
-        self.pinger = Pinger(listen_address=ping_address,
-                             every=30.0)
+        if perf_address:
+            # Configure the performance counter
+            self.perfcounter = PerformanceCounter(listen_address=perf_address)
+
+        if ping_address:
+            # Configure the pinger.
+            self.pinger = Pinger(listen_address=ping_address, every=30.0)
 
         # Configure the rep connection that binds and blocks.
         self.rep = zmq_context.socket(zmq.REP)
@@ -52,10 +62,11 @@ class Server(object):
 
         self.messages = messages
 
-        # This is the pinger thread that keeps the pinger alive.
-        pinger_thread = Thread(target=self.pinger.start)
-        pinger_thread.daemon = True
-        pinger_thread.start()
+        if ping_address:
+            # This is the pinger thread that keeps the pinger alive.
+            pinger_thread = Thread(target=self.pinger.start)
+            pinger_thread.daemon = True
+            pinger_thread.start()
 
     def set(self, data, key=None):
         if not key:
@@ -121,7 +132,7 @@ class Master(object):
     def __init__(self, name, pull_address, push_address,
                  worker_pull_address, worker_push_address, db_address,
                  log_address, perf_address, ping_address, cache=DictDB(),
-                 palm=False, debug_level=logging.DEBUG):
+                 palm=False, debug_level=logging.INFO):
         self.name = name
         self.cache = cache
 
@@ -213,7 +224,7 @@ class Worker(object):
     """
     def __init__(self, name, push_address, pull_address, db_address,
                  log_address, perf_address, ping_address,
-                 debug_level=logging.DEBUG, messages=sys.maxsize):
+                 debug_level=logging.INFO, messages=sys.maxsize):
         self.name = name
         self.uuid = str(uuid4())
 

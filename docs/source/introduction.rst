@@ -1,25 +1,32 @@
 Introduction
 ============
 
-PALM is a framework to create clusters of high-performance
-microservices with simple and reusable components. It also provides
-some simple and useful patterns so you don't have to deal with the
-fine-grained details of routers, services, components...
-In PALM, all servers are equal, and they have the same
-capabilities: inbound and outbound ports, calling conventions, cache,
-logging, performance counters... PALM also provides the required
-infrastructure to configure and monitor the cluster.
+But let's start with something basic, a server and a client able to call one of the server's methods. Much in the
+fashion of a RPC server.
+
 
 .. only:: html
 
-    .. figure:: _images/cluster.png
+    .. figure:: _images/standalone_single.png
         :align: center
 
 .. only:: latex
 
-    .. figure:: _images/cluster.pdf
+    .. figure:: _images/standalone_single.pdf
         :align: center
         :scale: 60
+
+With pylm, the first step is to create the server by subclassing one of the available templates in the high-level API:
+
+.. literalinclude:: ./examples/standalone_single/server.py
+    :language: python
+    :linenos:
+
+Secondly, we create the client that connects to the server and calls the ``foo`` function from the server.
+
+.. literalinclude:: ./examples/standalone_single/client.py
+    :language: python
+    :linenos:
 
 It also adds a connection model for those clusters: a pipeline. A
 pipeline is a sequence of servers receiving messages and sending some
