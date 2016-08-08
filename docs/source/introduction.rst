@@ -2,7 +2,7 @@ Introduction
 ============
 
 PALM is a framework to create clusters of high-performance
-micro-services with simple and reusable components. It also provides
+microservices with simple and reusable components. It also provides
 some simple and useful patterns so you don't have to deal with the
 fine-grained details of routers, services, components...
 In PALM, all servers are equal, and they have the same
@@ -80,11 +80,4 @@ implementation of all the components. A second complete implementation of the
 PALM servers is also being implemented in Java, and it is called
 `palm-java <https://bitbucket.org/ekergy/palm-java>`_ (Redirects to private
 Bitbucket repository).
-
-
-Authors
--------
-
-PALM is a project developed by Guillem Borrell for `NFQ Solutions
-<http://nfqsolutions.com>`_.
 

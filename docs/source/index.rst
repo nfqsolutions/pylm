@@ -26,10 +26,26 @@ Useful links
 
 * `Documentation <http://pythonhosted.org/pylm/>`_
 
+Contents
+--------
+  
 .. toctree::
-    :caption: Table of Contents
     :maxdepth: 2
 
     introduction
     high-level
     low-level
+
+Authors
+-------
+
+PALM is a project developed by `Guillem Borrell <http://guillemborrell.es>`_ for `NFQ Solutions
+<http://nfqsolutions.com>`_.
+
+
+Indices and tables
+------------------
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`

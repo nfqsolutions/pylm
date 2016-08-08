@@ -7,18 +7,7 @@ with open('pylm/version.py') as f:
 
 setup(name='pylm',
       version=__version__,
-      description='''Pylm is the Python implementation of PALM, a framework to build
-clusters of high performance microservices. It is presented in two
-different levels of abstraction. In the high level API you will find
-servers and clients that are functional *out of the box*. Use the high
-level API if you are interested in simple communication patterns like
-client-server, master-slave or a streaming pipeline. In the low level
-API there are a variety of small components that, once combined
-appropiately, they can be used to implement almost any kind of
-microservice. It's what the high level API uses under the hood. Choose
-the low level API if you are interested in creating your custom
-microservice and your custom communication pattern.
-''',
+      description='A framework to build clusters of high performance microservices',
       author='Guillem Borrell',
       author_email='guillemborrell@gmail.com',
       packages=['pylm',

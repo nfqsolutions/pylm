@@ -1,4 +1,0 @@
-Available server templates
-==========================
-
-

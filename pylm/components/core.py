@@ -12,6 +12,13 @@ class Router(object):
     Router for the internal event-loop. It is a ROUTER socket that blocks
     waiting for the components to send something. This is more a bus than
     a broker.
+
+    :param inbound_address: Valid ZMQ bind address for inbound components
+    :param outbound_address: Valid ZMQ bind address for outbound components
+    :param logger: Logger instance
+    :param cache: Global cache of the server
+    :param messages: Maximum number of inbound messages. Defaults to infinity.
+    :param messages: Number of messages allowed before the router starts buffering.
     """
     def __init__(self,
                  inbound_address="inproc://inbound",
@@ -19,16 +26,6 @@ class Router(object):
                  logger=None,
                  cache=None,
                  messages=sys.maxsize):
-        """
-        Initiate a broker instance
-        :param inbound_address: Valid ZMQ bind address for inbound components
-        :param outbound_address: Valid ZMQ bind address for outbound components
-        :param logger: Logger instance
-        :param cache: Global cache of the server
-        :param messages: Maximum number of inbound messages. Defaults to infinity.
-        :param messages: Number of messages allowed before the router starts buffering.
-        :return:
-        """
         # Socket that will listen to the inbound components
         self.inbound = zmq_context.socket(zmq.ROUTER)
         self.inbound.bind(inbound_address)
@@ -51,11 +48,9 @@ class Router(object):
     def register_inbound(self, name, route='', block=False, log=''):
         """
         Register component by name.
-        :param name: Name of the component. Each component has a name, that
-          uniquely identifies it to the broker
-        :param route: Each message that the broker gets from the component
-          may be routed to another component. This argument gives the name
-          of the target component for the message.
+
+        :param name: Name of the component. Each component has a name, that uniquely identifies it to the broker
+        :param route: Each message that the broker gets from the component may be routed to another component. This argument gives the name of the target component for the message.
         :param block: Register if the component is waiting for a reply.
         :param log: Log message for each inbound connection.
         :return:
@@ -104,6 +99,17 @@ class ComponentInbound(object):
     """
     Generic component that connects a REQ socket to the broker, and a
     socket to an inbound external service.
+
+    :param name: Name of the component
+    :param listen_address: ZMQ socket address to listen to
+    :param socket_type: ZMQ inbound socket type
+    :param reply: True if the listening socket blocks waiting a reply
+    :param broker_address: ZMQ socket address for the broker
+    :param bind: True if socket has to bind, instead of connect.
+    :param palm: True if the message is waiting is a PALM message. False if it is just a binary string
+    :param logger: Logger instance
+    :param cache: Cache for shared data in the server
+    :param messages: Maximum number of inbound messages. Defaults to infinity.
     """
     def __init__(self,
                  name,
@@ -116,20 +122,6 @@ class ComponentInbound(object):
                  logger=None,
                  cache=None,
                  messages=sys.maxsize):
-        """
-        :param name: Name of the component
-        :param listen_address: ZMQ socket address to listen to
-        :param socket_type: ZMQ inbound socket type
-        :param reply: True if the listening socket blocks waiting a reply
-        :param broker_address: ZMQ socket address for the broker
-        :param bind: True if socket has to bind, instead of connect.
-        :param palm: True if the message is waiting is a PALM message. False if it is
-          just a binary string
-        :param logger: Logger instance
-        :param cache: Cache for shared data in the server
-        :param messages: Maximum number of inbound messages. Defaults to infinity.
-        :return:
-        """
         self.name = name.encode('utf-8')
         self.listen_to = zmq_context.socket(socket_type)
         self.bind = bind
@@ -146,9 +138,10 @@ class ComponentInbound(object):
 
     def _translate_to_broker(self, message_data):
         """
-        Translate the message that the component has got to be digestible by the broker
-        :param message_data:
-        :return:
+        Translate the message that the component has got to be digestible by the router.
+        To be refactored
+
+        :param message_data: Message data from the component to the router
         """
         if self.palm:
             palm_message = PalmMessage()
@@ -192,9 +185,9 @@ class ComponentInbound(object):
 
     def _translate_from_broker(self, message_data):
         """
-        Translate the message that the component gets from the broker to the output format
-        :param message_data:
-        :return:
+        Translate the message that the component gets from the router to the output format
+
+        :param message_data: Data from the router
         """
         broker_message = BrokerMessage()
         broker_message.ParseFromString(message_data)
@@ -207,29 +200,31 @@ class ComponentInbound(object):
 
     def scatter(self, message_data):
         """
-        To be overriden. Picks a message and returns a generator that multiplies the messages
+        Abstract method. Picks a message and returns a generator that multiplies the messages
         to the broker.
+
         :param message_data:
-        :return:
         """
         yield message_data
 
     def handle_feedback(self, message_data):
         """
-        To be overriden. Handles the feedback from the broker
+        Abstract method. Handles the feedback from the broker
+
         :param message_data:
-        :return:
         """
         self.last_message = message_data
 
     def reply_feedback(self):
         """
-        To be overriden. Returns the feedback if the component has to reply.
-        :return:
+        Abstract method. Returns the feedback if the component has to reply.
         """
         return self.last_message
 
     def start(self):
+        """
+        Call this function to start the component
+        """
         if self.bind:
             self.listen_to.bind(self.listen_address)
         else:
@@ -268,6 +263,17 @@ class ComponentOutbound(object):
     """
     Generic component that connects a REQ socket to the broker, and a
     socket to an inbound external service.
+
+    :param name: Name of the component
+    :param listen_address: ZMQ socket address to listen to
+    :param socket_type: ZMQ inbound socket type
+    :param reply: True if the listening socket blocks waiting a reply
+    :param broker_address: ZMQ socket address for the broker,
+    :param bind: True if the socket has to bind instead of connect.
+    :param palm: The component is sending back a Palm message
+    :param logger: Logger instance
+    :param cache: Access to the cache of the server
+    :param messages: Maximum number of inbound messages. Defaults to infinity.
     """
     def __init__(self,
                  name,
@@ -280,19 +286,6 @@ class ComponentOutbound(object):
                  logger=None,
                  cache=None,
                  messages=sys.maxsize):
-        """
-        :param name: Name of the component
-        :param listen_address: ZMQ socket address to listen to
-        :param socket_type: ZMQ inbound socket type
-        :param reply: True if the listening socket blocks waiting a reply
-        :param broker_address: ZMQ socket address for the broker,
-        :param bind: True if the socket has to bind instead of connect.
-        :param palm: The component is sending back a Palm message
-        :param logger: Logger instance
-        :param cache: Access to the cache of the server
-        :param messages: Maximum number of inbound messages. Defaults to infinity.
-        :return:
-        """
         self.name = name.encode('utf-8')
         self.listen_to = zmq_context.socket(socket_type)
         self.bind = bind
@@ -340,8 +333,8 @@ class ComponentOutbound(object):
     def _translate_from_broker(self, message_data):
         """
         Translate the message that the component gets from the broker to the output format
+
         :param message_data:
-        :return:
         """
         broker_message = BrokerMessage()
         broker_message.ParseFromString(message_data)
@@ -363,29 +356,31 @@ class ComponentOutbound(object):
 
     def scatter(self, message_data):
         """
-        To be overriden. Picks a message and returns a generator that multiplies the messages
+        Abstract method. Picks a message and returns a generator that multiplies the messages
         to the broker.
+
         :param message_data:
-        :return:
         """
         yield message_data
 
     def handle_feedback(self, message_data):
         """
-        To be overriden. Handles the feedback from the broker
+        Abstract method. Handles the feedback from the broker
+
         :param message_data:
-        :return:
         """
         self.last_message = message_data
 
     def reply_feedback(self):
         """
-        To be overriden. Returns the feedback if the component has to reply.
-        :return:
+        Abstract method. Returns the feedback if the component has to reply.
         """
         return self.last_message
 
     def start(self):
+        """
+        Call this function to start the component
+        """
         if self.bind:
             self.listen_to.bind(self.listen_address)
         else:
@@ -416,6 +411,14 @@ class ComponentOutbound(object):
 class ComponentBypassInbound(object):
     """
     Generic inbound component that does not connect to the broker.
+
+    :param name: Name of the component
+    :param listen_address: ZMQ socket address to listen to
+    :param socket_type: ZMQ inbound socket type
+    :param reply: True if the listening socket blocks waiting a reply
+    :param bind: True if the component has to bind instead of connect.
+    :param logger: Logger instance
+    :param cache: Access to the server cache
     """
     def __init__(self,
                  name,
@@ -426,16 +429,6 @@ class ComponentBypassInbound(object):
                  logger=None,
                  cache=None,
                  messages=sys.maxsize):
-        """
-        :param name: Name of the component
-        :param listen_address: ZMQ socket address to listen to
-        :param socket_type: ZMQ inbound socket type
-        :param reply: True if the listening socket blocks waiting a reply
-        :param bind: True if the component has to bind instead of connect.
-        :param logger: Logger instance
-        :param cache: Access to the server cache
-        :return:
-        """
         self.name = name.encode('utf-8')
         self.listen_to = zmq_context.socket(socket_type)
         self.bind = bind
@@ -447,9 +440,9 @@ class ComponentBypassInbound(object):
 
     def recv(self, reply_data=None):
         """
-        Receives, yields and returns answer_data if needed
+        Receives, yields and returns reply_data if needed
+
         :param reply_data: Message to send if connection needs an answer.
-        :return:
         """
         message_data = self.listen_to.recv()
 
@@ -474,6 +467,14 @@ class ComponentBypassInbound(object):
 class ComponentBypassOutbound(object):
     """
     Generic inbound component that does not connect to the broker.
+
+    :param name: Name of the component
+    :param listen_address: ZMQ socket address to listen to
+    :param socket_type: ZMQ inbound socket type
+    :param reply: True if the listening socket blocks waiting a reply
+    :param bind: True if the socket has to bind instead of connect
+    :param logger: Logger instance
+    :param cache: Access to the cache of the server
     """
     def __init__(self,
                  name,
@@ -484,16 +485,6 @@ class ComponentBypassOutbound(object):
                  logger=None,
                  cache=None,
                  messages=sys.maxsize):
-        """
-        :param name: Name of the component
-        :param listen_address: ZMQ socket address to listen to
-        :param socket_type: ZMQ inbound socket type
-        :param reply: True if the listening socket blocks waiting a reply
-        :param bind: True if the socket has to bind instead of connect
-        :param logger: Logger instance
-        :param cache: Access to the cache of the server
-        :return:
-        """
         self.name = name.encode('utf-8')
         self.listen_to = zmq_context.socket(socket_type)
         if bind:

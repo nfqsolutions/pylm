@@ -16,7 +16,7 @@
 import sys
 import os
 import shlex
-
+11
 # Set the version string from the version file.
 with open('../../pylm/version.py') as f:
     exec(f.read())
@@ -24,7 +24,7 @@ with open('../../pylm/version.py') as f:
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir)))
 
 # -- General configuration ------------------------------------------------
 
@@ -35,7 +35,7 @@ with open('../../pylm/version.py') as f:
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.mathjax',
+    'sphinx.ext.mathjax', 'sphinx.ext.autodoc'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -54,8 +54,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'pylm'
-copyright = '2015-2016, NFQ Solutions'
-author = 'NFQ Solutions'
+copyright = '2015-2016, Guillem Borrell'
+author = 'Guillem Borrell at NFQ Solutions'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
