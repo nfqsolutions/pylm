@@ -1,11 +1,14 @@
 Introduction
 ============
 
-PALM is a library to create clusters of high-performance micro-services with
-simple and reusable components. In PALM, all servers are equal, and they have
-the same capabilities: inbound and outbound ports, calling conventions, cache, logging, performance
-counters... PALM also provides the required infrastructure to configure and
-monitor the cluster.
+PALM is a framework to create clusters of high-performance
+micro-services with simple and reusable components. It also provides
+some simple and useful patterns so you don't have to deal with the
+fine-grained details of routers, services, components...
+In PALM, all servers are equal, and they have the same
+capabilities: inbound and outbound ports, calling conventions, cache,
+logging, performance counters... PALM also provides the required
+infrastructure to configure and monitor the cluster.
 
 .. only:: html
 
@@ -18,12 +21,13 @@ monitor the cluster.
         :align: center
         :scale: 60
 
-It also adds a connection model for those clusters: a pipeline. A pipeline
-is a sequence of servers receiving messages and sending some result to the
-following. A Job is a pipeline definition and a set of messages that start
-the computation. The item that submits a job is a PALM client. This means
-that a pipeline is only part of a job specification, and it is not hardcoded
-in the configuration of the cluster. Again, all servers are equal.
+It also adds a connection model for those clusters: a pipeline. A
+pipeline is a sequence of servers receiving messages and sending some
+result to the following. A Job is a pipeline definition and a set of
+messages that start the computation. The item that submits a job is a
+PALM client. This means that a pipeline is only part of a job
+specification, and it is not hardcoded in the configuration of the
+cluster. Again, all servers are equal.
 
 
 .. only:: html
@@ -81,5 +85,6 @@ Bitbucket repository).
 Authors
 -------
 
-PALM is a project developed at `NFQ Solutions <http://nfqsolutions.com>`_.
+PALM is a project developed by Guillem Borrell for `NFQ Solutions
+<http://nfqsolutions.com>`_.
 
