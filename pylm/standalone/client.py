@@ -100,7 +100,7 @@ class Client(object):
 
 
 class ParallelClient(object):
-    def __init__(self, push_address, pull_address, db_address, server_name, pipeline=None):
+    def __init__(self, push_address: str, pull_address: str, db_address: str, server_name: str, pipeline: str = None):
         self.server_name = server_name
         self.push_address = push_address
         self.push = zmq_context.socket(zmq.PUSH)

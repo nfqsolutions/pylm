@@ -11,13 +11,13 @@ this_rep_address = "inproc://rep3"
 
 class RemoteServer(Server):
     def __init__(self, name, rep_address, log_address, perf_address,
-                 ping_address, debug_level=logging.DEBUG, messages=sys.maxsize):
+                 ping_address, log_level=logging.DEBUG, messages=sys.maxsize):
         super(RemoteServer, self).__init__(name,
                                            rep_address,
                                            log_address,
                                            perf_address,
                                            ping_address,
-                                           debug_level=debug_level,
+                                           log_level=log_level,
                                            messages=messages)
 
     def echo_data(self, data):

@@ -20,30 +20,37 @@ import sys
 
 class Server(object):
     """
-    Standalone and minimal server that does not interact with the registry.
-    It only offers a REP socket for anyone to connect. It still has a broker.
-    Mostly for testing purposes and to implement dumb workers.
+    Standalone and minimal server that replies single requests.
+
+    :param str name: Name of the server
+    :param str rep_address: ZeroMQ address this server binds to.
+    :param str log_address: Address of the central logging system. Leave to None to let the server manage the logs itself
+    :param str perf_address: Address of the performance counter registry. Leave to None if you don't need performance counters.
+    :param str ping_address: Address of the central server registry. Leave to None if you don't want to track the health of the server.
+    :param log_level: Minimum output log level.
+    :param int _messages: Total number of messages that the server processes. Useful for debugging.
     """
     def __init__(self, name, rep_address, log_address=None, perf_address=None,
-                 ping_address=None, debug_level=logging.INFO,
+                 ping_address=None, log_level=logging.INFO,
                  messages=sys.maxsize):
         self.name = name
         self.cache = {}  # The simplest possible cache
+        self.rep_address = rep_address
 
         # Configure the log handler
         if log_address:
             handler = PushHandler(log_address)
             self.logger = logging.getLogger(name)
             self.logger.addHandler(handler)
-            self.logger.setLevel(debug_level)
+            self.logger.setLevel(log_level)
 
         else:
             self.logger = logging.getLogger(name=name)
-            self.logger.setLevel(debug_level)
+            self.logger.setLevel(log_level)
             handler = logging.StreamHandler(sys.stdout)
             handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
             self.logger.addHandler(handler)
-            self.logger.setLevel(debug_level)
+            self.logger.setLevel(log_level)
 
         if perf_address:
             # Configure the performance counter
@@ -55,7 +62,6 @@ class Server(object):
 
         # Configure the rep connection that binds and blocks.
         self.rep = zmq_context.socket(zmq.REP)
-        self.rep.bind(rep_address)
 
         # This is the function storage
         self.user_functions = {}
@@ -83,6 +89,8 @@ class Server(object):
         return self.cache[key.decode('utf-8')]
 
     def start(self):
+        self.rep.bind(self.rep_address)
+
         for i in range(self.messages):
             message_data = self.rep.recv()
             self.logger.debug('Got message {}'.format(i + 1))

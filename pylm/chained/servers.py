@@ -13,29 +13,36 @@ import sys
 
 
 class Server(object):
-    def __init__(self, name, pull_address, next_address,
-                 db_address, log_address, perf_address, ping_address,
+    def __init__(self, name, pull_address, next_address, next_call,
+                 db_address, log_address=None, perf_address=None, ping_address=None,
                  cache=DictDB(), palm=False, debug_level=logging.DEBUG,
                  messages=sys.maxsize):
 
         self.name = name
         self.cache = cache
 
+        self.next_call = next_call
+
         # Addresses
         self.pull_address = pull_address
         self.next_address = next_address
 
         self.pull = zmq_context.socket(zmq.PULL)
-        self.pull.bind(pull_address)
-
         self.push = zmq_context.socket(zmq.PUSH)
-        self.push.connect(next_address)
 
         # Configure the log handler
-        handler = PushHandler(log_address)
-        self.logger = logging.getLogger(name)
-        self.logger.addHandler(handler)
-        self.logger.setLevel(debug_level)
+        if log_address:
+            handler = PushHandler(log_address)
+            self.logger = logging.getLogger(name)
+            self.logger.addHandler(handler)
+            self.logger.setLevel(debug_level)
+        else:
+            self.logger = logging.getLogger(name=name)
+            self.logger.setLevel(debug_level)
+            handler = logging.StreamHandler(sys.stdout)
+            handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+            self.logger.addHandler(handler)
+            self.logger.setLevel(debug_level)
 
         # Handle that controls if the messages have to be processed
         self.palm = palm
@@ -47,10 +54,8 @@ class Server(object):
         self.message = PalmMessage()
 
         # Configure the performance counter
-        self.perfcounter = PerformanceCounter(listen_address=perf_address)
-
-        # Configure the pinger.
-        self.pinger = Pinger(listen_address=ping_address, every=30.0)
+        if perf_address:
+            self.perfcounter = PerformanceCounter(listen_address=perf_address)
 
         # Configure the cache server
         self.db_address = db_address
@@ -60,11 +65,17 @@ class Server(object):
                                           cache=self.cache)
 
         # This is the pinger thread that keeps the pinger alive.
-        pinger_thread = Thread(target=self.pinger.start)
-        pinger_thread.daemon = True
-        pinger_thread.start()
+        # Configure the pinger.
+        if ping_address:
+            self.pinger = Pinger(listen_address=ping_address, every=30.0)
+            pinger_thread = Thread(target=self.pinger.start)
+            pinger_thread.daemon = True
+            pinger_thread.start()
 
     def start(self):
+        self.pull.bind(self.pull_address)
+        self.push.connect(self.next_address)
+
         threads = [
             Thread(target=self.cache_service.start)
         ]
@@ -78,27 +89,139 @@ class Server(object):
             try:
                 self.message.ParseFromString(message_data)
                 [server, function] = self.message.function.split('.')
-                try:
-                    user_function = getattr(self, function)
-                    self.logger.debug('Looking for {}'.format(function))
+
+                if not self.name == server:
+                    self.logger.error('You called the wrong server')
+                else:
                     try:
-                        # This is a little exception for the cache to accept
-                        # a value
-                        if self.message.HasField('cache'):
-                            result = user_function(self.message.payload,
-                                                   self.message.cache)
-                        else:
-                            result = user_function(self.message.payload)
+                        user_function = getattr(self, function)
+                        self.logger.debug('Looking for {}'.format(function))
+                        try:
+                            # This is a little exception for the cache to accept
+                            # a value
+                            if self.message.HasField('cache'):
+                                result = user_function(self.message.payload,
+                                                       self.message.cache)
+                            else:
+                                result = user_function(self.message.payload)
 
-                    except:
-                        self.logger.error('{} User function gave an error'.format(self.name))
-                        exc_type, exc_value, exc_traceback = sys.exc_info()
-                        lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-                        for l in lines:
-                            self.logger.exception(l)
+                        except:
+                            self.logger.error('{} User function gave an error'.format(self.name))
+                            exc_type, exc_value, exc_traceback = sys.exc_info()
+                            lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+                            for l in lines:
+                                self.logger.exception(l)
 
-                except AttributeError:
-                    self.logger.error('Function {} was not found'.format(function))
+                    except AttributeError:
+                        self.logger.error('Function {} was not found'.format(function))
+            except DecodeError:
+                self.logger.error('Message could not be decoded')
+
+            self.message.payload = result
+            self.message.function = self.next_call
+            self.push.send(self.message.SerializeToString())
+
+
+class LastServer(object):
+    def __init__(self, name, pull_address, push_address,
+                 db_address, log_address=None, perf_address=None, ping_address=None,
+                 cache=DictDB(), palm=False, debug_level=logging.DEBUG,
+                 messages=sys.maxsize):
+
+        self.name = name
+        self.cache = cache
+
+        # Addresses
+        self.pull_address = pull_address
+        self.push_address = push_address
+
+        self.pull = zmq_context.socket(zmq.PULL)
+        self.push = zmq_context.socket(zmq.PUSH)
+
+        # Configure the log handler
+        if log_address:
+            handler = PushHandler(log_address)
+            self.logger = logging.getLogger(name)
+            self.logger.addHandler(handler)
+            self.logger.setLevel(debug_level)
+        else:
+            self.logger = logging.getLogger(name=name)
+            self.logger.setLevel(debug_level)
+            handler = logging.StreamHandler(sys.stdout)
+            handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+            self.logger.addHandler(handler)
+            self.logger.setLevel(debug_level)
+
+        # Handle that controls if the messages have to be processed
+        self.palm = palm
+
+        # Maximum number of messages
+        self.messages = messages
+
+        # Message already allocated
+        self.message = PalmMessage()
+
+        # Configure the performance counter
+        if perf_address:
+            self.perfcounter = PerformanceCounter(listen_address=perf_address)
+
+        # Configure the cache server
+        self.db_address = db_address
+        self.cache_service = CacheService(self.name,
+                                          db_address,
+                                          self.logger,
+                                          cache=self.cache)
+
+        # This is the pinger thread that keeps the pinger alive.
+        # Configure the pinger.
+        if ping_address:
+            self.pinger = Pinger(listen_address=ping_address, every=30.0)
+            pinger_thread = Thread(target=self.pinger.start)
+            pinger_thread.daemon = True
+            pinger_thread.start()
+
+    def start(self):
+        self.pull.bind(self.pull_address)
+        self.push.bind(self.push_address)
+
+        threads = [
+            Thread(target=self.cache_service.start)
+        ]
+        for t in threads:
+            t.start()
+
+        for i in range(self.messages):
+            message_data = self.pull.recv()
+            self.logger.debug('{} Got a message'.format(self.name))
+            result = b'0'
+            try:
+                self.message.ParseFromString(message_data)
+                [server, function] = self.message.function.split('.')
+
+                if not self.name == server:
+                    self.logger.error('You called the wrong server')
+                else:
+                    try:
+                        user_function = getattr(self, function)
+                        self.logger.debug('Looking for {}'.format(function))
+                        try:
+                            # This is a little exception for the cache to accept
+                            # a value
+                            if self.message.HasField('cache'):
+                                result = user_function(self.message.payload,
+                                                       self.message.cache)
+                            else:
+                                result = user_function(self.message.payload)
+
+                        except:
+                            self.logger.error('{} User function gave an error'.format(self.name))
+                            exc_type, exc_value, exc_traceback = sys.exc_info()
+                            lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+                            for l in lines:
+                                self.logger.exception(l)
+
+                    except AttributeError:
+                        self.logger.error('Function {} was not found'.format(function))
             except DecodeError:
                 self.logger.error('Message could not be decoded')
 
@@ -114,15 +237,15 @@ class Master(object):
         """
         Connected PALM master server. It gets a message from the pull socket, that
         is bind, and sends the result from the push socket connected to the next_address
-        :param name: Name of the server
-        :param pull_address: Pull address to be bind
-        :param next_address: Push address to be connected to a Pull socket of the next server
-        :param worker_pull_address: Pull address for the worker connection
-        :param worker_push_address: Push address for the worker connection
-        :param db_address: Persistency address to be bind
-        :param log_address: Address of the log service to be connected to
-        :param perf_address: Address of the performance counter collector
-        :param ping_address: Address of the ping collector
+        :param str name: Name of the server
+        :param str pull_address: Pull address to be bind
+        :param str next_address: Push address to be connected to a Pull socket of the next server
+        :param str worker_pull_address: Pull address for the worker connection
+        :param str worker_push_address: Push address for the worker connection
+        :param str db_address: Address of the persistence service.
+        :param str log_address: Address of the log service to be connected to
+        :param str perf_address: Address of the performance counter collector
+        :param str ping_address: Address of the ping collector
         :param cache: Key-value database to be used internally
         :param palm: True if the message that is sent through the server is a PALM message
         :param debug_level: Debug level for logging
