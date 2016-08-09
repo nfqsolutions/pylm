@@ -13,6 +13,23 @@ import sys
 
 
 class Server(object):
+    """
+    Chained server
+
+    :param name: Server name
+    :param pull_address: Input address
+    :param next_address: Output address
+    :param next_call: Function to be called in the next server.
+    :param db_address: Cache service address
+    :param log_address: Logging service address
+    :param perf_address: Performaance counter collector service address
+    :param ping_address: Health monitoring service address
+    :param cache: Data storage for cache service
+    :param palm: Messages use a PALM envelope
+    :param debug_level: Logging level
+    :param messages: Number of total messages to accept.
+    """
+
     def __init__(self, name, pull_address, next_address, next_call,
                  db_address, log_address=None, perf_address=None, ping_address=None,
                  cache=DictDB(), palm=False, debug_level=logging.DEBUG,
@@ -124,6 +141,21 @@ class Server(object):
 
 
 class LastServer(object):
+    """
+    End of the terminator chained server stream.
+
+    :param name: Name of the server
+    :param pull_address: Input address
+    :param push_address: Output address
+    :param db_address: Cache service address
+    :param log_address: Logging service address
+    :param perf_address: Performance counters service address
+    :param ping_address: Monitoring service address
+    :param cache: Storage for cache
+    :param palm: Messages are not raw binary
+    :param debug_level: Logging level
+    :param messages: Maximum number of messages.
+    """
     def __init__(self, name, pull_address, push_address,
                  db_address, log_address=None, perf_address=None, ping_address=None,
                  cache=DictDB(), palm=False, debug_level=logging.DEBUG,
@@ -232,26 +264,28 @@ class LastServer(object):
 
 
 class Master(object):
+    """
+    Connected PALM master server. It gets a message from the pull socket, that
+    is bind, and sends the result from the push socket connected to the next_address
+
+    :param str name: Name of the server
+    :param str pull_address: Pull address to be bind
+    :param str next_address: Push address to be connected to a Pull socket of the next server
+    :param str worker_pull_address: Pull address for the worker connection
+    :param str worker_push_address: Push address for the worker connection
+    :param str db_address: Address of the persistence service.
+    :param str log_address: Address of the log service to be connected to
+    :param str perf_address: Address of the performance counter collector
+    :param str ping_address: Address of the ping collector
+    :param cache: Key-value database to be used internally
+    :param palm: True if the message that is sent through the server is a PALM message
+    :param debug_level: Debug level for logging
+    """
     def __init__(self, name, pull_address, next_address,
                  worker_pull_address, worker_push_address, db_address,
                  log_address, perf_address, ping_address, cache=DictDB(),
                  palm=False, debug_level=logging.DEBUG):
-        """
-        Connected PALM master server. It gets a message from the pull socket, that
-        is bind, and sends the result from the push socket connected to the next_address
-        :param str name: Name of the server
-        :param str pull_address: Pull address to be bind
-        :param str next_address: Push address to be connected to a Pull socket of the next server
-        :param str worker_pull_address: Pull address for the worker connection
-        :param str worker_push_address: Push address for the worker connection
-        :param str db_address: Address of the persistence service.
-        :param str log_address: Address of the log service to be connected to
-        :param str perf_address: Address of the performance counter collector
-        :param str ping_address: Address of the ping collector
-        :param cache: Key-value database to be used internally
-        :param palm: True if the message that is sent through the server is a PALM message
-        :param debug_level: Debug level for logging
-        """
+
         self.name = name
         self.cache = cache
 

@@ -35,6 +35,8 @@ Contents
     introduction
     high-level
     low-level
+    hl-api-docstrings
+    ll-api-docstrings
 
 Authors
 -------

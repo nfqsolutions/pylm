@@ -1,11 +1,20 @@
-from pylm.standalone import ParallelClient as LoopClient
+from pylm.standalone import ParallelClient
 from pylm.components.core import zmq_context
 from uuid import uuid4
 import zmq
 import sys
 
 
+class LoopClient(ParallelClient):
+    """
+    Client for pipelines that end in a client.
+    """
+
+
 class Client(LoopClient):
+    """
+    Client when the pipeline does not end in a client
+    """
     def __init__(self, pull_address, db_address, server_name, pipeline=None):
         self.server_name = server_name
         self.push = zmq_context.socket(zmq.PUSH)

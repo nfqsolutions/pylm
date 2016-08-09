@@ -9,6 +9,7 @@ import time
 
 
 class Client(object):
+    """Serial client"""
     def __init__(self, connection, server_name, pipeline=None):
         self.req = zmq_context.socket(zmq.REQ)
         self.req.connect(connection)
@@ -100,6 +101,9 @@ class Client(object):
 
 
 class ParallelClient(object):
+    """
+    Parallel client
+    """
     def __init__(self, push_address: str, pull_address: str,
                  db_address: str, server_name: str,
                  pipeline: str = None):
