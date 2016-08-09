@@ -83,6 +83,7 @@ class Server(object):
             t.start()
 
         for i in range(self.messages):
+            self.logger.debug('{} Waiting for a message'.format(self.name))
             message_data = self.pull.recv()
             self.logger.debug('{} Got a message'.format(self.name))
             result = b'0'
@@ -191,6 +192,7 @@ class LastServer(object):
             t.start()
 
         for i in range(self.messages):
+            self.logger.debug('{} Waiting for a message'.format(self.name))
             message_data = self.pull.recv()
             self.logger.debug('{} Got a message'.format(self.name))
             result = b'0'

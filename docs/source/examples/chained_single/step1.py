@@ -10,7 +10,7 @@ class Step1(Server):
 if __name__ == '__main__':
     server = Step1('step1',
                    'tcp://127.0.0.1:5555',
-                   'tcp://120.0.0.1:5557',
-                   'step2.bar'
+                   'tcp://127.0.0.1:5557',
+                   'step2.bar',
                    'tcp://127.0.0.1:5556')
     server.start()

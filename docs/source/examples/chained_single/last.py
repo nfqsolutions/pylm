@@ -8,8 +8,8 @@ class Last(LastServer):
 
 
 if __name__ == '__main__':
-    server = Last('step1',
+    server = Last('last',
                   'tcp://127.0.0.1:5559',
-                  'tcp://120.0.0.1:5561',
+                  'tcp://127.0.0.1:5561',
                   'tcp://127.0.0.1:5560')
     server.start()

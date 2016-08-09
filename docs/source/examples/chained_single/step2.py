@@ -8,9 +8,9 @@ class Step2(Server):
 
 
 if __name__ == '__main__':
-    server = Step2('step1',
+    server = Step2('step2',
                    'tcp://127.0.0.1:5557',
-                   'tcp://120.0.0.1:5559',
-                   'last.baz'
+                   'tcp://127.0.0.1:5559',
+                   'last.baz',
                    'tcp://127.0.0.1:5558')
     server.start()

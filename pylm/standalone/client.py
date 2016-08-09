@@ -100,7 +100,10 @@ class Client(object):
 
 
 class ParallelClient(object):
-    def __init__(self, push_address: str, pull_address: str, db_address: str, server_name: str, pipeline: str = None):
+    def __init__(self, push_address: str, pull_address: str,
+                 db_address: str, server_name: str,
+                 pipeline: str = None):
+        # TODO: Change the order of push and pull addresses. This is confusing now.
         self.server_name = server_name
         self.push_address = push_address
         self.push = zmq_context.socket(zmq.PUSH)
@@ -126,6 +129,10 @@ class ParallelClient(object):
 
         # Cache to tag messages
         self.cache = None
+
+        print('Client with the following connections:')
+        print(' *Listening to input from {}'.format(self.push_address))
+        print(' *Sending jobs to {}'.format(self.pull_address))
 
     def _push_job(self):
         for m, c in zip(self.job_generator, repeat(self.cache)):

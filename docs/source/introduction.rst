@@ -83,8 +83,6 @@ build a pipeline of servers, each one connected to the previous one.
         :scale: 60
 
 
-
-
 The magic of PALM is half hidden within the servers. There are five kind of
 server templates, that you must subclass to implement your business logic.
 Some of them are designed to be a step in the pipeline, while others are
