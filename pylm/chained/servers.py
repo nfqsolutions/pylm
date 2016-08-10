@@ -156,10 +156,10 @@ class LastServer(object):
     :param debug_level: Logging level
     :param messages: Maximum number of messages.
     """
-    def __init__(self, name, pull_address, push_address,
-                 db_address, log_address=None, perf_address=None, ping_address=None,
-                 cache=DictDB(), palm=False, debug_level=logging.DEBUG,
-                 messages=sys.maxsize):
+    def __init__(self, name: str, pull_address: str, push_address: str,
+                 db_address: str, log_address: str = None, perf_address: str = None, ping_address: str = None,
+                 cache: object = DictDB(), palm: str = False, debug_level: int = logging.DEBUG,
+                 messages: int = sys.maxsize) -> object:
 
         self.name = name
         self.cache = cache

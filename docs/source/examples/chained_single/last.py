@@ -7,9 +7,10 @@ class Last(LastServer):
         return b'ACK: ' + message
 
 
+server = Last(name='last',
+              pull_address='tcp://127.0.0.1:5559',
+              push_address='tcp://127.0.0.1:5561',
+              db_address='tcp://127.0.0.1:5560')
+
 if __name__ == '__main__':
-    server = Last('last',
-                  'tcp://127.0.0.1:5559',
-                  'tcp://127.0.0.1:5561',
-                  'tcp://127.0.0.1:5560')
     server.start()

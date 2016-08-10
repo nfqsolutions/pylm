@@ -63,3 +63,7 @@ target/
 
 #Pycharm folder
 .idea
+
+#Pdf and png images for the documentation
+*.png
+*.pdf

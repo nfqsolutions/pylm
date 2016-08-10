@@ -7,10 +7,11 @@ class Step1(Server):
         return b'you sent me ' + message
 
 
+server = Step1(name='step1',
+               pull_address='tcp://127.0.0.1:5555',
+               next_address='tcp://127.0.0.1:5557',
+               next_call='step2.bar',
+               db_address='tcp://127.0.0.1:5556')
+
 if __name__ == '__main__':
-    server = Step1('step1',
-                   'tcp://127.0.0.1:5555',
-                   'tcp://127.0.0.1:5557',
-                   'step2.bar',
-                   'tcp://127.0.0.1:5556')
     server.start()

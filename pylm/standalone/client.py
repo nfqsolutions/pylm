@@ -104,9 +104,9 @@ class ParallelClient(object):
     """
     Parallel client
     """
-    def __init__(self, push_address: str, pull_address: str,
-                 db_address: str, server_name: str,
-                 pipeline: str = None):
+    def __init__(self, push_address: object, pull_address: object,
+                 db_address: object, server_name: object,
+                 pipeline: object = None) -> object:
         # TODO: Change the order of push and pull addresses. This is confusing now.
         self.server_name = server_name
         self.push_address = push_address

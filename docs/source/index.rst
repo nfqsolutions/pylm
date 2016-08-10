@@ -19,16 +19,15 @@ Installing **pylm** is as easy as:
 
    $> pip install pylm
 
-Useful links
-------------
-
 * `PIPY package page <https://pypi.python.org/pypi/pylm/>`_
 
 * `Documentation <http://pythonhosted.org/pylm/>`_
 
-Contents
---------
-  
+
+Pylm is a project developed by `Guillem Borrell <http://guillemborrell.es>`_ for `NFQ Solutions
+<http://nfqsolutions.com>`_.
+
+
 .. toctree::
     :maxdepth: 2
 
@@ -37,12 +36,6 @@ Contents
     low-level
     hl-api-docstrings
     ll-api-docstrings
-
-Authors
--------
-
-PALM is a project developed by `Guillem Borrell <http://guillemborrell.es>`_ for `NFQ Solutions
-<http://nfqsolutions.com>`_.
 
 
 Indices and tables
