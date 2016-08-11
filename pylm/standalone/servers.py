@@ -137,33 +137,42 @@ class Master(object):
     Standalone master server, intended to send workload to workers.
     WARNING. This implementation is not using the resilience service.
     """
-    def __init__(self, name, pull_address, push_address,
-                 worker_pull_address, worker_push_address, db_address,
-                 log_address, perf_address, ping_address, cache=DictDB(),
-                 palm=False, debug_level=logging.INFO):
+    def __init__(self, name: str, pull_address: str, push_address: str,
+                 worker_pull_address: str, worker_push_address: str, db_address: str,
+                 log_address: str = None, perf_address: str = None,
+                 ping_address: str = None, cache: object = DictDB(),
+                 palm: bool = False, debug_level: int = logging.INFO):
         self.name = name
         self.cache = cache
 
         # Addresses:
+        # TODO: Change the order of arguments here.
         self.pull_address = pull_address
         self.push_address = push_address
         self.worker_pull_address = worker_pull_address
         self.worker_push_address = worker_push_address
 
         # Configure the log handler
-        handler = PushHandler(log_address)
-        self.logger = logging.getLogger(name)
-        self.logger.addHandler(handler)
-        self.logger.setLevel(debug_level)
+        if log_address:
+            handler = PushHandler(log_address)
+            self.logger = logging.getLogger(name)
+            self.logger.addHandler(handler)
+            self.logger.setLevel(debug_level)
+
+        else:
+            self.logger = logging.getLogger(name=name)
+            self.logger.setLevel(debug_level)
+            handler = logging.StreamHandler(sys.stdout)
+            handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+            self.logger.addHandler(handler)
+            self.logger.setLevel(debug_level)
 
         # Handle that controls if the messages have to be processed
         self.palm = palm
 
-        # Configure the performance counter
-        self.perfcounter = PerformanceCounter(listen_address=perf_address)
-
-        # Configure the pinger.
-        self.pinger = Pinger(listen_address=ping_address, every=30.0)
+        if perf_address:
+            # Configure the performance counter
+            self.perfcounter = PerformanceCounter(listen_address=perf_address)
 
         # Configure the broker and the connectors
         self.broker = Router(logger=self.logger)
@@ -208,10 +217,13 @@ class Master(object):
                                           self.logger,
                                           cache=self.cache)
 
-        # This is the pinger thread that keeps the pinger alive.
-        pinger_thread = Thread(target=self.pinger.start)
-        pinger_thread.daemon = True
-        pinger_thread.start()
+        if ping_address:
+            # Configure the pinger.
+            self.pinger = Pinger(listen_address=ping_address, every=30.0)
+
+            pinger_thread = Thread(target=self.pinger.start)
+            pinger_thread.daemon = True
+            pinger_thread.start()
 
     def start(self):
         threads = [
@@ -231,22 +243,29 @@ class Worker(object):
     Standalone worker for the standalone master.
     """
     def __init__(self, name, push_address, pull_address, db_address,
-                 log_address, perf_address, ping_address,
+                 log_address=None, perf_address=None, ping_address=None,
                  debug_level=logging.INFO, messages=sys.maxsize):
         self.name = name
         self.uuid = str(uuid4())
 
         # Configure the log handler
-        handler = PushHandler(log_address)
-        self.logger = logging.getLogger(name)
-        self.logger.addHandler(handler)
-        self.logger.setLevel(debug_level)
+        if log_address:
+            handler = PushHandler(log_address)
+            self.logger = logging.getLogger(name)
+            self.logger.addHandler(handler)
+            self.logger.setLevel(debug_level)
+
+        else:
+            self.logger = logging.getLogger(name=name)
+            self.logger.setLevel(debug_level)
+            handler = logging.StreamHandler(sys.stdout)
+            handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+            self.logger.addHandler(handler)
+            self.logger.setLevel(debug_level)
 
         # Configure the performance counter
-        self.perfcounter = PerformanceCounter(listen_address=perf_address)
-
-        # Configure the pinger.
-        self.pinger = Pinger(listen_address=ping_address, every=30.0)
+        if perf_address:
+            self.perfcounter = PerformanceCounter(listen_address=perf_address)
 
         # Configure the push and pull connections.
         self.push_address = push_address
@@ -264,10 +283,14 @@ class Worker(object):
         self.messages = messages
         self.message = BrokerMessage()
 
-        # This is the pinger thread that keeps the pinger alive.
-        pinger_thread = Thread(target=self.pinger.start)
-        pinger_thread.daemon = True
-        pinger_thread.start()
+        # Configure the pinger.
+        if ping_address:
+            self.pinger = Pinger(listen_address=ping_address, every=30.0)
+
+            # This is the pinger thread that keeps the pinger alive.
+            pinger_thread = Thread(target=self.pinger.start)
+            pinger_thread.daemon = True
+            pinger_thread.start()
 
     def start(self):
         for i in range(self.messages):
