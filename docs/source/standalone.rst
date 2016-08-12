@@ -8,6 +8,9 @@ in a single process may be useful, but there are a million alternatives to pylm 
 of pylm arrives when the workload is so large that a single server is not capable of handling it. Here we introduce
 parallelism for the first time with the parallel standalone server.
 
+A simple picture of the architecture of a parallel standalone server is presented in the next figure. The client
+connects to a master process that manages an arbitrary number of workers. The workers act as slaves, and connect
+only to the master.
 
 
 .. only:: html
@@ -21,6 +24,9 @@ parallelism for the first time with the parallel standalone server.
         :align: center
         :scale: 60
 
+The following is a simple example on how to configure and run a parallel server. Since the parallel server
+is designed to handle a large workload, the job method of the client expects a generator that creates a
+series of binary messages.
 
 .. literalinclude:: ./examples/standalone_parallel/master.py
     :language: python
@@ -34,8 +40,16 @@ parallelism for the first time with the parallel standalone server.
     :language: python
     :linenos:
 
+The master can be run as follows::
 
-client::
+    $> python master.py
+
+And we can launch two workers as follows::
+
+    $> python worker.py worker1
+    $> python worker.py worker2
+
+Finally, here's how to run the client and its output::
 
     $> python client.py
     Client with the following connections:
@@ -52,4 +66,28 @@ client::
     b'worker2 processed a message'
     b'worker1 processed a message'
 
-go on 0000000000600922
+The communication between the master and the workers is a PUSH-PULL queue of ZeroMQ. This means
+that the most likely distribution pattern between the master and the workers follows a round-robin
+scheduling.
+
+Again, this simple example shows very little of the capabilities of this pattern in pylm. We'll introduce
+features step by step creating a manager with more and more capabilities.
+
+Cache
+-----
+
+One of the services that the master offers is a small key-value database that **can be seen by all the workers**.
+You can use that database with RPC-sytle calls with the :py:meth:`pylm.standalone.client.Client.set`,
+:py:meth:`pylm.standalone.client.Client.get`, and :py:meth:`pylm.standalone.client.Client.delete` methods.
+Like the messages, the data to be stored in the database must be binary.
+
+.. note::
+
+   Note that the calling convention of :py:meth:`pylm.standalone.client.Client.set` is not that conventional.
+   Remember to pass first the value, and then the key if you want to use your own.
+
+.. important::
+
+   The master stores the data in memory. Have that in mind if you plan to send lots of data to the master.
+
+

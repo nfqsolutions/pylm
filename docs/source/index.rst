@@ -13,6 +13,11 @@ microservice. It's what the high level API uses under the hood. Choose
 the low level API if you are interested in creating your custom
 microservice and your custom communication pattern.
 
+.. important::
+
+    Pylm requires a version of Python equal or higher than 3.4, and it is more
+    thoroughly tested with Python 3.5.
+
 Installing **pylm** is as easy as:
 
 .. code-block:: bash
@@ -36,6 +41,7 @@ Pylm is a project developed by `Guillem Borrell <http://guillemborrell.es>`_ for
     low-level
     hl-api-docstrings
     ll-api-docstrings
+    examples
 
 
 Indices and tables
