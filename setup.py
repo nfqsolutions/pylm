@@ -23,7 +23,10 @@ setup(name='pylm',
           'Operating System :: POSIX',
           'Programming Language :: Python',
           'License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)',
-          'Topic :: System :: Distributed Computing'
+          'Topic :: System :: Distributed Computing',
+          'Programming Language :: Python :: 3',
+          'Programming Language :: Python :: 3.4',
+          'Programming Language :: Python :: 3.5'
       ],
       install_requires=['protobuf>=3.0.0', 'requests', 'pyzmq', 'requests']
       )
