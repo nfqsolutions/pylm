@@ -134,10 +134,6 @@ class ParallelClient(object):
         # Cache to tag messages
         self.cache = None
 
-        print('Client with the following connections:')
-        print(' *Listening to input from {}'.format(self.push_address))
-        print(' *Sending jobs to {}'.format(self.pull_address))
-
     def _push_job(self):
         for m, c in zip(self.job_generator, repeat(self.cache)):
             message = PalmMessage()
