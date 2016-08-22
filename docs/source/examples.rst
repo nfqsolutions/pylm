@@ -30,3 +30,18 @@ Simple parallel server and client communication
 .. literalinclude:: ./examples/standalone_parallel/client.py
     :language: python
     :linenos:
+
+Cache operation for the standalone parallel version
+---------------------------------------------------
+
+.. literalinclude:: ./examples/cache/master.py
+    :language: python
+    :linenos:
+
+.. literalinclude:: ./examples/cache/worker.py
+    :language: python
+    :linenos:
+
+.. literalinclude:: ./examples/cache/client.py
+    :language: python
+    :linenos:
