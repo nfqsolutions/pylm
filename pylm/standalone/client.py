@@ -128,8 +128,10 @@ class ParallelClient(object):
         # Pipeline, also session.
         if pipeline:
             self.pipeline = pipeline
+            self.session_set = True
         else:
             self.pipeline = str(uuid4())
+            self.session_set = False
 
         # Cache to tag messages
         self.cache = None
@@ -184,7 +186,7 @@ class ParallelClient(object):
 
     def set(self, value, key=None):
         """
-        Sets a key value pare in the remote database.
+        Sets a key value pare in the remote database. This command blocks.
         :param key:
         :param value:
         :return:
@@ -198,7 +200,7 @@ class ParallelClient(object):
         message.stage = 0
         message.function = '.'.join([self.server_name, 'set'])
         message.payload = value
-        if key and self.pipeline:
+        if key and self.session_set:
             message.cache = ''.join([self.pipeline, key])
         elif key:
             message.cache = key

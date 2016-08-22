@@ -171,7 +171,7 @@ class CacheService(RepBypassService):
             self.logger.error(
                 'Cache {}:Key not found in the database'.format(self.name)
             )
-            return_value = None
+            return_value = b'0'
 
         self.listen_to.send(return_value)
 
