@@ -91,7 +91,7 @@ Like the messages, the data to be stored in the database must be binary.
 The following example is a little modification from the previous example. The client, previously to sending
 the job, it sets a value in the temporary cache of the master server. The workers, where the value of the
 cached variable is hardcoded within the function that is executed, get the value and they use it to build the
-response.
+response. The variations respect to the previous examples have been empasized.
 
 .. literalinclude:: ./examples/cache/master.py
     :language: python
@@ -100,12 +100,14 @@ response.
 .. literalinclude:: ./examples/cache/worker.py
     :language: python
     :linenos:
+    :emphasize-lines: 7,8
 
 .. literalinclude:: ./examples/cache/client.py
     :language: python
     :linenos:
+    :emphasize-lines: 10,11
 
-And the output is::
+And the output is the following::
 
     $> python client.py
     b' cached data '
@@ -121,7 +123,55 @@ And the output is::
     b'worker2 cached data a message'
 
 
-Scatter
--------
+Scatter messages from the master
+--------------------------------
 
 Each component has a method called *scatter* that transforms every single message it gets
+
+.. literalinclude:: ./examples/scatter/master.py
+    :language: python
+    :linenos:
+    :emphasize-lines: 12,13,14,16,17
+
+.. literalinclude:: ./examples/scatter/worker.py
+    :language: python
+    :linenos:
+
+.. literalinclude:: ./examples/scatter/client.py
+    :language: python
+    :linenos:
+
+And the output::
+
+    $> python client.py
+    b' cached data '
+    b'worker1 cached data a message'
+    b'worker1 cached data a message'
+    b'worker2 cached data a message'
+    b'worker2 cached data a message'
+    b'worker1 cached data a message'
+    b'worker2 cached data a message'
+    b'worker1 cached data a message'
+    b'worker2 cached data a message'
+    b'worker1 cached data a message'
+    b'worker2 cached data a message'
+    b'worker1 cached data a message'
+    b'worker2 cached data a message'
+    b'worker1 cached data a message'
+    b'worker2 cached data a message'
+    b'worker1 cached data a message'
+    b'worker2 cached data a message'
+    b'worker1 cached data a message'
+    b'worker2 cached data a message'
+    b'worker1 cached data a message'
+    b'worker2 cached data a message'
+    b'worker1 cached data a message'
+    b'worker2 cached data a message'
+    b'worker1 cached data a message'
+    b'worker2 cached data a message'
+    b'worker1 cached data a message'
+    b'worker2 cached data a message'
+    b'worker1 cached data a message'
+    b'worker2 cached data a message'
+    b'worker1 cached data a message'
+    b'worker2 cached data a message'
