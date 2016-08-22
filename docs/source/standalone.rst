@@ -52,9 +52,6 @@ And we can launch two workers as follows::
 Finally, here's how to run the client and its output::
 
     $> python client.py
-    Client with the following connections:
-     *Listening to input from tcp://127.0.0.1:5556
-     *Sending jobs to tcp://127.0.0.1:5555
     b'worker2 processed a message'
     b'worker1 processed a message'
     b'worker2 processed a message'
@@ -91,3 +88,40 @@ Like the messages, the data to be stored in the database must be binary.
    The master stores the data in memory. Have that in mind if you plan to send lots of data to the master.
 
 
+The following example is a little modification from the previous example. The client, previously to sending
+the job, it sets a value in the temporary cache of the master server. The workers, where the value of the
+cached variable is hardcoded within the function that is executed, get the value and they use it to build the
+response.
+
+.. literalinclude:: ./examples/cache/master.py
+    :language: python
+    :linenos:
+
+.. literalinclude:: ./examples/cache/worker.py
+    :language: python
+    :linenos:
+
+.. literalinclude:: ./examples/cache/client.py
+    :language: python
+    :linenos:
+
+And the output is::
+
+    $> python client.py
+    b' cached data '
+    b'worker1 cached data a message'
+    b'worker2 cached data a message'
+    b'worker1 cached data a message'
+    b'worker2 cached data a message'
+    b'worker1 cached data a message'
+    b'worker2 cached data a message'
+    b'worker1 cached data a message'
+    b'worker2 cached data a message'
+    b'worker1 cached data a message'
+    b'worker2 cached data a message'
+
+
+Scatter
+-------
+
+Each component has a method called *scatter* that transforms every single message it gets
