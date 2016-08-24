@@ -281,6 +281,14 @@ class Master(object):
     :param palm: True if the message that is sent through the server is a PALM message
     :param debug_level: Debug level for logging
     """
+    def scatter(self, message):
+        """
+        Scatter function for inbound messages
+        :param message:
+        :return:
+        """
+        yield message
+
     def __init__(self, name, pull_address, next_address,
                  worker_pull_address, worker_push_address, db_address,
                  log_address, perf_address, ping_address, cache=DictDB(),
@@ -353,10 +361,13 @@ class Master(object):
                                           self.logger,
                                           cache=self.cache)
 
-        # This is the pinger thread that keeps the pinger alive.
-        pinger_thread = Thread(target=self.pinger.start)
-        pinger_thread.daemon = True
-        pinger_thread.start()
+        self.pull_service.scatter = self.scatter
+
+        if ping_address:
+            # This is the pinger thread that keeps the pinger alive.
+            pinger_thread = Thread(target=self.pinger.start)
+            pinger_thread.daemon = True
+            pinger_thread.start()
 
     def start(self):
         threads = [
