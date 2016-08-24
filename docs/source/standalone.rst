@@ -123,25 +123,29 @@ And the output is the following::
     b'worker2 cached data a message'
 
 
-Scatter messages from the master
---------------------------------
+Scatter messages from the master to the workers
+-----------------------------------------------
 
-Each component has a method called *scatter* that transforms every single message it gets
+Master server has a useful method called :py:meth:`pylm.standalone.servers.Master.scatter`, that
+is in fact a generator. For each message that the master gets from the inbound socket, this
+generator is executed. It is useful to modify the message stream in any conceivable way. In the
+following example, right at the highlighted lines, a new master server overrides this ``scatter``
+generator with a new one that sends the message it gets three times.
 
 .. literalinclude:: ./examples/scatter/master.py
     :language: python
     :linenos:
-    :emphasize-lines: 12,13,14,16,17
+    :emphasize-lines: 4,5,6,7,8
 
-.. literalinclude:: ./examples/scatter/worker.py
-    :language: python
-    :linenos:
+The workers are identical than in the previous example. Since each message that the client sends
+to the master is repeated three times, the client expects 30 messages instead of 10.
 
 .. literalinclude:: ./examples/scatter/client.py
     :language: python
     :linenos:
+    :emphasize-lines: 30
 
-And the output::
+This is the (quite long) output of the client::
 
     $> python client.py
     b' cached data '
@@ -175,3 +179,48 @@ And the output::
     b'worker2 cached data a message'
     b'worker1 cached data a message'
     b'worker2 cached data a message'
+
+Gather messages from the workers
+--------------------------------
+
+.. literalinclude:: ./examples/gather/master.py
+    :language: python
+    :linenos:
+    :emphasize-lines: 14-23
+
+::
+
+    $> python client.py
+    b' cached data '
+    b'worker1 cached data a message'
+    b'worker2 cached data a message'
+    b'worker2 cached data a message'
+    b'worker1 cached data a message'
+    b'worker1 cached data a message'
+    b'worker1 cached data a message'
+    b'worker1 cached data a message'
+    b'worker2 cached data a message'
+    b'worker2 cached data a message'
+    b'worker2 cached data a message'
+    b'worker1 cached data a message'
+    b'worker2 cached data a message'
+    b'worker1 cached data a message'
+    b'worker2 cached data a message'
+    b'worker1 cached data a message'
+    b'worker2 cached data a message'
+    b'worker1 cached data a message'
+    b'worker2 cached data a message'
+    b'worker1 cached data a message'
+    b'worker2 cached data a message'
+    b'worker1 cached data a message'
+    b'worker1 cached data a message'
+    b'worker2 cached data a message'
+    b'worker2 cached data a message'
+    b'worker1 cached data a message'
+    b'worker2 cached data a message'
+    b'worker1 cached data a message'
+    b'worker2 cached data a message'
+    b'worker1 cached data a message'
+    b'Final message'
+
+.

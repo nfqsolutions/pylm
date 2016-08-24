@@ -145,6 +145,14 @@ class Master(object):
         """
         yield message
 
+    def gather(self, message):
+        """
+        Gather function for outbound messages
+        :param message:
+        :return:
+        """
+        yield message
+
     def __init__(self, name: str, pull_address: str, push_address: str,
                  worker_pull_address: str, worker_push_address: str, db_address: str,
                  log_address: str = None, perf_address: str = None,
@@ -226,6 +234,7 @@ class Master(object):
                                           cache=self.cache)
 
         self.pull_service.scatter = self.scatter
+        self.push_service.scatter = self.gather
 
         if ping_address:
             # Configure the pinger.

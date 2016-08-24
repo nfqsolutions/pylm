@@ -289,6 +289,14 @@ class Master(object):
         """
         yield message
 
+    def gather(self, message):
+        """
+        Gather method for outbound messages
+        :param message:
+        :return:
+        """
+        yield message
+
     def __init__(self, name, pull_address, next_address,
                  worker_pull_address, worker_push_address, db_address,
                  log_address, perf_address, ping_address, cache=DictDB(),
@@ -362,6 +370,7 @@ class Master(object):
                                           cache=self.cache)
 
         self.pull_service.scatter = self.scatter
+        self.push_service.scatter = self.gather
 
         if ping_address:
             # This is the pinger thread that keeps the pinger alive.
