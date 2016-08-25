@@ -23,6 +23,7 @@ class Client(object):
     def set(self, data, key=None):
         """
         Sets some data in the server's internal cache.
+
         :param data: Data to be cached.
         :param key: Sets a key. Otherwise it returns an automatically generated key
         :return: UUID of the key
@@ -45,8 +46,8 @@ class Client(object):
     def get(self, key):
         """
         Gets data from the server's internal cache.
-        :param data:
-        :param key:
+
+        :param key: Key for the data to get
         :return:
         """
         message = PalmMessage()
@@ -62,6 +63,7 @@ class Client(object):
     def delete(self, key):
         """
         Deletes data in the server's internal cache.
+
         :param key: Key of the data to be deleted
         :return:
         """
@@ -78,8 +80,11 @@ class Client(object):
     def job(self, function, data, pipeline=None, cache=None):
         """
         RPC function with data
+
         :param function: Function name as string, already defined in the server
         :param data: Binary message to be sent as argument
+        :param pipeline: Name of the pipeline if an existing one has to be used
+        :param cache: Value of the cache for manually overriding that internal variable
         :return: Result
         """
         message = PalmMessage()
@@ -102,11 +107,17 @@ class Client(object):
 
 class ParallelClient(object):
     """
-    Parallel client
+    Client to connect to parallel servers
+
+    :param push_address: Address of teh pull service of the server to push to
+    :param pull_address: Address of the push service of the server to pull from
+    :param db_address: Address for the cache service
+    :param server_name: Name of the server to be connected to
+    :param pipeline: Name of the pipeline if the session has to be reused
     """
-    def __init__(self, push_address: object, pull_address: object,
-                 db_address: object, server_name: object,
-                 pipeline: object = None) -> object:
+    def __init__(self, push_address: str, pull_address: str,
+                 db_address: str, server_name: str,
+                 pipeline: str = None):
         # TODO: Change the order of push and pull addresses. This is confusing now.
         self.server_name = server_name
         self.push_address = push_address
@@ -170,6 +181,7 @@ class ParallelClient(object):
         """
         Submit a job for the cluster given a function to be executed, and a generator
         that provides the payloads for each message
+
         :param function: String. Function to be executed
         :param generator: Generator of messages.
         :param messages: Number of expected messages before shutting down the client.
@@ -184,12 +196,15 @@ class ParallelClient(object):
         self.function = function
         yield from self._launch_job_from_generator(generator, messages)
 
-    def set(self, value, key=None):
+    def set(self, value: bytes, key=None):
         """
-        Sets a key value pare in the remote database. This command blocks.
-        :param key:
-        :param value:
-        :return:
+        Sets a key value pare in the remote database. If the key is not set,
+        the function returns a new key. Note that the order of the arguments
+        is reversed from the usual
+
+        :param value: Value to be stored
+        :param key: Key for the k-v storage
+        :return: New key or the same key
         """
         if not type(value) == bytes:
             raise TypeError('First argument {} must be of type <bytes>'.format(value))
@@ -211,8 +226,9 @@ class ParallelClient(object):
     def get(self, key):
         """
         Gets a value from server's internal cache
+
         :param key: Key for the data to be selected.
-        :return:
+        :return: Value
         """
         message = PalmMessage()
         message.pipeline = str(uuid4())
@@ -226,6 +242,7 @@ class ParallelClient(object):
     def delete(self, key):
         """
         Deletes data in the server's internal cache.
+
         :param key: Key of the data to be deleted
         :return:
         """

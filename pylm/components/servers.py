@@ -3,7 +3,7 @@ from pylm.components.messages_pb2 import PalmMessage
 
 class BaseMaster(object):
     @staticmethod
-    def change_payload(message: bytes, new_payload: bytes):
+    def change_payload(message: bytes, new_payload: bytes) -> bytes:
         """
         Change the payload of the message
 
@@ -17,7 +17,7 @@ class BaseMaster(object):
         return palm_message.SerializeToString()
 
     @staticmethod
-    def change_call(message: bytes, next_server: str, next_call: str):
+    def change_call(message: bytes, next_server: str, next_call: str) -> bytes:
         """
         Assign a call for the next server
 

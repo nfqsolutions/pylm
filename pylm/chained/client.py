@@ -42,6 +42,7 @@ class Client(LoopClient):
         """
         Submit a job for the cluster given a function to be executed, and a generator
         that provides the payloads for each message
+
         :param function: String. Function to be executed
         :param generator: Generator of messages.
         :param cache: Use a cache constant for the message
