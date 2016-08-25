@@ -2,6 +2,7 @@ from pylm.persistence.kv import DictDB
 from pylm.components.connections import PushConnection
 from pylm.components.core import Router, zmq_context
 from pylm.components.messages_pb2 import PalmMessage
+from pylm.components.servers import BaseMaster
 from pylm.components.utils import PushHandler, Pinger, PerformanceCounter, CacheService
 from pylm.components.services import PullService, WorkerPullService, WorkerPushService
 from google.protobuf.message import DecodeError
@@ -263,7 +264,7 @@ class LastServer(object):
             self.push.send(self.message.SerializeToString())
 
 
-class Master(object):
+class Master(BaseMaster):
     """
     Connected PALM master server. It gets a message from the pull socket, that
     is bind, and sends the result from the push socket connected to the next_address
@@ -281,22 +282,6 @@ class Master(object):
     :param palm: True if the message that is sent through the server is a PALM message
     :param debug_level: Debug level for logging
     """
-    def scatter(self, message):
-        """
-        Scatter function for inbound messages
-        :param message:
-        :return:
-        """
-        yield message
-
-    def gather(self, message):
-        """
-        Gather method for outbound messages
-        :param message:
-        :return:
-        """
-        yield message
-
     def __init__(self, name, pull_address, next_address,
                  worker_pull_address, worker_push_address, db_address,
                  log_address, perf_address, ping_address, cache=DictDB(),

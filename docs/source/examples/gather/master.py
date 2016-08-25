@@ -15,10 +15,7 @@ class MyMaster(Master):
         self.counter += 1
 
         if self.counter == 30:
-            palm_message = PalmMessage()
-            palm_message.ParseFromString(message)
-            palm_message.payload = b'Final message'
-            yield palm_message.SerializeToString()
+            yield self.change_payload(message, b'final message')
         else:
             yield message
 

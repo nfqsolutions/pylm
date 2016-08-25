@@ -2,6 +2,7 @@ from pylm.components.core import zmq_context, Router
 from pylm.components.services import WorkerPullService, WorkerPushService
 from pylm.components.services import PullService, PushService
 from pylm.components.utils import PushHandler, Pinger, PerformanceCounter, CacheService
+from pylm.components.servers import BaseMaster
 from pylm.components.messages_pb2 import PalmMessage, BrokerMessage
 from pylm.persistence.kv import DictDB
 from google.protobuf.message import DecodeError
@@ -132,27 +133,11 @@ class Server(object):
             self.rep.send(message.SerializeToString())
 
 
-class Master(object):
+class Master(BaseMaster):
     """
     Standalone master server, intended to send workload to workers.
     WARNING. This implementation is not using the resilience service.
     """
-    def scatter(self, message):
-        """
-        Scatter function for inbound messages
-        :param message:
-        :return:
-        """
-        yield message
-
-    def gather(self, message):
-        """
-        Gather function for outbound messages
-        :param message:
-        :return:
-        """
-        yield message
-
     def __init__(self, name: str, pull_address: str, push_address: str,
                  worker_pull_address: str, worker_push_address: str, db_address: str,
                  log_address: str = None, perf_address: str = None,

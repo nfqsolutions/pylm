@@ -74,7 +74,7 @@ Cache
 -----
 
 One of the services that the master offers is a small key-value database that **can be seen by all the workers**.
-You can use that database with RPC-sytle calls with the :py:meth:`pylm.standalone.client.Client.set`,
+You can use that database with RPC-style using :py:meth:`pylm.standalone.client.Client.set`,
 :py:meth:`pylm.standalone.client.Client.get`, and :py:meth:`pylm.standalone.client.Client.delete` methods.
 Like the messages, the data to be stored in the database must be binary.
 
@@ -145,36 +145,16 @@ to the master is repeated three times, the client expects 30 messages instead of
     :linenos:
     :emphasize-lines: 30
 
-This is the (quite long) output of the client::
+This is the (partially omitted) output of the client::
 
     $> python client.py
     b' cached data '
     b'worker1 cached data a message'
     b'worker1 cached data a message'
     b'worker2 cached data a message'
-    b'worker2 cached data a message'
-    b'worker1 cached data a message'
-    b'worker2 cached data a message'
-    b'worker1 cached data a message'
-    b'worker2 cached data a message'
-    b'worker1 cached data a message'
-    b'worker2 cached data a message'
-    b'worker1 cached data a message'
-    b'worker2 cached data a message'
-    b'worker1 cached data a message'
-    b'worker2 cached data a message'
-    b'worker1 cached data a message'
-    b'worker2 cached data a message'
-    b'worker1 cached data a message'
-    b'worker2 cached data a message'
-    b'worker1 cached data a message'
-    b'worker2 cached data a message'
-    b'worker1 cached data a message'
-    b'worker2 cached data a message'
-    b'worker1 cached data a message'
-    b'worker2 cached data a message'
-    b'worker1 cached data a message'
-    b'worker2 cached data a message'
+
+    ...
+
     b'worker1 cached data a message'
     b'worker2 cached data a message'
     b'worker1 cached data a message'
@@ -183,10 +163,23 @@ This is the (quite long) output of the client::
 Gather messages from the workers
 --------------------------------
 
+You can also alter the message stream after the workers have done their job. The master server also includes a
+:py:meth:`pylm.standalone.servers.Master.gather` method, that is a generator too, that is executed for each message.
+Being a generator, this means that gather has to yield, and that the result can be either no message, or an arbitrary
+amount of messages. To make this example a little more interesting, we will also disassemble one of these messages that
+were apparently just a bunch of bytes.
+
+We will define a gather generator that counts the amount of messages, and when the message number 30 arrives,
+the final message, its payload is changed with a different binary string. This means that we need to add an attribute
+to the server for the counter, and we have to modify a message with :py:meth:`pylm.standalone.servers.Master.change_payload`.
+
+See that this example is incremental respect to the previous one, and in consequence it uses the cache service and
+the scatter and the gather generators.
+
 .. literalinclude:: ./examples/gather/master.py
     :language: python
     :linenos:
-    :emphasize-lines: 14-23
+    :emphasize-lines: 6-8, 14-20
 
 ::
 
@@ -195,28 +188,9 @@ Gather messages from the workers
     b'worker1 cached data a message'
     b'worker2 cached data a message'
     b'worker2 cached data a message'
-    b'worker1 cached data a message'
-    b'worker1 cached data a message'
-    b'worker1 cached data a message'
-    b'worker1 cached data a message'
-    b'worker2 cached data a message'
-    b'worker2 cached data a message'
-    b'worker2 cached data a message'
-    b'worker1 cached data a message'
-    b'worker2 cached data a message'
-    b'worker1 cached data a message'
-    b'worker2 cached data a message'
-    b'worker1 cached data a message'
-    b'worker2 cached data a message'
-    b'worker1 cached data a message'
-    b'worker2 cached data a message'
-    b'worker1 cached data a message'
-    b'worker2 cached data a message'
-    b'worker1 cached data a message'
-    b'worker1 cached data a message'
-    b'worker2 cached data a message'
-    b'worker2 cached data a message'
-    b'worker1 cached data a message'
+
+    ...
+
     b'worker2 cached data a message'
     b'worker1 cached data a message'
     b'worker2 cached data a message'
