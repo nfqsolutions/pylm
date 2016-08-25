@@ -45,3 +45,33 @@ Cache operation for the standalone parallel version
 .. literalinclude:: ./examples/cache/client.py
     :language: python
     :linenos:
+
+Usage of the scatter function
+-----------------------------
+
+.. literalinclude:: ./examples/scatter/master.py
+    :language: python
+    :linenos:
+
+.. literalinclude:: ./examples/scatter/worker.py
+    :language: python
+    :linenos:
+
+.. literalinclude:: ./examples/scatter/client.py
+    :language: python
+    :linenos:
+
+Usage of the gather function
+----------------------------
+
+.. literalinclude:: ./examples/gather/master.py
+    :language: python
+    :linenos:
+
+.. literalinclude:: ./examples/gather/worker.py
+    :language: python
+    :linenos:
+
+.. literalinclude:: ./examples/gather/client.py
+    :language: python
+    :linenos:
