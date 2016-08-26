@@ -35,7 +35,9 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), os.pa
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.mathjax', 'sphinx.ext.autodoc'
+    'sphinx.ext.mathjax',
+    'sphinx.ext.autodoc',
+    'sphinx.ext.intersphinx'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -289,3 +291,6 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
+
+# Intersphinx configuration
+intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}

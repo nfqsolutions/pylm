@@ -22,10 +22,13 @@ refers to the combination of a *master server* and a series of *workers*. A para
 distribute the workload among the available workers, in other words, the master is in charge of the management and the
 workers do the actual work. You will find a thorough description of each flavor and variant in the following sections.
 
+All servers, regardless of their flavor, have a set of useful tools, documented in :ref:`features`.
+
 .. toctree::
     :maxdepth: 2
 
     standalone
     chained
     pipelined
+    features
 

@@ -1,0 +1,29 @@
+from pylm.standalone import Worker
+import sys
+
+
+class MyWorker(Worker):
+    def __init__(self, *args, **kwargs):
+        self.ncalls = 0
+        super(MyWorker, self).__init__(*args, **kwargs)
+    
+    def foo(self, message):
+        self.ncalls += 1
+        if self.ncalls == 1:
+            self.perfcounter('0 messages')
+            
+        data = self.get('cached')
+
+        if self.ncalls%10 == 0:
+            self.perfcounter('10 messages')
+            self.logger.info('Processed {} messages'.format(self.ncalls))
+            
+        return self.name.encode('utf-8') + data + message
+
+server = MyWorker(sys.argv[1],
+                  push_address='tcp://127.0.0.1:5558',
+                  pull_address='tcp://127.0.0.1:5557',
+                  db_address='tcp://127.0.0.1:5559')
+
+if __name__ == '__main__':
+    server.start()

@@ -197,4 +197,3 @@ the scatter and the gather generators.
     b'worker1 cached data a message'
     b'Final message'
 
-.
