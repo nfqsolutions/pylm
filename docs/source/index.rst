@@ -34,7 +34,7 @@ Pylm is a project developed by `Guillem Borrell <http://guillemborrell.es>`_ for
 
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 3
 
     introduction
     high-level
