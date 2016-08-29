@@ -42,6 +42,7 @@ Pylm is a project developed by `Guillem Borrell <http://guillemborrell.es>`_ for
     hl-api-docstrings
     ll-api-docstrings
     examples
+    beyond
 
 
 Indices and tables

@@ -90,10 +90,62 @@ available in :py:mod:`pylm.components.services`, and a similar library of compon
    All components, and the router, have a ``start`` method. Since they are all designed to run on a thread, the
    threading library must call only that method to get the component running.
 
-Example
-.......
 
 It's time to build a small micro-service from a router and some services and components that are already available.
+This way you will have a rough idea of how the high level API of pylm is built. Some of the details of the
+implementation are not described yet, but this example is a nice prologue about the things you need to know
+to master the low level API.
+
+In this section, we have seen that the router is a crucial component of any server in pylm. The helper class
+:py:class:`pylm.components.servers.ServerTemplate` is designed to easily attach the components to a router. The internal
+design of a master server can be seen in the following sketch.
+
+
+.. only:: html
+
+    .. figure:: _images/master_internals.png
+        :align: center
+
+.. only:: latex
+
+    .. figure:: _images/master_internals.pdf
+        :align: center
+        :scale: 60
+
+
+A master server like the one used in the examples needs the router and four service components.
+
+* A *Pull* component that receives the messages from the client
+
+* A *Push* component that sends the messages to the workers
+
+* A *Pull* component that gets the result from the workers
+
+* A *Push* component that sends the results down the message pipeline or back to the client.
+
+All components are non-blocking, and the message stream is never interrupted.  All the components are *services*,
+meaning that the workers and the client connect to the respective sockets, since *service components* bind to its
+respective outwards-facing socket.
+
+The component library has a component for each one of the needs depicted above. There is a
+:py:class:`pylm.components.services.PullService` that binds a ZeroMQ Pull socket to the exterior, and sends the
+messages to the router. There is a :py:class:`pylm.components.services.PushService` that works exactly the other
+way around. It listens to the router, and forwards the messages to a ZeroMQ Push socket. There are also
+specific services to connect to worker servers, :py:class:`pylm.components.services.WorkerPullService` and
+:py:class:`pylm.components.services.WorkerPullService`, that are very similar to the two previously described
+services. With those pieces, we are ready to build a master server as follows
+
+.. literalinclude:: ./examples/template/master.py
+    :language: python
+    :linenos:
+
+.. note::
+
+   There is an additional type of service called *bypass* in this implementation, that will be described at the end
+   of this section.
+
+This server is functionally identical to the master server used in the first example of the section describing
+:ref:`standalone`. You can test it using the same client and workers.
 
 Bypass components
 -----------------

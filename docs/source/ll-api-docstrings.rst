@@ -8,6 +8,12 @@ The router and the components
    :members:
    :inherited-members:
 
+The server templates
+--------------------
+
+.. automodule:: pylm.components.servers
+   :members: ServerTemplate
+
 Services
 --------
 

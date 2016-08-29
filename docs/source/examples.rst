@@ -75,3 +75,18 @@ Usage of the gather function
 .. literalinclude:: ./examples/gather/client.py
     :language: python
     :linenos:
+
+Building a master server from its components
+--------------------------------------------
+
+.. literalinclude:: ./examples/template/master.py
+    :language: python
+    :linenos:
+
+.. literalinclude:: ./examples/template/worker.py
+    :language: python
+    :linenos:
+
+.. literalinclude:: ./examples/template/client.py
+    :language: python
+    :linenos:

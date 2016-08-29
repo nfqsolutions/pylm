@@ -76,7 +76,7 @@ class ServerTemplate(object):
         self.router = Router(logger=self.logger,
                              cache=self.cache)
 
-    def register_inbound(self, component, name, listen_address, route='', block=False, log=''):
+    def register_inbound(self, component, name, listen_address, route='', block=False, log='', **kwargs):
         """
         Register inbound component to this server.
 
@@ -86,13 +86,15 @@ class ServerTemplate(object):
         :param route: Outbound component it routes to
         :param block: True if the component blocks waiting for a response
         :param log: Log message in DEBUG level for each message processed.
+        :param kwargs: Additional keyword arguments to pass to the component
         """
         instance = component(name,
                              listen_address,
                              broker_address=self.router.inbound_address,
                              logger=self.logger,
                              palm=self.palm,
-                             cache=self.cache)
+                             cache=self.cache,
+                             **kwargs)
 
         self.router.register_inbound(name,
                                      route=route,
@@ -101,7 +103,7 @@ class ServerTemplate(object):
 
         self.inbound_components[name] = instance
 
-    def register_outbound(self, component, name, listen_address, log=''):
+    def register_outbound(self, component, name, listen_address, log='', **kwargs):
         """
         Register outbound component to this server
 
@@ -109,31 +111,35 @@ class ServerTemplate(object):
         :param name: Name of the component
         :param listen_address: Valid ZeroMQ address listening to the exterior
         :param log: Log message in DEBUG level for each message processed
+        :param kwargs: Additional keyword arguments to pass to the component
         """
         instance = component(name,
                              listen_address,
                              broker_address=self.router.outbound_address,
                              logger=self.logger,
                              palm=self.palm,
-                             cache=self.cache)
+                             cache=self.cache,
+                             **kwargs)
 
         self.router.register_outbound(name,
                                       log=log)
 
         self.outbound_components[name] = instance
 
-    def register_bypass(self, component, name, listen_address):
+    def register_bypass(self, component, name, listen_address, **kwargs):
         """
         Register a bypass component to this server
 
         :param component: Component class
         :param name: Component name
         :param listen_address: Valid ZeroMQ address listening to the exterior
+        :param kwargs: Additional keyword arguments to pass to the component
         """
         instance = component(name,
                              listen_address,
                              logger=self.logger,
-                             cache=self.cache)
+                             cache=self.cache,
+                             **kwargs)
 
         self.bypass_components[name] = instance
 
