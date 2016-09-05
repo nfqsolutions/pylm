@@ -6,7 +6,6 @@ not Python, but you don't want to wait for a different PALM implementation to
 exist. It's probable that you only need a worker, which is the simplest piece
 among the whole PALM ecosystem.
 
-Building a worker in C++
-------------------------
+A Simple worker in C++
+----------------------
 
-TBD
