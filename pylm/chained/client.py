@@ -32,8 +32,10 @@ class Client(LoopClient):
         # Pipeline, also session.
         if pipeline:
             self.pipeline = pipeline
+            self.session_set = True
         else:
             self.pipeline = str(uuid4())
+            self.session_set = False
 
         # Cache to tag messages
         self.cache = None

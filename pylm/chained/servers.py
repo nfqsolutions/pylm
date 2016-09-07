@@ -355,7 +355,7 @@ class Master(BaseMaster):
                                           cache=self.cache)
 
         self.pull_service.scatter = self.scatter
-        self.push_service.scatter = self.gather
+        self.push_connection.scatter = self.gather
 
         if ping_address:
             # This is the pinger thread that keeps the pinger alive.
