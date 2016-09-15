@@ -143,6 +143,9 @@ class ServerTemplate(object):
 
         self.bypass_components[name] = instance
 
+    def register_gateway(self):
+        pass
+
     def start(self):
         """
         Start the server with all its components.

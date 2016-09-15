@@ -191,11 +191,21 @@ class ComponentInbound(object):
         """
         broker_message = BrokerMessage()
         broker_message.ParseFromString(message_data)
-        message_data = self.cache.get(broker_message.key)
-        palm_message = PalmMessage()
-        palm_message.ParseFromString(message_data)
-        palm_message.payload = broker_message.payload
-        message_data = palm_message.SerializeToString()
+
+        if self.palm:
+            message_data = self.cache.get(broker_message.key)
+            # Clean up the cache. It is an outbound message and
+            # the metadata is not necessary anymore. This may cause
+            # double deletions, so be ready to manage the messages
+            # yourself. Note this may cause memory leaks in the cache.
+            palm_message = PalmMessage()
+            palm_message.ParseFromString(message_data)
+            palm_message.payload = broker_message.payload
+            message_data = palm_message.SerializeToString()
+
+        else:
+            message_data = broker_message.payload
+
         return message_data
 
     def scatter(self, message_data):
