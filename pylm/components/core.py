@@ -198,6 +198,8 @@ class ComponentInbound(object):
             # the metadata is not necessary anymore. This may cause
             # double deletions, so be ready to manage the messages
             # yourself. Note this may cause memory leaks in the cache.
+            self.logger.debug('DELETE: {}'.format(broker_message.key))
+            self.cache.delete(broker_message.key)
             palm_message = PalmMessage()
             palm_message.ParseFromString(message_data)
             palm_message.payload = broker_message.payload
