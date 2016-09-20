@@ -336,6 +336,3 @@ if __name__ == "__main__":
     #test_http_gateway_router()
     #test_complete_gateway()
     test_gateway()
-    
-
-
