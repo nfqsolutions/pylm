@@ -124,3 +124,8 @@ class PullBypassConnection(ComponentBypassInbound):
                                                    logger=logger)
 
 
+class HttpConnection(ComponentOutbound):
+    """
+    Similar to PushConnection. An HTTP client deals with outbound messages.
+    """
+    pass

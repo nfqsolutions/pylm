@@ -313,3 +313,10 @@ class RepBypassService(ComponentBypassInbound):
                                                logger=logger, cache=cache,
                                                messages=messages)
 
+
+class HttpServer(ComponentInbound):
+    """
+    Similar to PullService, but the connection offered is an HTTP server
+    that deals with inbound messages.
+    """
+    pass
