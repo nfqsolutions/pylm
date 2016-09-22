@@ -3,6 +3,7 @@
 from pylm.components.core import ComponentInbound, ComponentOutbound,\
     zmq_context, ComponentBypassInbound
 from pylm.components.messages_pb2 import BrokerMessage
+from http.server import HTTPServer, BaseHTTPRequestHandler
 import zmq
 import sys
 
@@ -318,5 +319,57 @@ class HttpServer(ComponentInbound):
     """
     Similar to PullService, but the connection offered is an HTTP server
     that deals with inbound messages.
+
+    ACHTUNG: this thing is deliberately single threaded
     """
-    pass
+    def __init__(self):
+        pass
+
+    def _make_handler(self):
+        """
+        This is serious meta programming. Note that the handler reuses
+        the socket that connects to the router. This is intentional and
+        makes the handler stricly single threaded.
+
+        :return: Returns a PalmHandler class, that is a subclass of
+          BaseHttpRequestHandler
+        """
+        # Clarify the scope after self is masked
+        scatter = self.scatter
+        reply = self.reply
+        _translate_to_broker = self._translate_to_broker
+        broker = self.broker
+        handle_feedback = self.handle_feedback
+        reply_feedback = self.reply_feedback
+
+        class PalmHandler(BaseHTTPRequestHandler):
+            def do_POST(self):
+                self.send_response(200)
+                self.end_headers()
+                message_data = self.rfile.read(
+                    int(
+                        self.headers.get('Content-Length')
+                    )
+                )
+                scattered_messages = scatter(message_data)
+
+                if not scattered_messages:
+                    if reply:
+                        self.wfile.write(b'0')
+
+                else:
+                    for scattered in scattered_messages:
+                        scattered = _translate_to_broker(scattered)
+
+                        if scattered:
+                            broker.send(scattered)
+                            handle_feedback(broker.recv())
+
+                    if reply:
+                        self.wfile.write(reply_feedback())
+
+        return PalmHandler
+
+    def start(self):
+        server = HTTPServer((self.hostname, self.port), self._make_handler())
+        server.serve_forever()
