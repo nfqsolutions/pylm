@@ -1,7 +1,8 @@
 import zmq
 import sys
 from pylm.components.core import ComponentInbound, ComponentOutbound, \
-    ComponentBypassInbound, ComponentBypassOutbound
+    ComponentBypassInbound, ComponentBypassOutbound, zmq_context
+from urllib.request import Request, urlopen
 
 
 class RepConnection(ComponentInbound):
@@ -128,4 +129,45 @@ class HttpConnection(ComponentOutbound):
     """
     Similar to PushConnection. An HTTP client deals with outbound messages.
     """
-    pass
+    def __init__(self,
+                 name,
+                 url,
+                 reply=True,
+                 broker_address="inproc://broker",
+                 palm=False,
+                 logger=None,
+                 cache=None,
+                 messages=sys.maxsize):
+        self.name = name.encode('utf-8')
+        self.broker = zmq_context.socket(zmq.REP)
+        self.broker.identity = self.name
+        self.broker.connect(broker_address)
+        self.logger = logger
+        self.palm = palm
+        self.cache = cache
+        self.messages = messages
+        self.reply = reply
+        self.last_message = b''
+        self.url = url
+
+    def start(self):
+        """
+        Call this function to start the component
+        """
+        for i in range(self.messages):
+            self.logger.debug('Component {} blocked waiting for broker'.format(self.name))
+            message_data = self.broker.recv()
+            self.logger.debug('Component {} Got message from broker'.format(self.name))
+            message_data = self._translate_from_broker(message_data)
+
+            for scattered in self.scatter(message_data):
+                request = Request(self.url, data=scattered)
+                response = urlopen(request)
+                self.logger.debug('Component {} Sent message'.format(self.name))
+
+                feedback = response.read()
+                if self.reply:
+                    feedback = self._translate_to_broker(feedback)
+                    self.handle_feedback(feedback)
+
+            self.broker.send(self.reply_feedback())

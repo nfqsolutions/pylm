@@ -315,28 +315,42 @@ class RepBypassService(ComponentBypassInbound):
                                                messages=messages)
 
 
-class HttpServer(ComponentInbound):
+class HttpService(ComponentInbound):
     """
     Similar to PullService, but the connection offered is an HTTP server
     that deals with inbound messages.
 
     ACHTUNG: this thing is deliberately single threaded
     """
-    def __init__(self):
-        pass
+    def __init__(self,
+                 name,
+                 hostname,
+                 port,
+                 broker_address = "inproc://broker",
+                 palm=False,
+                 logger=None,
+                 cache=None):
+        self.name = name.encode('utf-8')
+        self.hostname = hostname
+        self.port = port
+        self.palm = palm
+        self.logger = logger
+        self.broker = zmq_context.socket(zmq.REQ)
+        self.broker.identity = self.name
+        self.broker.connect(broker_address)
+        self.cache = cache
 
     def _make_handler(self):
         """
         This is serious meta programming. Note that the handler reuses
         the socket that connects to the router. This is intentional and
-        makes the handler stricly single threaded.
+        makes the handler strictly single threaded.
 
         :return: Returns a PalmHandler class, that is a subclass of
           BaseHttpRequestHandler
         """
-        # Clarify the scope after self is masked
+        # Clarify the scope since self is masked by the returned class
         scatter = self.scatter
-        reply = self.reply
         _translate_to_broker = self._translate_to_broker
         broker = self.broker
         handle_feedback = self.handle_feedback
@@ -344,6 +358,9 @@ class HttpServer(ComponentInbound):
 
         class PalmHandler(BaseHTTPRequestHandler):
             def do_POST(self):
+                """
+                Note that this http server always replies
+                """
                 self.send_response(200)
                 self.end_headers()
                 message_data = self.rfile.read(
@@ -354,8 +371,7 @@ class HttpServer(ComponentInbound):
                 scattered_messages = scatter(message_data)
 
                 if not scattered_messages:
-                    if reply:
-                        self.wfile.write(b'0')
+                    self.wfile.write(b'0')
 
                 else:
                     for scattered in scattered_messages:
@@ -365,11 +381,13 @@ class HttpServer(ComponentInbound):
                             broker.send(scattered)
                             handle_feedback(broker.recv())
 
-                    if reply:
-                        self.wfile.write(reply_feedback())
+                    self.wfile.write(reply_feedback())
 
         return PalmHandler
 
     def start(self):
+        """
+        Starts the component and serves the http server forever.
+        """
         server = HTTPServer((self.hostname, self.port), self._make_handler())
         server.serve_forever()
