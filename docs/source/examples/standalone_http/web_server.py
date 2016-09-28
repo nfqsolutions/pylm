@@ -1,4 +1,5 @@
 from http.server import HTTPServer, BaseHTTPRequestHandler
+from pylm.components.messages_pb2 import BrokerMessage
 
 
 class MyHandler(BaseHTTPRequestHandler):
@@ -7,9 +8,12 @@ class MyHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
         data = self.rfile.read(int(self.headers.get('Content-Length')))
-        print(data)
+        message = BrokerMessage()
+        message.ParseFromString(data)
+        message.payload = message.payload + b' processed online'
+        print(message)
 
-        self.wfile.write(data)
+        self.wfile.write(message.SerializeToString())
 
         return
 
