@@ -61,8 +61,17 @@ class Router(object):
             'log': log
         }
 
-    def register_outbound(self, name, log=''):
+    def register_outbound(self, name, route='', log=''):
+        """
+        Register outbound component by name
+
+        :param name: Name of the component
+        :param route: Each message sent back to the component can be routed
+        :param log: Logging for each message that comes from the router.
+        :return:
+        """
         self.outbound_components[name.encode('utf-8')] = {
+            'route': route.encode('utf-8'),
             'log': log
         }
 
@@ -75,7 +84,8 @@ class Router(object):
 
         for i in range(self.messages):
             component, empty, message_data = self.inbound.recv_multipart()
-            # internal routing
+
+            # Routing from inbound to outbound
             route_to = self.inbound_components[component]['route']
             block = self.inbound_components[component]['block']
 
@@ -83,6 +93,17 @@ class Router(object):
                 self.logger.debug('Router: {} routing to {}'.format(component, route_to))
                 self.outbound.send_multipart([route_to, empty, message_data])
                 route_to, empty, feedback = self.outbound.recv_multipart()
+
+                # Rerouting from outbound to a different outbound.
+                # You can reroute only once, and if inbound blocks it gets
+                # the message from the first outbound. This can be used to
+                # implement weird routing schemes.
+                reroute = self.outbound_components[route_to]['route']
+                if reroute:
+                    self.outbound.send_multipart([reroute, empty, feedback])
+                    self.outbound.recv_multipart()
+
+                # If the inbound is blocked, always unblock.
                 if block:
                     self.inbound.send_multipart([component, empty, feedback])
                 else:

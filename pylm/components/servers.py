@@ -103,13 +103,14 @@ class ServerTemplate(object):
 
         self.inbound_components[name] = instance
 
-    def register_outbound(self, component, name, listen_address, log='', **kwargs):
+    def register_outbound(self, component, name, listen_address, route='', log='', **kwargs):
         """
         Register outbound component to this server
 
         :param component: Component class
         :param name: Name of the component
         :param listen_address: Valid ZeroMQ address listening to the exterior
+        :param route: Outbound component it routes the response (if there is) to
         :param log: Log message in DEBUG level for each message processed
         :param kwargs: Additional keyword arguments to pass to the component
         """
@@ -122,6 +123,7 @@ class ServerTemplate(object):
                              **kwargs)
 
         self.router.register_outbound(name,
+                                      route=route,
                                       log=log)
 
         self.outbound_components[name] = instance

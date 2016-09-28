@@ -37,7 +37,7 @@ def isolated_connection():
         logger=logging,
         messages=1
     )
-    print("Satarting connection")
+    print("Starting connection")
     connection.start()
 
 
