@@ -131,7 +131,7 @@ class HttpConnection(ComponentOutbound):
     """
     def __init__(self,
                  name,
-                 url,
+                 listen_address,
                  reply=True,
                  broker_address="inproc://broker",
                  palm=False,
@@ -148,7 +148,7 @@ class HttpConnection(ComponentOutbound):
         self.messages = messages
         self.reply = reply
         self.last_message = b''
-        self.url = url
+        self.url = listen_address
 
     def start(self):
         """
