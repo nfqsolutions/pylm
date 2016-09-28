@@ -103,7 +103,9 @@ class Router(object):
                     self.outbound.send_multipart([reroute, empty, feedback])
                     self.outbound.recv_multipart()
 
-                # If the inbound is blocked, always unblock.
+                # The inbound is blocked, but sometimes it can process the
+                # feedback. You can use this to remove the block thing, because
+                # now you can redirect from outbound to outbound.
                 if block:
                     self.inbound.send_multipart([component, empty, feedback])
                 else:
