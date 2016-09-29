@@ -13,12 +13,6 @@ component. It's what the high level API uses under the hood. Choose
 the low level API if you are interested in creating your custom
 component and your custom communication pattern.
 
-Pylm is released under a dual licensing scheme. The source is released
-as-is under the the AGPL version 3 license, a copy of the license is
-included in the source packages. If this license does not suit you,
-you can purchase a commercial license from `NFQ Solutions
-<http://nfqsolutions.com>`_
-
 .. important::
 
     Pylm requires a version of Python equal or higher than 3.4, and it is more
@@ -34,9 +28,14 @@ Installing **pylm** is as easy as:
 
 * `Documentation <http://pythonhosted.org/pylm/>`_
 
+Pylm is released under a dual licensing scheme. The source is released
+as-is under the the AGPL version 3 license, a copy of the license is
+included with the source. If this license does not suit you,
+you can purchase a commercial license from `NFQ Solutions
+<http://nfqsolutions.com>`_
 
-Pylm is a project developed by `Guillem Borrell <http://guillemborrell.es>`_ for `NFQ Solutions
-<http://nfqsolutions.com>`_.
+Pylm is a project developed by `Guillem Borrell <http://guillemborrell.es>`_
+for `NFQ Solutions <http://nfqsolutions.com>`_.
 
 
 .. toctree::
