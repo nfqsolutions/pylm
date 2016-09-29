@@ -15,18 +15,19 @@ setup(name='pylm',
                 'pylm.persistence',
                 'pylm.standalone',
                 'pylm.chained',
-                'pylm.pipelined'],
+                'pylm.pipelined',
+                'pylm.remote'],
       classifiers=[
           'Development Status :: 4 - Beta',
           'Environment :: Console',
           'Intended Audience :: Developers',
           'Operating System :: POSIX',
           'Programming Language :: Python',
-          'License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)',
           'Topic :: System :: Distributed Computing',
           'Programming Language :: Python :: 3',
           'Programming Language :: Python :: 3.4',
-          'Programming Language :: Python :: 3.5'
+          'Programming Language :: Python :: 3.5',
+          'License :: OSI Approved :: GNU Affero General Public License v3'
       ],
       install_requires=['protobuf>=3.0.0', 'requests', 'pyzmq', 'requests']
       )

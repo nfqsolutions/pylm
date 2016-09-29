@@ -177,7 +177,8 @@ class HttpConnection(ComponentOutbound):
                     try:
                         feedback = future.result()
                     except Exception as exc:
-                        self.logger.error('HttpConcurrentConnection generated an error')
+                        self.logger.error('HttpConnection generated an error')
+                        feedback = b'0'
 
                     if self.reply:
                         feedback = self._translate_to_broker(feedback)
