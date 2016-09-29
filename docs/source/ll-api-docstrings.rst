@@ -1,30 +1,30 @@
 Low level API documentation
 ===========================
 
-The router and the components
+The router and the parts
 -----------------------------
 
-.. automodule:: pylm.components.core
+.. automodule:: pylm.parts.core
    :members:
    :inherited-members:
 
 The server templates
 --------------------
 
-.. automodule:: pylm.components.servers
+.. automodule:: pylm.parts.servers
    :members: ServerTemplate
 
 Services
 --------
 
-.. automodule:: pylm.components.services
+.. automodule:: pylm.parts.services
    :members:
    :inherited-members:
 
 Connections
 -----------
 
-.. automodule:: pylm.components.connections
+.. automodule:: pylm.parts.connections
    :members:
    :inherited-members:
 
