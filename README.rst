@@ -2,16 +2,22 @@ Pylm
 ====
 
 Pylm is the Python implementation of PALM, a framework to build
-clusters of high performance microservices. It is presented in two
+clusters of high performance components. It is presented in two
 different levels of abstraction. In the high level API you will find
 servers and clients that are functional *out of the box*. Use the high
 level API if you are interested in simple communication patterns like
 client-server, master-slave or a streaming pipeline. In the low level
-API there are a variety of small components that, once combined
-appropiately, they can be used to implement almost any kind of
-microservice. It's what the high level API uses under the hood. Choose
+API there are a variety of small components that, once combined,
+they can be used to implement almost any kind of
+component. It's what the high level API uses under the hood. Choose
 the low level API if you are interested in creating your custom
-microservice and your custom communication pattern.
+component and your custom communication pattern.
+
+Pylm is released under a dual licensing scheme. The source is released
+as-is under the the AGPL version 3 license, a copy of the license is
+included in the source package. If this license does not suit you,
+you can purchase a commercial license from `NFQ Solutions
+<http://nfqsolutions.com>`_
 
 .. important::
 

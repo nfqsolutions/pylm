@@ -7,7 +7,7 @@ with open('pylm/version.py') as f:
 
 setup(name='pylm',
       version=__version__,
-      description='A framework to build clusters of high performance microservices',
+      description='A framework to build clusters of high performance components',
       author='Guillem Borrell',
       author_email='guillemborrell@gmail.com',
       packages=['pylm',
