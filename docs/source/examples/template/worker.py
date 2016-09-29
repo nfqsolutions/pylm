@@ -1,4 +1,4 @@
-from pylm.standalone import Worker
+from pylm.standalone.servers import Worker
 import sys
 
 
