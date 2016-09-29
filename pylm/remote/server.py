@@ -1,7 +1,6 @@
 from wsgiref.simple_server import make_server
-from functools import partial
 from collections import namedtuple
-from pylm.components.messages_pb2 import PalmMessage
+from pylm.parts.messages_pb2 import PalmMessage
 
 Request = namedtuple('Request', 'method data')
 

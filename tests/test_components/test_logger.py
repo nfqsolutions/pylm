@@ -2,10 +2,10 @@
 import logging
 from threading import Thread
 
-from pylm.components.core import Router
-from pylm.components.endpoints import ReqConnection
-from pylm.components.services import RepService
-from pylm.components.utils import PushHandler, LogCollector
+from pylm.parts.core import Router
+from pylm.parts.endpoints import ReqConnection
+from pylm.parts.services import RepService
+from pylm.parts.utils import PushHandler, LogCollector
 
 
 def test_logger():

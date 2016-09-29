@@ -1,9 +1,9 @@
 from threading import Thread
 
-from pylm.components.core import Router
-from pylm.components.endpoints import ReqConnection, logger
-from pylm.components.services import RepService
-from pylm.components.utils import PerformanceCounter, PerformanceCollector
+from pylm.parts.core import Router
+from pylm.parts.endpoints import ReqConnection, logger
+from pylm.parts.services import RepService
+from pylm.parts.utils import PerformanceCounter, PerformanceCollector
 
 
 def test_perfcounter():

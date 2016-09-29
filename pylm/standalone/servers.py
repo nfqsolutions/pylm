@@ -1,9 +1,9 @@
-from pylm.components.core import zmq_context, Router
-from pylm.components.services import WorkerPullService, WorkerPushService
-from pylm.components.services import PullService, PushService
-from pylm.components.utils import PushHandler, Pinger, PerformanceCounter, CacheService
-from pylm.components.servers import BaseMaster
-from pylm.components.messages_pb2 import PalmMessage, BrokerMessage
+from pylm.parts.core import zmq_context, Router
+from pylm.parts.services import WorkerPullService, WorkerPushService
+from pylm.parts.services import PullService, PushService
+from pylm.parts.utils import PushHandler, Pinger, PerformanceCounter, CacheService
+from pylm.parts.servers import BaseMaster
+from pylm.parts.messages_pb2 import PalmMessage, BrokerMessage
 from pylm.persistence.kv import DictDB
 from google.protobuf.message import DecodeError
 from threading import Thread

@@ -1,8 +1,8 @@
 from threading import Thread
-from pylm.components.core import zmq_context, Router
-from pylm.components.endpoints import logger
-from pylm.components.services import WorkerPullService, WorkerPushService
-from pylm.components.services import PullService, PushService
+from pylm.parts.core import zmq_context, Router
+from pylm.parts.endpoints import logger
+from pylm.parts.services import WorkerPullService, WorkerPushService
+from pylm.parts.services import PullService, PushService
 import zmq
 
 

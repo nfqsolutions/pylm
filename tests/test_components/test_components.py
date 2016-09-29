@@ -1,6 +1,6 @@
-from pylm.components.connections import RepConnection, PushConnection, PullConnection
-from pylm.components.core import Router
-from pylm.components.endpoints import logger, ReqEndPoint, PullEndPoint, PushEndPoint
+from pylm.parts.connections import RepConnection, PushConnection, PullConnection
+from pylm.parts.core import Router
+from pylm.parts.endpoints import logger, ReqEndPoint, PullEndPoint, PushEndPoint
 from threading import Thread
 import atexit
 

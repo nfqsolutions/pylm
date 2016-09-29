@@ -1,8 +1,8 @@
 # Test for the prototype of the client for the parallel client.
 
 from threading import Thread
-from pylm.components.core import zmq_context
-from pylm.components.messages_pb2 import PalmMessage
+from pylm.parts.core import zmq_context
+from pylm.parts.messages_pb2 import PalmMessage
 from pylm.chained import Master, EndPoint, Worker, Client
 import zmq
 

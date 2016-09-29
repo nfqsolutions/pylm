@@ -1,5 +1,5 @@
 from pylm.standalone import ParallelClient
-from pylm.components.core import zmq_context
+from pylm.parts.core import zmq_context
 from uuid import uuid4
 import zmq
 import sys

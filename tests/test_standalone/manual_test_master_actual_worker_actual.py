@@ -2,7 +2,7 @@
 # because it cannot die.
 
 from threading import Thread
-from pylm.components.core import zmq_context
+from pylm.parts.core import zmq_context
 from pylm.standalone import Master, EndPoint, Worker
 import zmq
 

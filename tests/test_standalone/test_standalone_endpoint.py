@@ -2,7 +2,7 @@ from threading import Thread
 
 import zmq
 
-from pylm.components.core import zmq_context
+from pylm.parts.core import zmq_context
 from pylm.standalone import EndPoint
 
 

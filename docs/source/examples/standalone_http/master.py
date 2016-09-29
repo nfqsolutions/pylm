@@ -1,7 +1,7 @@
-from pylm.components.servers import ServerTemplate
-from pylm.components.services import PullService, PushService
-from pylm.components.connections import HttpConnection
-from pylm.components.utils import CacheService
+from pylm.parts.servers import ServerTemplate
+from pylm.parts.services import PullService, PushService
+from pylm.parts.connections import HttpConnection
+from pylm.parts.utils import CacheService
 
 server = ServerTemplate()
 

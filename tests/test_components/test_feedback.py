@@ -1,7 +1,7 @@
 from threading import Thread
-from pylm.components.core import zmq_context, Router
-from pylm.components.messages_pb2 import BrokerMessage
-from pylm.components.endpoints import logger
+from pylm.parts.core import zmq_context, Router
+from pylm.parts.messages_pb2 import BrokerMessage
+from pylm.parts.endpoints import logger
 from uuid import uuid4
 import zmq
 

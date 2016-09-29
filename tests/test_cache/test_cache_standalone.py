@@ -1,5 +1,5 @@
 from pylm.standalone import Client, ParallelClient, Server, Master, EndPoint
-from pylm.components.utils import PushHandler, CacheService
+from pylm.parts.utils import PushHandler, CacheService
 from pylm.persistence.kv import DictDB
 from threading import Thread
 import logging

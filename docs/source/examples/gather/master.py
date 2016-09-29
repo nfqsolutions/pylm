@@ -1,5 +1,5 @@
 from pylm.standalone import Master
-from pylm.components.messages_pb2 import PalmMessage
+from pylm.parts.messages_pb2 import PalmMessage
 
 
 class MyMaster(Master):

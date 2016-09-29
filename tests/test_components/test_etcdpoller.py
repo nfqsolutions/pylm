@@ -2,9 +2,9 @@ from threading import Thread
 
 import requests
 
-from pylm.components.connections import PushConnection
-from pylm.components.core import Router
-from pylm.components.endpoints import PullEndPoint, logger
+from pylm.parts.connections import PushConnection
+from pylm.parts.core import Router
+from pylm.parts.endpoints import PullEndPoint, logger
 from pylm.persistence.etcd import EtcdPoller
 
 

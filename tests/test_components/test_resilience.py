@@ -1,6 +1,6 @@
-from pylm.components.core import zmq_context
-from pylm.components.utils import ResilienceService
-from pylm.components.messages_pb2 import BrokerMessage
+from pylm.parts.core import zmq_context
+from pylm.parts.utils import ResilienceService
+from pylm.parts.messages_pb2 import BrokerMessage
 from threading import Thread
 from uuid import uuid4
 import logging

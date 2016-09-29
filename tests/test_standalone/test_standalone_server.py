@@ -3,8 +3,8 @@ from threading import Thread
 
 import zmq
 
-from pylm.components.core import zmq_context
-from pylm.components.messages_pb2 import PalmMessage
+from pylm.parts.core import zmq_context
+from pylm.parts.messages_pb2 import PalmMessage
 from pylm.standalone import Server, EndPoint
 
 this_log_address = "inproc://log1"

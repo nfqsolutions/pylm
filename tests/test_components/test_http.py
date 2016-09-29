@@ -1,7 +1,7 @@
-from pylm.components.core import zmq_context
-from pylm.components.services import HttpService
-from pylm.components.connections import HttpConnection
-from pylm.components.messages_pb2 import BrokerMessage
+from pylm.parts.core import zmq_context
+from pylm.parts.services import HttpService
+from pylm.parts.connections import HttpConnection
+from pylm.parts.messages_pb2 import BrokerMessage
 from threading import Thread
 import zmq
 import logging
