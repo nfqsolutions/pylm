@@ -1,5 +1,6 @@
 import zmq
 import sys
+import concurrent.futures
 from pylm.components.core import ComponentInbound, ComponentOutbound, \
     ComponentBypassInbound, ComponentBypassOutbound, zmq_context
 from urllib.request import Request, urlopen
@@ -137,6 +138,7 @@ class HttpConnection(ComponentOutbound):
                  palm=False,
                  logger=None,
                  cache=None,
+                 max_workers=4,
                  messages=sys.maxsize):
         self.name = name.encode('utf-8')
         self.broker = zmq_context.socket(zmq.REP)
@@ -149,25 +151,36 @@ class HttpConnection(ComponentOutbound):
         self.reply = reply
         self.last_message = b''
         self.url = listen_address
+        self.max_workers = max_workers
 
     def start(self):
         """
         Call this function to start the component
         """
+        def load_url(url, data):
+            request = Request(url, data=data)
+            response = urlopen(request)
+            return response.read()
+
         for i in range(self.messages):
             self.logger.debug('Component {} blocked waiting for broker'.format(self.name))
             message_data = self.broker.recv()
             self.logger.debug('Component {} Got message from broker'.format(self.name))
             message_data = self._translate_from_broker(message_data)
 
-            for scattered in self.scatter(message_data):
-                request = Request(self.url, data=scattered)
-                response = urlopen(request)
-                self.logger.debug('Component {} Sent message'.format(self.name))
+            with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+                future_to = [executor.submit(load_url,
+                                             self.url,
+                                             scattered
+                                             ) for scattered in self.scatter(message_data)]
+                for future in concurrent.futures.as_completed(future_to):
+                    try:
+                        feedback = future.result()
+                    except Exception as exc:
+                        self.logger.error('HttpConcurrentConnection generated an error')
 
-                feedback = response.read()
-                if self.reply:
-                    feedback = self._translate_to_broker(feedback)
-                    self.handle_feedback(feedback)
+                    if self.reply:
+                        feedback = self._translate_to_broker(feedback)
+                        self.handle_feedback(feedback)
 
             self.broker.send(self.reply_feedback())
