@@ -106,7 +106,6 @@ class HttpGatewayRouter(ComponentInbound):
                 self.broker.recv()
                 
             elif len(response) == 4 and response[0] == b'dealer':
-                print('Unblocking client')
                 self.listen_to.send_multipart(response[1:])
 
     
@@ -164,7 +163,6 @@ class HttpGatewayDealer(ComponentOutbound):
         else:
             message_data = broker_message.payload
 
-        print('Get key:', 'target'+broker_message.key)
         target = self.cache.get('target'+broker_message.key)
         
         self.cache.delete('target'+broker_message.key)
@@ -225,6 +223,7 @@ class HttpGateway(object):
         self.handler = MyHandler
         self.server = MyServer((hostname, port), self.handler)
         self.logger = logger
+        self.port = port
         
     def start(self):
         router_thread = threading.Thread(target=self.router.start)

@@ -92,9 +92,17 @@ class Router(object):
             if route_to:
                 self.logger.debug('Router: {} routing to {}'.format(component, route_to))
                 self.outbound.send_multipart([route_to, empty, message_data])
-                try:
-                    route_to, empty, feedback = self.outbound.recv_multipart()
-                except:
+
+                from_outbound = self.outbound.recv_multipart()
+
+                if len(from_outbound) == 3:
+                    # From a REP socket
+                    [route_to, empty, feedback] = from_outbound
+                elif len(from_outbound) == 2:
+                    # From a DEALER socket
+                    [route_to, feedback] = from_outbound
+                else:
+                    self.logger.error('Error in Router:')
                     self.logger.error('Message badly formatted from {}'.format(route_to))
                     # And now drop the message
                     continue
