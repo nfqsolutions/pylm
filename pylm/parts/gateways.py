@@ -43,37 +43,31 @@ class HttpGatewayRouter(ComponentInbound):
 
         :param message_data: Message data from the component to the router
         """
-        if self.palm:
-            palm_message = PalmMessage()
-            palm_message.ParseFromString(message_data)
-            payload = palm_message.payload
-            instruction = palm_message.function.split('.')[1]
-            pipeline = palm_message.pipeline
+        palm_message = PalmMessage()
+        palm_message.ParseFromString(message_data)
+        payload = palm_message.payload
+        instruction = palm_message.function.split('.')[1]
+        pipeline = palm_message.pipeline
 
-            if palm_message.HasField('cache'):
-                broker_message_key = ''.join(['_', palm_message.pipeline, palm_message.cache])
-            else:
-                broker_message_key = str(uuid4())
-
-            # I store the message to get it later when the message is outbound. See that
-            # if I am just sending binary messages, I do not need to assign any envelope.
-
-            # The same message cannot be used, because it confuses the router.
-            if broker_message_key in self.cache:
-                new_key = ''.join([broker_message_key, str(uuid4())[:8]])
-                self.logger.error(
-                    'Message key {} found, changed to {}'.format(broker_message_key,
-                                                                 new_key)
-                )
-                broker_message_key = new_key
-
-            self.logger.debug('Set message key {}'.format(broker_message_key))
-            self.cache.set(broker_message_key, message_data)
+        if palm_message.HasField('cache'):
+            broker_message_key = ''.join(['_', palm_message.pipeline, palm_message.cache])
         else:
             broker_message_key = str(uuid4())
-            payload = message_data
-            instruction = ''
-            pipeline = ''
+
+        # I store the message to get it later when the message is outbound. See that
+        # if I am just sending binary messages, I do not need to assign any envelope.
+
+        # The same message cannot be used, because it confuses the router.
+        if broker_message_key in self.cache:
+            new_key = ''.join([broker_message_key, str(uuid4())[:8]])
+            self.logger.error(
+                'Message key {} found, changed to {}'.format(broker_message_key,
+                                                             new_key)
+            )
+            broker_message_key = new_key
+
+        self.logger.debug('Set message key {}'.format(broker_message_key))
+        self.cache.set(broker_message_key, message_data)
 
         broker_message = BrokerMessage()
         broker_message.key = broker_message_key
@@ -100,7 +94,7 @@ class HttpGatewayRouter(ComponentInbound):
                 
                 # There is no possibility to scatter messages here.
                 scattered = self._translate_to_broker(message_data)
-                self.cache.set('target'+scattered.key, target) 
+                self.cache.set('target'+scattered.key, target)
                 self.broker.send(scattered.SerializeToString())
                 self.logger.debug('Component {} blocked waiting for broker'.format(self.name))
                 self.broker.recv()
@@ -191,27 +185,62 @@ class MyServer(ThreadingMixIn, HTTPServer):
 
     
 class MyHandler(BaseHTTPRequestHandler):
+    @staticmethod
+    def path_parser(path):
+        """
+        Function that parses the path to get the function
+        """
+        function = path.split('/')[1]
+        
+        if function and '.' not in function:
+            function = '.'.join(['_', function])
+
+        return function
+        
     def do_GET(self):
         socket = zmq_context.socket(zmq.REQ)
         socket.connect('inproc://gateway_router')
         
-        self.send_response(200)
-        self.send_header('Content-type', 'text/plain')
-        self.end_headers()
-        self.wfile.write(b'start...')
+        function = self.path_parser(self.path)
+        
+        if function:
+            message = PalmMessage()
+            message.pipeline = str(uuid4())
 
-        if self.path == '/':
-            socket.send(str(threading.currentThread().getName()).encode('utf-8'))
+            message.function = self.path_parser(self.path)
+            
+            content_length = self.headers.get('content-length')
+            if content_length:
+                message.payload = self.rfile.read(int(content_length))
+            else:
+                message.payload = b''
+                
+            message.stage = 0
+            message.client = 'HttpGateway'
+            
+            socket.send(message.SerializeToString())
             message = socket.recv()
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain')
+            self.end_headers()
         else:
-            message = b''
+            self.send_response(404)
+            self.send_header('Content-type', 'text/plain')
+            self.end_headers()
+            message = b'Not found'
             
         self.wfile.write(message)
-        self.wfile.write(b'\n')
 
         socket.close()
         return
 
+    def do_POST(self):
+        """
+        The two methods work the exact same way
+        """
+        self.do_GET()
+        
     
 class HttpGateway(object):
     def __init__(self, hostname='', port=8888,

@@ -5,7 +5,7 @@ from pylm.parts.utils import CacheService
 
 server = ServerTemplate()
 
-server.palm = False
+server.palm = True
 server.register_gateway(HttpGateway,
                         'Gateway',
                         'localhost',
