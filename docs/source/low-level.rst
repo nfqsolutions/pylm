@@ -17,3 +17,5 @@ ZeroMQ in particular. Before reading this section, it may be a good idea to read
     :maxdepth: 2
 
     parts
+    http
+    microservice
