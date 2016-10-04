@@ -28,6 +28,8 @@ Installing **pylm** is as easy as:
 
 * `Documentation <http://pythonhosted.org/pylm/>`_
 
+* `Source code <https://github.com/nfqsolutions/pylm>`_
+  
 Pylm is released under a dual licensing scheme. The source is released
 as-is under the the AGPL version 3 license, a copy of the license is
 included with the source. If this license does not suit you,
