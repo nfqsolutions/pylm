@@ -24,7 +24,7 @@ Installing **pylm** is as easy as:
 
    $> pip install pylm
 
-* `PIPY package page <https://pypi.python.org/pypi/pylm/>`_
+* `PYPI package page <https://pypi.python.org/pypi/pylm/>`_
 
 * `Documentation <http://pythonhosted.org/pylm/>`_
 
