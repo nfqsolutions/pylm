@@ -5,9 +5,13 @@ from setuptools import setup
 with open('pylm/version.py') as f:
     exec(f.read())
 
+with open('README.rst') as g:
+    long_description = g.read()
+    
 setup(name='pylm',
       version=__version__,
-      description='A framework to build clusters of high performance parts',
+      description='A framework to build clusters of high performance components',
+      long_description=long_description,
       author='Guillem Borrell',
       author_email='guillemborrell@gmail.com',
       packages=['pylm',

@@ -26,7 +26,7 @@ Installing **pylm** is as easy as:
 
 * `PIPY package page <https://pypi.python.org/pypi/pylm/>`_
 
-* `Documentation <http://pythonhosted.org/pylm/>`_
+* `Documentation <http://pylm.readthedocs.io/en/latest/>`_
 
 Pylm is released under a dual licensing scheme. The source is released
 as-is under the the AGPL version 3 license, a copy of the license is
