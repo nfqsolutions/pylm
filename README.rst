@@ -1,3 +1,6 @@
+.. figure:: docs/source/_images/nfq_solutions.png
+    :scale: 60
+
 Pylm
 ====
 
@@ -33,7 +36,3 @@ as-is under the the AGPL version 3 license, a copy of the license is
 included with the source. If this license does not suit you,
 you can purchase a commercial license from `NFQ Solutions
 <http://nfqsolutions.com>`_
-
-Pylm is a project developed by `Guillem Borrell <http://guillemborrell.es>`_
-for `NFQ Solutions <http://nfqsolutions.com>`_.
-
