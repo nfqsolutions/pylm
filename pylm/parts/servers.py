@@ -18,7 +18,7 @@ from pylm.parts.core import Router
 from pylm.persistence.kv import DictDB
 from pylm.parts.messages_pb2 import PalmMessage
 from pylm.parts.utils import Pinger, PushHandler, PerformanceCounter
-from threading import Thread
+from concurrent.futures import ThreadPoolExecutor
 import logging
 import sys
 
@@ -63,11 +63,6 @@ class ServerTemplate(object):
         # Configure the pinger.
         if ping_address:
             self.pinger = Pinger(listen_address=ping_address, every=30.0)
-
-            # This is the pinger thread that keeps the pinger alive.
-            pinger_thread = Thread(target=self.pinger.start)
-            pinger_thread.daemon = True
-            pinger_thread.start()
 
         if log_address:
             handler = PushHandler(log_address)
@@ -189,26 +184,32 @@ class ServerTemplate(object):
         threads = []
 
         self.logger.info("Starting the router")
-        threads.append(Thread(target=self.router.start))
+        threads.append(self.router.start)
 
+        # This is the pinger thread that keeps the pinger alive.
+        if self.ping_address
+            threads.append(self.pinger.start)
+        
         for name, part in self.inbound_components.items():
             self.logger.info("Starting inbound part {}".format(name))
-            threads.append(Thread(target=part.start))
+            threads.append(part.start)
 
         for name, part in self.outbound_components.items():
             self.logger.info("Starting outbound part {}".format(name))
-            threads.append(Thread(target=part.start))
+            threads.append(part.start)
 
         for name, part in self.bypass_components.items():
             self.logger.info("Starting bypass part {}".format(name))
-            threads.append(Thread(target=part.start))
+            threads.append(part.start)
 
-        for thread in threads:
-            thread.start()
+        with ThreadPoolExecutor(max_workers=len(threads)) as executor:
+            results = []
+            for thread in threads:
+                results.append(executor.submit(thread))
 
-        self.logger.info("All parts started successfully")
+            self.logger.info("All parts started successfully")
 
-
+            
 class BaseMaster(object):
     @staticmethod
     def change_payload(message: bytes, new_payload: bytes) -> bytes:
