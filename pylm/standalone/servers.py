@@ -18,7 +18,7 @@ from pylm.parts.core import zmq_context, Router
 from pylm.parts.services import WorkerPullService, WorkerPushService
 from pylm.parts.services import PullService, PushService
 from pylm.parts.utils import PushHandler, Pinger, PerformanceCounter, CacheService
-from pylm.parts.servers import BaseMaster
+from pylm.parts.servers import BaseMaster, ServerTemplate
 from pylm.parts.messages_pb2 import PalmMessage, BrokerMessage
 from pylm.persistence.kv import DictDB
 from google.protobuf.message import DecodeError
@@ -149,7 +149,7 @@ class Server(object):
             self.rep.send(message.SerializeToString())
 
 
-class Master(BaseMaster):
+class Master(ServerTemplate, BaseMaster):
     """
     Standalone master server, intended to send workload to workers.
     WARNING. This implementation is not using the resilience service.
@@ -174,103 +174,26 @@ class Master(BaseMaster):
                  palm: bool = False, debug_level: int = logging.INFO):
         """
         """
+        super(Master, self).__init__(ping_address, log_address, perf_address)
         self.name = name
+        self.palm = palm
+        self.logging_level = debug_level
         self.cache = cache
 
-        # Addresses:
-        # TODO: Change the order of arguments here.
-        self.pull_address = pull_address
-        self.push_address = push_address
-        self.worker_pull_address = worker_pull_address
-        self.worker_push_address = worker_push_address
+        self.register_inbound(PullService, 'Pull', pull_address,
+                              route='WorkerPush', log='to_broker')
+        self.register_inbound(WorkerPullService, 'WorkerPull', worker_pull_address,
+                              route='Push', log='from_broker')
+        self.register_outbound(WorkerPushService, 'WorkerPush', worker_push_address,
+                               log='to_broker')
+        self.register_outbound(PushService, 'Push', push_address,
+                               log='to_sink')
+        self.register_bypass(CacheService, 'Cache', db_address)
 
-        # Configure the log handler
-        if log_address:
-            handler = PushHandler(log_address)
-            self.logger = logging.getLogger(name)
-            self.logger.addHandler(handler)
-            self.logger.setLevel(debug_level)
-
-        else:
-            self.logger = logging.getLogger(name=name)
-            self.logger.setLevel(debug_level)
-            handler = logging.StreamHandler(sys.stdout)
-            handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
-            self.logger.addHandler(handler)
-            self.logger.setLevel(debug_level)
-
-        # Handle that controls if the messages have to be processed
-        self.palm = palm
-
-        if perf_address:
-            # Configure the performance counter
-            self.perfcounter = PerformanceCounter(listen_address=perf_address)
-
-        # Configure the broker and the connectors
-        self.broker = Router(logger=self.logger)
-        self.pull_service = PullService(
-            'Pull',
-            pull_address,
-            broker_address=self.broker.inbound_address,
-            logger=self.logger,
-            palm=palm,
-            cache=cache)
-        self.push_service = PushService(
-            'Push',
-            push_address,
-            broker_address=self.broker.outbound_address,
-            logger=self.logger,
-            palm=palm,
-            cache=cache)
-        self.worker_pull_service = WorkerPullService(
-            'WorkerPull',
-            worker_pull_address,
-            broker_address=self.broker.inbound_address,
-            logger=self.logger,
-            palm=palm,
-            cache=cache)
-        self.worker_push_service = WorkerPushService(
-            'WorkerPush',
-            worker_push_address,
-            broker_address=self.broker.outbound_address,
-            logger=self.logger,
-            palm=palm,
-            cache=cache)
-
-        self.broker.register_inbound('Pull', route='WorkerPush', log='to_broker')
-        self.broker.register_inbound('WorkerPull', route='Push', log='from_broker')
-        self.broker.register_outbound('WorkerPush', log='to_broker')
-        self.broker.register_outbound('Push', log='to_sink')
-
-        # Configure the cache server
-        self.db_address = db_address
-        self.cache_service = CacheService(self.name,
-                                          db_address,
-                                          self.logger,
-                                          cache=self.cache)
-
-        self.pull_service.scatter = self.scatter
-        self.push_service.scatter = self.gather
-
-        if ping_address:
-            # Configure the pinger.
-            self.pinger = Pinger(listen_address=ping_address, every=30.0)
-
-            pinger_thread = Thread(target=self.pinger.start)
-            pinger_thread.daemon = True
-            pinger_thread.start()
-
-    def start(self):
-        threads = [
-            Thread(target=self.broker.start),
-            Thread(target=self.push_service.start),
-            Thread(target=self.pull_service.start),
-            Thread(target=self.worker_push_service.start),
-            Thread(target=self.worker_pull_service.start),
-            Thread(target=self.cache_service.start)
-        ]
-        for t in threads:
-            t.start()
+        # Monkey patches the scatter and gather functions to the
+        # scatter function of Push and Pull parts respectively.
+        self.inbound_components['Pull'].scatter = self.scatter
+        self.outbound_components['Push'].scatter = self.gather
 
 
 class Worker(object):

@@ -63,6 +63,8 @@ class ServerTemplate(object):
         # Configure the pinger.
         if ping_address:
             self.pinger = Pinger(listen_address=ping_address, every=30.0)
+        else:
+            self.pinger = None
 
         if log_address:
             handler = PushHandler(log_address)
@@ -187,7 +189,7 @@ class ServerTemplate(object):
         threads.append(self.router.start)
 
         # This is the pinger thread that keeps the pinger alive.
-        if self.ping_address
+        if self.pinger:
             threads.append(self.pinger.start)
         
         for name, part in self.inbound_components.items():
