@@ -33,7 +33,7 @@ MAX_RETRIES = 5
 
 
 class EtcdError(Exception):
-    'Dummy error for dealing with etcd exceptions. It does nothing.'
+    """Dummy error for dealing with etcd exceptions. It does nothing."""
     def __init__(self, message):
 
         # Call the base class constructor with the parameters it needs
