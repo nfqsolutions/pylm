@@ -65,3 +65,6 @@ target/
 
 #Image index
 .directory
+
+# Vendoring
+requirements.txt
