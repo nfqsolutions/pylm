@@ -69,5 +69,5 @@ setup(name='pylm',
           'Programming Language :: Python :: 3.5',
           'License :: OSI Approved :: GNU Affero General Public License v3'
       ],
-      install_requires=['protobuf>=3.0.0', 'requests', 'pyzmq', 'requests']
+      install_requires=['protobuf>=3.0.0', 'requests', 'pyzmq']
       )
