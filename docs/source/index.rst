@@ -60,4 +60,5 @@ Indices and tables
 * :ref:`search`
 
 This project has been funded by the Spanish Ministry of Economy and
-Competitivity under the grant IDI-20150936.
+Competitivity under the grant IDI-20150936, cofinanced with FEDER
+funds.

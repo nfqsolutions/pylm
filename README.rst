@@ -38,4 +38,5 @@ you can purchase a commercial license from `NFQ Solutions
 <http://nfqsolutions.com>`_
 
 This project has been funded by the Spanish Ministry of Economy and
-Competitivity under the grant IDI-20150936.
+Competitivity under the grant IDI-20150936, cofinanced from FEDER
+funds.
