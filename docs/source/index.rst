@@ -59,3 +59,5 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
+This project has been funded by the Spanish Ministry of Economy and
+Competitivity under the grant IDI-20150936.

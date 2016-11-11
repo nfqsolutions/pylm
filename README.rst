@@ -36,3 +36,6 @@ as-is under the the AGPL version 3 license, a copy of the license is
 included with the source. If this license does not suit you,
 you can purchase a commercial license from `NFQ Solutions
 <http://nfqsolutions.com>`_
+
+This project has been funded by the Spanish Ministry of Economy and
+Competitivity under the grant IDI-20150936.
