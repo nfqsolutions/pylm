@@ -125,7 +125,7 @@ class ParallelClient(object):
     """
     Client to connect to parallel servers
 
-    :param push_address: Address of teh pull service of the server to push to
+    :param push_address: Address of the pull service of the server to push to
     :param pull_address: Address of the push service of the server to pull from
     :param db_address: Address for the cache service
     :param server_name: Name of the server to be connected to
