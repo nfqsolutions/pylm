@@ -18,7 +18,7 @@ from pylm.parts.core import Router
 from pylm.persistence.kv import DictDB
 from pylm.parts.messages_pb2 import PalmMessage
 from pylm.parts.utils import Pinger, PushHandler, PerformanceCounter
-from concurrent.futures import ThreadPoolExecutor
+import concurrent.futures
 import logging
 import sys
 
@@ -204,12 +204,16 @@ class ServerTemplate(object):
             self.logger.info("Starting bypass part {}".format(name))
             threads.append(part.start)
 
-        with ThreadPoolExecutor(max_workers=len(threads)) as executor:
-            results = []
-            for thread in threads:
-                results.append(executor.submit(thread))
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(threads)) as executor:
+            results = [executor.submit(thread) for thread in threads]
+            for future in concurrent.futures.as_completed(results):
+                try:
+                    future.result()
+                except Exception as exc:
+                    self.logger.error('This is critical, one of the parts died')
+                    self.logger.error(exc)
 
-            self.logger.info("All parts started successfully")
+            
 
             
 class BaseMaster(object):

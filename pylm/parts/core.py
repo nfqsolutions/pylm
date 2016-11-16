@@ -299,24 +299,21 @@ class ComponentInbound(object):
             self.logger.debug('Component {} blocked waiting messages'.format(self.name))
             message_data = self.listen_to.recv()
             self.logger.debug('{} Got inbound message'.format(self.name))
-            scattered_messages = self.scatter(message_data)
 
-            if not scattered_messages:
-                if self.reply:
-                    self.listen_to.send(b'0')
-
-                continue
-
-            for scattered in scattered_messages:
-                scattered = self._translate_to_broker(scattered)
-                # The translation may delete the message. E.g. the WorkerPull case
-                if scattered:
+            try:
+                for scattered in self.scatter(message_data):
+                    scattered = self._translate_to_broker(scattered)
                     self.broker.send(scattered)
-                    self.logger.debug('Component {} blocked waiting for broker'.format(self.name))
+                    self.logger.debug('Component {} blocked waiting for broker'.format(
+                        self.name))
                     self.handle_feedback(self.broker.recv())
 
-            if self.reply:
-                self.listen_to.send(self.reply_feedback())
+                if self.reply:
+                    self.listen_to.send(self.reply_feedback())
+            except:
+                self.logger.error('Error in scatter function')
+                if self.reply:
+                    self.listen_to.send(b'0')
 
     def cleanup(self):
         self.broker.close()
