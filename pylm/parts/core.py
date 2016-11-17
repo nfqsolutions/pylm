@@ -16,6 +16,7 @@
 
 from pylm.parts.messages_pb2 import PalmMessage, BrokerMessage
 from uuid import uuid4
+import traceback
 import zmq
 import sys
 
@@ -312,6 +313,9 @@ class ComponentInbound(object):
                     self.listen_to.send(self.reply_feedback())
             except:
                 self.logger.error('Error in scatter function')
+                lines = traceback.format_exception(*sys.exc_info())
+                self.logger.exception(lines[0])
+
                 if self.reply:
                     self.listen_to.send(b'0')
 
