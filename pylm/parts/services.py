@@ -151,6 +151,52 @@ class PushService(ComponentOutbound):
         self.resilience_socket.connect(resilience_address)
 
 
+class PubService(ComponentOutbound):
+    """
+    PullService binds to a socket waits for messages from a push-pull queue.
+    """
+    def __init__(self,
+                 name,
+                 listen_address,
+                 broker_address="inproc://broker",
+                 palm=False,
+                 logger=None,
+                 cache=None,
+                 messages=sys.maxsize):
+        """
+        :param name: Name of the service
+        :param listen_address: ZMQ socket address to bind to
+        :param broker_address: ZMQ socket address of the broker
+        :param logger: Logger instance
+        :param palm: True if service gets PALM messages. False if they are binary
+        :param messages: Maximum number of messages. Defaults to infinity.
+        :return:
+        """
+        super(PushService, self).__init__(
+            name,
+            listen_address=listen_address,
+            socket_type=zmq.Pub,
+            reply=False,
+            broker_address=broker_address,
+            bind=True,
+            palm=palm,
+            logger=logger,
+            cache=cache,
+            messages=messages
+        )
+        self.resilience_socket = None
+
+    def connect_resilience(self, resilience_address):
+        """
+        Connect a socket to the resilience service
+        :param resilience_address:
+        :return:
+        """
+        self.logger.info('{} connected to the resilience service'.format(self.name))
+        self.resilience_socket = zmq_context.socket(zmq.REQ)
+        self.resilience_socket.connect(resilience_address)
+
+        
 class WorkerPushService(PushService):
     """
     This is a particular push service that does not modify the messages that
