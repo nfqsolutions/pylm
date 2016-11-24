@@ -75,7 +75,6 @@ class ServerTemplate(object):
         else:
             # Basic console logging
             self.logger = logging.getLogger(name=self.name)
-            self.logger.setLevel(self.logging_level)
             handler = logging.StreamHandler(sys.stdout)
             handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
             self.logger.addHandler(handler)
@@ -213,9 +212,7 @@ class ServerTemplate(object):
                     self.logger.error('This is critical, one of the parts died')
                     self.logger.error(exc)
 
-            
 
-            
 class BaseMaster(object):
     @staticmethod
     def change_payload(message: bytes, new_payload: bytes) -> bytes:

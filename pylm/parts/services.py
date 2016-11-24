@@ -18,7 +18,7 @@
 # connect, while services bind.
 from pylm.parts.core import ComponentInbound, ComponentOutbound,\
     zmq_context, ComponentBypassInbound
-from pylm.parts.messages_pb2 import BrokerMessage
+from pylm.parts.messages_pb2 import BrokerMessage, PalmMessage
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import zmq
 import sys
@@ -154,6 +154,15 @@ class PushService(ComponentOutbound):
 class PubService(ComponentOutbound):
     """
     PullService binds to a socket waits for messages from a push-pull queue.
+
+    :param name: Name of the service
+    :param listen_address: ZMQ socket address to bind to
+    :param broker_address: ZMQ socket address of the broker
+    :param logger: Logger instance
+    :param palm: True if service gets PALM messages. False if they are binary
+    :param messages: Maximum number of messages. Defaults to infinity.
+    :param pipelined: Defaults to False. Pipelined if publishes to a
+        server, False if publishes to a client.
     """
     def __init__(self,
                  name,
@@ -162,20 +171,12 @@ class PubService(ComponentOutbound):
                  palm=False,
                  logger=None,
                  cache=None,
-                 messages=sys.maxsize):
-        """
-        :param name: Name of the service
-        :param listen_address: ZMQ socket address to bind to
-        :param broker_address: ZMQ socket address of the broker
-        :param logger: Logger instance
-        :param palm: True if service gets PALM messages. False if they are binary
-        :param messages: Maximum number of messages. Defaults to infinity.
-        :return:
-        """
-        super(PushService, self).__init__(
+                 messages=sys.maxsize,
+                 pipelined=False):
+        super(PubService, self).__init__(
             name,
             listen_address=listen_address,
-            socket_type=zmq.Pub,
+            socket_type=zmq.PUB,
             reply=False,
             broker_address=broker_address,
             bind=True,
@@ -184,6 +185,13 @@ class PubService(ComponentOutbound):
             cache=cache,
             messages=messages
         )
+        self.pipelined = pipelined
+        if self.pipelined:
+            raise NotImplementedError('pipelined=True not supported yet')
+
+        if not self.palm:
+            raise ValueError('This part only works with PALM Components')
+                    
         self.resilience_socket = None
 
     def connect_resilience(self, resilience_address):
@@ -195,6 +203,36 @@ class PubService(ComponentOutbound):
         self.logger.info('{} connected to the resilience service'.format(self.name))
         self.resilience_socket = zmq_context.socket(zmq.REQ)
         self.resilience_socket.connect(resilience_address)
+
+    def start(self):
+        """
+        Call this function to start the component
+        """
+        self.listen_to.bind(self.listen_address)            
+
+        for i in range(self.messages):
+            self.logger.debug('Component {} blocked waiting for broker'.format(self.name))
+            message_data = self.broker.recv()
+            self.logger.debug('Component {} Got message from broker'.format(self.name))
+            message_data = self._translate_from_broker(message_data)
+
+            if self.pipelined:
+                topic = None
+            else:
+                message = PalmMessage()
+                message.ParseFromString(message_data)
+                topic = message.client
+
+            for scattered in self.scatter(message_data):
+                self.listen_to.send_multipart([topic.encode('utf-8'), scattered])
+                self.logger.debug('Component {} Sent message'.format(self.name))
+
+                if self.reply:
+                    feedback = self.listen_to.recv()
+                    feedback = self._translate_to_broker(feedback)
+                    self.handle_feedback(feedback)
+
+            self.broker.send(self.reply_feedback())
 
         
 class WorkerPushService(PushService):
