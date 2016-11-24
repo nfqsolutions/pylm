@@ -154,7 +154,8 @@ class ServerTemplate(object):
                         port,
                         broker_inbound_address=self.router.inbound_address,
                         broker_outbound_address=self.router.outbound_address,
-                        logger=self.logger)
+                        logger=self.logger,
+                        **kwargs)
 
         self.router.register_inbound("gateway_router", route=route)
         self.router.register_outbound("gateway_dealer")
