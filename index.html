@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>pylm</title>
+
+    <!-- Bootstrap -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <!-- Ionicons -->
+    <link href="css/ionicons.min.css" rel="stylesheet">
+    <link href="css/linear-icon.css" rel="stylesheet">
+
+    <!-- Font awesome style sheet -->
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+
+    <!-- style sheet -->
+    <link rel="stylesheet" href="css/main.css">
+
+    <link rel="shortcut icon" href="images/favicon.ico">
+
+    <link href="https://fonts.googleapis.com/css?family=Raleway:300,400,700" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Comfortaa:300,400,700" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Ubuntu+Mono" rel="stylesheet">
+
+    <!-- Icon credits -->
+      <!-- “Speed” icon used on the home page is by Delwar Hossain from the Noun Project.
+      “Components” icon used on the home page is by SibCode from the Noun Project.
+      “Build-Components” icon used on the home page is by mikicon from the Noun Project.
+      “Cloud-Server” icon used on the home page is by Icon Fair from the Noun Project. -->
+
+  </head>
+  <body>
+    <nav class="navbar navbar-default navbar-fixed-top">
+      <div class="container">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">
+              <!--<img src="images/Logo.png" alt="">-->
+              <span class="text--bold">pylm</span>
+            </a>
+          </div>
+
+          <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+          <ul class="nav navbar-nav navbar-right">
+            <li class="active"><a href="#home">home<span class="sr-only">(current)</span></a></li>
+            <li><a href="#features">Características</a></li>
+            <li><a href="#code">instalación</a></li>
+            <li><a href="#examples">ejemplos</a></li>
+            <li><a href="#nfq">nfq solutions</a></li>
+            <li><a href="#contact">contacto</a></li>
+            <li><a href="https://github.com/nfqsolutions/pylm" target="_blank" title="Código en github"><i class="fa fa-github-alt" aria-hidden="true" style="border: 1px solid; padding: 5px;
+                border-radius: 50%; margin-top: -6px; font-size: 16px;"></i></a></li>
+          </ul>
+        </div><!-- /.navbar-collapse -->
+      </div><!-- /.container-fluid -->
+    </nav>
+    <!-- HOME -->
+    <section id="home" class="section jumbotron-section bg--position-center no-repeat bg-cover md-display-table" style="background-image:url(images/intro.jpeg)">
+      <div class="jumbotron jumbotron-fluid bg-transparent md-display-table-cell md-vertical-middle">
+        <div class="container">
+          <div class="row" style="margin-top: 180px;">
+            <div class="col-lg-10 col-md-10 col-sm-10 col-xs-10 col-lg-offset-1 col-md-offset-1 col-sm-offset-1 col-xs-offset-1">
+              <h2 class=""><span class="text-brand">pylm</span> es una librería en python para manejar la complejidad de aplicaciones distribuidas.</h2>
+                <div class="col-lg-8 col-md-8 col-sm-12 col-xs-12 col-lg-offset-2 col-md-offset-2" style="text-align: center; margin-top: 20px;">
+                    <a href="https://github.com/nfqsolutions/pylm" target="_blank" class="btn btn-style"><i class="fa fa-github-alt" aria-hidden="true" style="margin-right: 10px; font-size: 16px;"></i>Accede al código y documentación</a>
+                </div>
+              <!--<p class="lead">Deliver native iOS, Android, and Windows apps using existing</p>
+              <a class="btn btn-default btn-theme btn-rounded-corner" href="#" role="button">Learn More</a>-->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- HOME END -->
+
+    <!-- FEATURE -->
+    <section id="features" class="section features">
+        <h2 style="margin-bottom: 70px; text-align: center;">CARACTERÍSTICAS</h2>
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12 wrap-feature">
+              <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" style="text-align: center;">
+                  <img class="max-width-100 icon" src="images/components.png" alt="Icono de unos cascos con el icono de Tweeter para representar el escuchador de tweets.">
+              </div>
+              <div class="col-lg-9 col-md-9 col-sm-12 col-xs-12">
+                  <p>En una arquitectura basada en componentes, una aplicación puede dividirse en bloques reutilizables que se comunican entre sí. Pylm permite
+                      crear estos componentes y definir el esquema de comunicación entre ellos.</p>
+              </div>
+          </div>
+          <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12 wrap-feature">
+              <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" style="text-align: center;">
+                  <img class="max-width-100 icon" src="images/speed3.png" alt="Icono que representa un histórico de datos.">
+              </div>
+              <div class="col-lg-9 col-md-9 col-sm-12 col-xs-12">
+                  <p>Pylm se ha diseñado pensando en la velocidad. Sus prestaciones son comparables a otras herramientas de cálculo distribuido como Spark.</p>
+              </div>
+          </div>
+          <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12 wrap-feature">
+              <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" style="text-align: center;">
+                  <img class="max-width-100 icon" src="images/cloudServer.png" alt="Icono de una lupa para representar la búsqueda de usuarios, palabras o frases.">
+              </div>
+              <div class="col-lg-9 col-md-9 col-sm-12 col-xs-12">
+                  <p>Los condicionantes de la infraestructura son sus requisitos y limitaciones. Pylm no tiene prácticamente dependencias y se instala en un comando.
+                      Funciona tanto en centros de datos privados como en nubes públicas o una mezcla de ambos.</p>
+              </div>
+          </div>
+          <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12 wrap-feature">
+              <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" style="text-align: center;">
+                  <img class="max-width-100 icon" src="images/buildComponents.png" alt="Icono de un embudo que representa la cción de filtrar.">
+              </div>
+              <div class="col-lg-9 col-md-9 col-sm-12 col-xs-12">
+                  <p>En Pylm, las cosas sencillas son sencillas. Cuenta con una librería de componentes estándar que cubren las necesidades más básicas. Asimismo,
+                      todas las piezas utilizadas para crear estos componentes de alto nivel también están a tu disposición para que puedas crear tus propios componentes.</p>
+              </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- FEATURE END-->
+
+    <!-- INSTALL CODE -->
+    <section id="code" class="section code">
+        <h2 style="margin-bottom: 70px; text-align: center;">INSTALACIÓN</h2>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-md-10 col-sm-12 col-xs-12 col-lg-offset-2 col-md-offset-1">
+                    <p style="font-size: 24px;">Puedes instalar pylm desde el Python Package Index con: </p>
+                    <P class="code-text" style="list-style-type:decimal; margin-bottom: 15px; font-weight: bold;">pip install pylm</P>
+                </div>
+                <div class="col-lg-8 col-md-8 col-sm-12 col-xs-12 col-lg-offset-2 col-md-offset-2" style="text-align: center; margin-top: 40px;">
+                    <a href="https://github.com/nfqsolutions/pylm" target="_blank" class="btn btn-style"><i class="fa fa-github-alt" aria-hidden="true" style="margin-right: 10px; font-size: 16px;"></i>Accede al código</a>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- INSTALL CODE END-->
+
+    <!-- EXAMPLE CODE -->
+    <section id="examples" class="section features">
+        <h2 style="margin-bottom: 70px; text-align: center;">EJEMPLOS</h2>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-10 col-md-10 col-sm-12 col-xs-12 col-lg-offset-1 col-md-offset-1">
+
+                    <!-- Nav tabs -->
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li role="presentation" class="active"><a href="#client-server" aria-controls="home" role="tab" data-toggle="tab">Comunicación cliente-servidor</a></li>
+                        <li role="presentation"><a href="#pipeline" aria-controls="profile" role="tab" data-toggle="tab">Servidores formando un pipeline</a></li>
+                        <li role="presentation"><a href="#messages" aria-controls="messages" role="tab" data-toggle="tab">Messages</a></li>
+                        <li role="presentation"><a href="#settings" aria-controls="settings" role="tab" data-toggle="tab">Settings</a></li>
+                    </ul>
+
+                    <!-- Tab panes -->
+                    <div class="tab-content">
+                        <div role="tabpanel" class="tab-pane active" id="client-server" style="padding-top: 20px; padding-left: 20px; background-color: #000000;">
+
+                            <p style="list-style-type:decimal; margin-bottom: 15px; font-weight: bold;">Servidor:</p>
+                            <span class="font-light code-text code-white"><span class="code-orange">from</span> pylm.standalone <span class="code-orange">import</span> Server</span><br/><br/>
+                            <span class="font-light code-text code-white"><span class="code-orange">class</span> MyServer(Server):</span><br/>
+                            <span class="font-light code-text code-white" style="margin-left: 20px;"><span class="code-orange">def</span> foo(<span class="code-purple">self</span>, message):</span><br/>
+                            <span class="font-light code-text code-white" style="margin-left: 40px;"><span class="code-purple">self</span>.logger.warning('<span class="code-green">Got a message'</span>)</span><br/>
+                            <span class="font-light code-text code-white" style="margin-left: 40px;"><span class="code-orange">return</span> <span class="code-green">b'you sent me '</span> + message</span><br/><br/><br/>
+                            <span class="font-light code-text code-white"><span class="code-orange">if</span> __name__ == <span class="code-green">'__main__'</span>:</span><br/>
+                            <span class="font-light code-text code-white" style="margin-left: 20px;">server = MyServer(<span class="code-green">'server', 'tcp://127.0.0.1:5555'</span>)</span><br/>
+                            <span class="font-light code-text code-white" style="margin-left: 20px;">server.start()</span><br/><br/><br/>
+
+                            <p style="list-style-type:decimal; margin-bottom: 15px; font-weight: bold;">Cliente:</p>
+                            <span class="font-light code-text code-white"><span class="code-orange">from</span> pylm.standalone <span class="code-orange">import</span> Client</span><br/><br/>
+                            <span class="font-light code-text code-white">client = Client('tcp://127.0.0.1:5555', 'server')</span><br/><br/>
+                            <span class="font-light code-text code-white"><span class="code-orange">if</span> __name__ == '__main__':</span><br/>
+                            <span class="font-light code-text code-white" style="margin-left: 20px;">result = client.job('foo', b'a message')</span><br/>
+                            <span class="font-light code-text code-white" style="margin-left: 20px;">print('Client got: ', result)</span><br/><br/><br/>
+
+
+                        </div>
+                        <div role="tabpanel" class="tab-pane" id="pipeline" style="padding-top: 20px; padding-left: 20px; background-color: #000000;">
+                            <ul>
+                                <li style="list-style-type:decimal; margin-bottom: 15px; font-weight: bold;">Clona este repositorio: <br/>
+                                    <span class="font-light code-text"> git clone <a href="https://github.com/nfqsolutions/tweemanager.git">https://github.com/nfqsolutions/tweemanager.git</a></span></li>
+                                <li style="list-style-type:decimal; margin-bottom: 15px; font-weight: bold;">Instala el paquete:<br/>
+                                    <span class="font-light code-text">python setup.py install<br/></span>
+                            <span class="font-light-min">Nota: Opcionalmente instala un venv (o virtualenv) con tu instalación de python. Puedes
+                            usar Python 2.7, Python 3.4 o Python 3.5 (si tienes algún problema o encuentras uno crea un issue.
+                            (<a href="https://github.com/nfqsolutions/tweemanager/issues">https://github.com/nfqsolutions/tweemanager/issues</a>))</span></li>
+                                <li style="list-style-type:decimal; margin-bottom: 15px; font-weight: bold;">Realiza una búsqueda histórica: <br/> <span class="font-light code-text">tweemanager getoldtweets -c tweemUsoRapido.cfg -o TestUsoRapido.json</span>
+                                    <br/><span class="font-light-min"> Nota: Para este caso no hay que registrar una app en twitter. Consulta la página para
+                                <a href="https://github.com/nfqsolutions/tweemanager/blob/master/docs/CMDgetoldtweets.md" target="_blank">más info del comando</a>.
+                            <br/>Ya tenemos unos cuantos tweets. Podriamos procesar la información que hemos obtenido con alguno visualizador/procesador de datos.</span></li>
+                                <li style="list-style-type:decimal; margin-bottom: 15px; font-weight: bold;">Inserta los datos en mongodb: <br/><span class="font-light">Añade mongo a tu fichero de configuración: <br/>
+                            <span class="code-text">[MongoDBSpecs] <br/> host="mongodb://127.0.0.1/tweets" repocollname="RepoDeTweets"
+                            <br/>y ejecuta el comando de importación para importar los datos obtenidos anteriormente: <br/>tweemanager importToMongo TestUsoRapido.json</span></span>
+                                    <br/> <span class="font-light-min">Nota: podemos realizar el paso anterior directamente para mongo usando la opción *-o mongodb*: tweemanager importToMongo TestUsoRapido.json -o mongodb</span></li>
+
+                            </ul>
+                        </div>
+                        <div role="tabpanel" class="tab-pane" id="messages" style="padding-top: 20px; padding-left: 20px; background-color: #000000;">
+                            <ul>
+                                <li style="list-style-type:decimal; margin-bottom: 15px; font-weight: bold;">Clona este repositorio: <br/>
+                                    <span class="font-light code-text"> git clone <a href="https://github.com/nfqsolutions/tweemanager.git">https://github.com/nfqsolutions/tweemanager.git</a></span></li>
+                                <li style="list-style-type:decimal; margin-bottom: 15px; font-weight: bold;">Instala el paquete:<br/>
+                                    <span class="font-light code-text">python setup.py install<br/></span>
+                            <span class="font-light-min">Nota: Opcionalmente instala un venv (o virtualenv) con tu instalación de python. Puedes
+                            usar Python 2.7, Python 3.4 o Python 3.5 (si tienes algún problema o encuentras uno crea un issue.
+                            (<a href="https://github.com/nfqsolutions/tweemanager/issues">https://github.com/nfqsolutions/tweemanager/issues</a>))</span></li>
+                                <li style="list-style-type:decimal; margin-bottom: 15px; font-weight: bold;">Realiza una búsqueda histórica: <br/> <span class="font-light code-text">tweemanager getoldtweets -c tweemUsoRapido.cfg -o TestUsoRapido.json</span>
+                                    <br/><span class="font-light-min"> Nota: Para este caso no hay que registrar una app en twitter. Consulta la página para
+                                <a href="https://github.com/nfqsolutions/tweemanager/blob/master/docs/CMDgetoldtweets.md" target="_blank">más info del comando</a>.
+                            <br/>Ya tenemos unos cuantos tweets. Podriamos procesar la información que hemos obtenido con alguno visualizador/procesador de datos.</span></li>
+                                <li style="list-style-type:decimal; margin-bottom: 15px; font-weight: bold;">Inserta los datos en mongodb: <br/><span class="font-light">Añade mongo a tu fichero de configuración: <br/>
+                            <span class="code-text">[MongoDBSpecs] <br/> host="mongodb://127.0.0.1/tweets" repocollname="RepoDeTweets"
+                            <br/>y ejecuta el comando de importación para importar los datos obtenidos anteriormente: <br/>tweemanager importToMongo TestUsoRapido.json</span></span>
+                                    <br/> <span class="font-light-min">Nota: podemos realizar el paso anterior directamente para mongo usando la opción *-o mongodb*: tweemanager importToMongo TestUsoRapido.json -o mongodb</span></li>
+
+                            </ul>
+                        </div>
+                        <div role="tabpanel" class="tab-pane" id="settings" style="padding-top: 20px; padding-left: 20px; background-color: #000000;">
+                            <ul>
+                                <li style="list-style-type:decimal; margin-bottom: 15px; font-weight: bold;">Clona este repositorio: <br/>
+                                    <span class="font-light code-text"> git clone <a href="https://github.com/nfqsolutions/tweemanager.git">https://github.com/nfqsolutions/tweemanager.git</a></span></li>
+                                <li style="list-style-type:decimal; margin-bottom: 15px; font-weight: bold;">Instala el paquete:<br/>
+                                    <span class="font-light code-text">python setup.py install<br/></span>
+                            <span class="font-light-min">Nota: Opcionalmente instala un venv (o virtualenv) con tu instalación de python. Puedes
+                            usar Python 2.7, Python 3.4 o Python 3.5 (si tienes algún problema o encuentras uno crea un issue.
+                            (<a href="https://github.com/nfqsolutions/tweemanager/issues">https://github.com/nfqsolutions/tweemanager/issues</a>))</span></li>
+                                <li style="list-style-type:decimal; margin-bottom: 15px; font-weight: bold;">Realiza una búsqueda histórica: <br/> <span class="font-light code-text">tweemanager getoldtweets -c tweemUsoRapido.cfg -o TestUsoRapido.json</span>
+                                    <br/><span class="font-light-min"> Nota: Para este caso no hay que registrar una app en twitter. Consulta la página para
+                                <a href="https://github.com/nfqsolutions/tweemanager/blob/master/docs/CMDgetoldtweets.md" target="_blank">más info del comando</a>.
+                            <br/>Ya tenemos unos cuantos tweets. Podriamos procesar la información que hemos obtenido con alguno visualizador/procesador de datos.</span></li>
+                                <li style="list-style-type:decimal; margin-bottom: 15px; font-weight: bold;">Inserta los datos en mongodb: <br/><span class="font-light">Añade mongo a tu fichero de configuración: <br/>
+                            <span class="code-text">[MongoDBSpecs] <br/> host="mongodb://127.0.0.1/tweets" repocollname="RepoDeTweets"
+                            <br/>y ejecuta el comando de importación para importar los datos obtenidos anteriormente: <br/>tweemanager importToMongo TestUsoRapido.json</span></span>
+                                    <br/> <span class="font-light-min">Nota: podemos realizar el paso anterior directamente para mongo usando la opción *-o mongodb*: tweemanager importToMongo TestUsoRapido.json -o mongodb</span></li>
+
+                            </ul>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- INSTALL CODE END-->
+
+    <!-- WORKFLOW -->
+    <section id="nfq" class="section padding-top-bottom-65 code">
+      <div class="row absolute-image-container">
+        <div class="col-md-6 col-md-offset-6 col-sm-6 col-sm-offset-6">
+        <!--<img class="max-width-100" src="images/workflow.png" alt=""> -->
+        <img class="max-width-100" src="images/solutions.png" alt="">
+      </div>
+    </div>
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6 col-sm-6">
+          <div class="regular-content">
+            <header style="text-transform: none;">
+              <h3><span class="text--semi-bold">nfq </span><span class="font-light" style="font-size: 22px;">solutions</span></h3>
+            </header>
+            <p>ponemos la tecnología, la ciencia y la innovación al servicio de nuestros clientes. Contamos con múltiples
+                soluciones propias, implantadas en entidades nacionales e internacionales que permiten cubrir el grueso de necesidades en el ámbito de la gestión, la medición y el control de riesgos.</p>
+          </div>
+          <div style="text-align: center; margin-top: 20px;">
+              <a class="btn btn-style" href="http://nfq.es/solutions/" target="_blank">Conócenos</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- WORKFLOW END-->
+
+    <!-- FOOTER -->
+    <footer id="contact">
+      <section class="section footer-top">
+        <div class="container">
+          <div class="row">
+            <div class="col-md-5">
+              <div class="row">
+                <div class="col-md-9 col-sm-9">
+                  <div class="list-item-header">
+                    Enlaces de interés
+                  </div>
+                  <div class="list-group footer-list-group">
+                    <a href="https://github.com/nfqsolutions" target="_blank" class="list-group-item">nfqsolutions</a>
+                    <a href="https://nfqsolutions.github.io/tweemanager/" target="_blank" class="list-group-item">teemanager</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-7">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="list-item-header">
+                    contact
+                  </div>
+                  <div class="contact-details">
+                    <div class="media">
+                      <div class="media-left contact-media-left">
+                        <p>Dirección</p>
+                      </div>
+                      <div class="media-body">
+                        <p>C/ Claudio Coello 78, 28001 Madrid, España</p>
+                      </div>
+                    </div>
+                    <div class="media">
+                      <div class="media-left contact-media-left">
+                        <p>Teléfono</p>
+                      </div>
+                      <div class="media-body">
+                        <p>+34 917 814 584 </p>
+                      </div>
+                    </div>
+                    <div class="media">
+                      <div class="media-left contact-media-left">
+                        <p>Email</p>
+                      </div>
+                      <div class="media-body">
+                        <p><a href="mailto:contact@nfq.es" style="color: #666666;">contact@nfq.es</a></p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="list-item-header">
+                    Social media
+                  </div>
+                  <div class="pagination-wraper">
+                    <ul class="pagination">
+                      <li><a href="https://github.com/nfqsolutions" target="_blank" style="padding: 0; border: 0; margin-right: 0;"><i class="fa fa-github-alt" aria-hidden="true"></i></a></li>
+                      <li><i class="fa fa-linkedin" aria-hidden="true"></i></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="footer-bottom">
+        <div class="container">
+          <hr class="footer-devider">
+          <div class="row">
+            <div class="col-md-5"><p class="copyright">Copyright © 2016 Nfq Solutions</p></div>
+            <div class="col-md-5">
+              <ul class="footer-menu">
+                <li><a href="http://nfq.es/wp-content/themes/nfq/pdf/legales/es/aviso-legal.pdf" target="_blank">Legal</a></li>
+                <li><a href="http://nfq.es/wp-content/themes/nfq/pdf/legales/es/politica-cookies.pdf" target="_blank">Cookies</a></li>
+              </ul>
+            </div>
+            <div class="col-md-2">
+              <a id="scroll-top-div" href="" class="pull-right back-top-btn">back to top <span class="btn-icon"><i class="ion-ios-arrow-thin-up"></i></span></a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </footer>
+    
+    
+    <!-- PRELOADER -->
+    <div class="preloader-body">
+      <div class="cube-wrapper">
+        <div class="cube-folding">
+          <span class="leaf1"></span>
+          <span class="leaf2"></span>
+          <span class="leaf3"></span>
+          <span class="leaf4"></span>
+        </div>
+        <span class="loading" data-name="Loading">Cargando</span>
+      </div>
+    </div>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="js/jquery-3.1.0.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="js/bootstrap.min.js"></script>
+    <!-- JS -->
+    <script src="js/main.js"></script>
+  </body>
+</html>
