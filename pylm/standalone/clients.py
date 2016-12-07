@@ -20,6 +20,7 @@ from threading import Thread
 from uuid import uuid4
 from itertools import repeat
 import concurrent.futures
+import time
 import zmq
 import sys
 
@@ -143,6 +144,9 @@ class SubscribedClient(object):
         else:
             self.pipeline = str(uuid4())
         self.uuid = str(uuid4())
+
+        # PUB-SUB takes a while
+        time.sleep(0.5)
 
     def clean(self):
         self.push.close()
