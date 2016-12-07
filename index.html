@@ -184,64 +184,58 @@
 
                         </div>
                         <div role="tabpanel" class="tab-pane" id="pipeline" style="padding-top: 20px; padding-left: 20px; background-color: #000000;">
-                            <ul>
-                                <li style="list-style-type:decimal; margin-bottom: 15px; font-weight: bold;">Clona este repositorio: <br/>
-                                    <span class="font-light code-text"> git clone <a href="https://github.com/nfqsolutions/tweemanager.git">https://github.com/nfqsolutions/tweemanager.git</a></span></li>
-                                <li style="list-style-type:decimal; margin-bottom: 15px; font-weight: bold;">Instala el paquete:<br/>
-                                    <span class="font-light code-text">python setup.py install<br/></span>
-                            <span class="font-light-min">Nota: Opcionalmente instala un venv (o virtualenv) con tu instalación de python. Puedes
-                            usar Python 2.7, Python 3.4 o Python 3.5 (si tienes algún problema o encuentras uno crea un issue.
-                            (<a href="https://github.com/nfqsolutions/tweemanager/issues">https://github.com/nfqsolutions/tweemanager/issues</a>))</span></li>
-                                <li style="list-style-type:decimal; margin-bottom: 15px; font-weight: bold;">Realiza una búsqueda histórica: <br/> <span class="font-light code-text">tweemanager getoldtweets -c tweemUsoRapido.cfg -o TestUsoRapido.json</span>
-                                    <br/><span class="font-light-min"> Nota: Para este caso no hay que registrar una app en twitter. Consulta la página para
-                                <a href="https://github.com/nfqsolutions/tweemanager/blob/master/docs/CMDgetoldtweets.md" target="_blank">más info del comando</a>.
-                            <br/>Ya tenemos unos cuantos tweets. Podriamos procesar la información que hemos obtenido con alguno visualizador/procesador de datos.</span></li>
-                                <li style="list-style-type:decimal; margin-bottom: 15px; font-weight: bold;">Inserta los datos en mongodb: <br/><span class="font-light">Añade mongo a tu fichero de configuración: <br/>
-                            <span class="code-text">[MongoDBSpecs] <br/> host="mongodb://127.0.0.1/tweets" repocollname="RepoDeTweets"
-                            <br/>y ejecuta el comando de importación para importar los datos obtenidos anteriormente: <br/>tweemanager importToMongo TestUsoRapido.json</span></span>
-                                    <br/> <span class="font-light-min">Nota: podemos realizar el paso anterior directamente para mongo usando la opción *-o mongodb*: tweemanager importToMongo TestUsoRapido.json -o mongodb</span></li>
+                            <p style="list-style-type:decimal; margin-bottom: 15px; font-weight: bold;">Servidor:</p>
+                            <span class="font-light code-text code-white"><span class="code-orange">from</span> pylm.standalone <span class="code-orange">import</span> Server</span><br/><br/>
+                            <span class="font-light code-text code-white"><span class="code-orange">class</span> MyServer(Server):</span><br/>
+                            <span class="font-light code-text code-white" style="margin-left: 20px;"><span class="code-orange">def</span> foo(<span class="code-purple">self</span>, message):</span><br/>
+                            <span class="font-light code-text code-white" style="margin-left: 40px;"><span class="code-purple">self</span>.logger.warning('<span class="code-green">Got a message'</span>)</span><br/>
+                            <span class="font-light code-text code-white" style="margin-left: 40px;"><span class="code-orange">return</span> <span class="code-green">b'you sent me '</span> + message</span><br/><br/><br/>
+                            <span class="font-light code-text code-white"><span class="code-orange">if</span> __name__ == <span class="code-green">'__main__'</span>:</span><br/>
+                            <span class="font-light code-text code-white" style="margin-left: 20px;">server = MyServer(<span class="code-green">'server', 'tcp://127.0.0.1:5555'</span>)</span><br/>
+                            <span class="font-light code-text code-white" style="margin-left: 20px;">server.start()</span><br/><br/><br/>
 
-                            </ul>
+                            <p style="list-style-type:decimal; margin-bottom: 15px; font-weight: bold;">Cliente:</p>
+                            <span class="font-light code-text code-white"><span class="code-orange">from</span> pylm.standalone <span class="code-orange">import</span> Client</span><br/><br/>
+                            <span class="font-light code-text code-white">client = Client('tcp://127.0.0.1:5555', 'server')</span><br/><br/>
+                            <span class="font-light code-text code-white"><span class="code-orange">if</span> __name__ == '__main__':</span><br/>
+                            <span class="font-light code-text code-white" style="margin-left: 20px;">result = client.job('foo', b'a message')</span><br/>
+                            <span class="font-light code-text code-white" style="margin-left: 20px;">print('Client got: ', result)</span><br/><br/><br/>
                         </div>
                         <div role="tabpanel" class="tab-pane" id="messages" style="padding-top: 20px; padding-left: 20px; background-color: #000000;">
-                            <ul>
-                                <li style="list-style-type:decimal; margin-bottom: 15px; font-weight: bold;">Clona este repositorio: <br/>
-                                    <span class="font-light code-text"> git clone <a href="https://github.com/nfqsolutions/tweemanager.git">https://github.com/nfqsolutions/tweemanager.git</a></span></li>
-                                <li style="list-style-type:decimal; margin-bottom: 15px; font-weight: bold;">Instala el paquete:<br/>
-                                    <span class="font-light code-text">python setup.py install<br/></span>
-                            <span class="font-light-min">Nota: Opcionalmente instala un venv (o virtualenv) con tu instalación de python. Puedes
-                            usar Python 2.7, Python 3.4 o Python 3.5 (si tienes algún problema o encuentras uno crea un issue.
-                            (<a href="https://github.com/nfqsolutions/tweemanager/issues">https://github.com/nfqsolutions/tweemanager/issues</a>))</span></li>
-                                <li style="list-style-type:decimal; margin-bottom: 15px; font-weight: bold;">Realiza una búsqueda histórica: <br/> <span class="font-light code-text">tweemanager getoldtweets -c tweemUsoRapido.cfg -o TestUsoRapido.json</span>
-                                    <br/><span class="font-light-min"> Nota: Para este caso no hay que registrar una app en twitter. Consulta la página para
-                                <a href="https://github.com/nfqsolutions/tweemanager/blob/master/docs/CMDgetoldtweets.md" target="_blank">más info del comando</a>.
-                            <br/>Ya tenemos unos cuantos tweets. Podriamos procesar la información que hemos obtenido con alguno visualizador/procesador de datos.</span></li>
-                                <li style="list-style-type:decimal; margin-bottom: 15px; font-weight: bold;">Inserta los datos en mongodb: <br/><span class="font-light">Añade mongo a tu fichero de configuración: <br/>
-                            <span class="code-text">[MongoDBSpecs] <br/> host="mongodb://127.0.0.1/tweets" repocollname="RepoDeTweets"
-                            <br/>y ejecuta el comando de importación para importar los datos obtenidos anteriormente: <br/>tweemanager importToMongo TestUsoRapido.json</span></span>
-                                    <br/> <span class="font-light-min">Nota: podemos realizar el paso anterior directamente para mongo usando la opción *-o mongodb*: tweemanager importToMongo TestUsoRapido.json -o mongodb</span></li>
+                            <p style="list-style-type:decimal; margin-bottom: 15px; font-weight: bold;">Servidor:</p>
+                            <span class="font-light code-text code-white"><span class="code-orange">from</span> pylm.standalone <span class="code-orange">import</span> Server</span><br/><br/>
+                            <span class="font-light code-text code-white"><span class="code-orange">class</span> MyServer(Server):</span><br/>
+                            <span class="font-light code-text code-white" style="margin-left: 20px;"><span class="code-orange">def</span> foo(<span class="code-purple">self</span>, message):</span><br/>
+                            <span class="font-light code-text code-white" style="margin-left: 40px;"><span class="code-purple">self</span>.logger.warning('<span class="code-green">Got a message'</span>)</span><br/>
+                            <span class="font-light code-text code-white" style="margin-left: 40px;"><span class="code-orange">return</span> <span class="code-green">b'you sent me '</span> + message</span><br/><br/><br/>
+                            <span class="font-light code-text code-white"><span class="code-orange">if</span> __name__ == <span class="code-green">'__main__'</span>:</span><br/>
+                            <span class="font-light code-text code-white" style="margin-left: 20px;">server = MyServer(<span class="code-green">'server', 'tcp://127.0.0.1:5555'</span>)</span><br/>
+                            <span class="font-light code-text code-white" style="margin-left: 20px;">server.start()</span><br/><br/><br/>
 
-                            </ul>
+                            <p style="list-style-type:decimal; margin-bottom: 15px; font-weight: bold;">Cliente:</p>
+                            <span class="font-light code-text code-white"><span class="code-orange">from</span> pylm.standalone <span class="code-orange">import</span> Client</span><br/><br/>
+                            <span class="font-light code-text code-white">client = Client('tcp://127.0.0.1:5555', 'server')</span><br/><br/>
+                            <span class="font-light code-text code-white"><span class="code-orange">if</span> __name__ == '__main__':</span><br/>
+                            <span class="font-light code-text code-white" style="margin-left: 20px;">result = client.job('foo', b'a message')</span><br/>
+                            <span class="font-light code-text code-white" style="margin-left: 20px;">print('Client got: ', result)</span><br/><br/><br/>
                         </div>
                         <div role="tabpanel" class="tab-pane" id="settings" style="padding-top: 20px; padding-left: 20px; background-color: #000000;">
-                            <ul>
-                                <li style="list-style-type:decimal; margin-bottom: 15px; font-weight: bold;">Clona este repositorio: <br/>
-                                    <span class="font-light code-text"> git clone <a href="https://github.com/nfqsolutions/tweemanager.git">https://github.com/nfqsolutions/tweemanager.git</a></span></li>
-                                <li style="list-style-type:decimal; margin-bottom: 15px; font-weight: bold;">Instala el paquete:<br/>
-                                    <span class="font-light code-text">python setup.py install<br/></span>
-                            <span class="font-light-min">Nota: Opcionalmente instala un venv (o virtualenv) con tu instalación de python. Puedes
-                            usar Python 2.7, Python 3.4 o Python 3.5 (si tienes algún problema o encuentras uno crea un issue.
-                            (<a href="https://github.com/nfqsolutions/tweemanager/issues">https://github.com/nfqsolutions/tweemanager/issues</a>))</span></li>
-                                <li style="list-style-type:decimal; margin-bottom: 15px; font-weight: bold;">Realiza una búsqueda histórica: <br/> <span class="font-light code-text">tweemanager getoldtweets -c tweemUsoRapido.cfg -o TestUsoRapido.json</span>
-                                    <br/><span class="font-light-min"> Nota: Para este caso no hay que registrar una app en twitter. Consulta la página para
-                                <a href="https://github.com/nfqsolutions/tweemanager/blob/master/docs/CMDgetoldtweets.md" target="_blank">más info del comando</a>.
-                            <br/>Ya tenemos unos cuantos tweets. Podriamos procesar la información que hemos obtenido con alguno visualizador/procesador de datos.</span></li>
-                                <li style="list-style-type:decimal; margin-bottom: 15px; font-weight: bold;">Inserta los datos en mongodb: <br/><span class="font-light">Añade mongo a tu fichero de configuración: <br/>
-                            <span class="code-text">[MongoDBSpecs] <br/> host="mongodb://127.0.0.1/tweets" repocollname="RepoDeTweets"
-                            <br/>y ejecuta el comando de importación para importar los datos obtenidos anteriormente: <br/>tweemanager importToMongo TestUsoRapido.json</span></span>
-                                    <br/> <span class="font-light-min">Nota: podemos realizar el paso anterior directamente para mongo usando la opción *-o mongodb*: tweemanager importToMongo TestUsoRapido.json -o mongodb</span></li>
+                            <p style="list-style-type:decimal; margin-bottom: 15px; font-weight: bold;">Servidor:</p>
+                            <span class="font-light code-text code-white"><span class="code-orange">from</span> pylm.standalone <span class="code-orange">import</span> Server</span><br/><br/>
+                            <span class="font-light code-text code-white"><span class="code-orange">class</span> MyServer(Server):</span><br/>
+                            <span class="font-light code-text code-white" style="margin-left: 20px;"><span class="code-orange">def</span> foo(<span class="code-purple">self</span>, message):</span><br/>
+                            <span class="font-light code-text code-white" style="margin-left: 40px;"><span class="code-purple">self</span>.logger.warning('<span class="code-green">Got a message'</span>)</span><br/>
+                            <span class="font-light code-text code-white" style="margin-left: 40px;"><span class="code-orange">return</span> <span class="code-green">b'you sent me '</span> + message</span><br/><br/><br/>
+                            <span class="font-light code-text code-white"><span class="code-orange">if</span> __name__ == <span class="code-green">'__main__'</span>:</span><br/>
+                            <span class="font-light code-text code-white" style="margin-left: 20px;">server = MyServer(<span class="code-green">'server', 'tcp://127.0.0.1:5555'</span>)</span><br/>
+                            <span class="font-light code-text code-white" style="margin-left: 20px;">server.start()</span><br/><br/><br/>
 
-                            </ul>
+                            <p style="list-style-type:decimal; margin-bottom: 15px; font-weight: bold;">Cliente:</p>
+                            <span class="font-light code-text code-white"><span class="code-orange">from</span> pylm.standalone <span class="code-orange">import</span> Client</span><br/><br/>
+                            <span class="font-light code-text code-white">client = Client('tcp://127.0.0.1:5555', 'server')</span><br/><br/>
+                            <span class="font-light code-text code-white"><span class="code-orange">if</span> __name__ == '__main__':</span><br/>
+                            <span class="font-light code-text code-white" style="margin-left: 20px;">result = client.job('foo', b'a message')</span><br/>
+                            <span class="font-light code-text code-white" style="margin-left: 20px;">print('Client got: ', result)</span><br/><br/><br/>
                         </div>
                     </div>
 
