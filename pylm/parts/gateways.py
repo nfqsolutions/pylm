@@ -29,7 +29,7 @@ import sys
 
 class GatewayRouter(ComponentInbound):
     """
-    Router part of the Http gateway
+    Router that allows a parallel server to connect to multiple clients.
 
     :param broker_address: Broker address
     :param cache: K-v database for the cache
@@ -115,6 +115,7 @@ class GatewayRouter(ComponentInbound):
             self.logger.debug('Component {} blocked waiting messages'.format(self.name))
             response = self.listen_to.recv_multipart()
 
+            # If the message is from anything but the dealer, send it to the router.
             if len(response) == 3:
                 [target, empty, message_data] = response
                 self.logger.debug('{} Got inbound message'.format(self.name))
@@ -132,6 +133,8 @@ class GatewayRouter(ComponentInbound):
                     lines = traceback.format_exception(*sys.exc_info())
                     self.logger.exception(lines[0])
 
+            # This is what's different. The response to be sent from the router
+            # is what it gets from the dealer.
             elif len(response) == 4 and response[0] == b'dealer':
                 self.listen_to.send_multipart(response[1:])
 
@@ -140,6 +143,15 @@ class GatewayDealer(ComponentOutbound):
     """
     Generic component that connects a REQ socket to the broker, and a
     socket to an inbound external service.
+
+    This part is a companion for the gateway router, and has to connect to it
+    to work properly
+
+           -->|         v--------------------------------------|
+              |-->Gateway Router ---> |-\  /->| --> *Dealer* --|
+           <--|                       |  \/   |
+                                      |  /\   |
+                Workers -> Inbound -> |-/  \->| --> Outbound --> Workers
 
     :param broker_address: ZMQ socket address for the broker,
     :param palm: The component is sending back a Palm message
