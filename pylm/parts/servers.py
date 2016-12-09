@@ -30,6 +30,7 @@ class ServerTemplate(object):
     :param ping_address: Address for the external health monitoring service
     :param log_address: Address for the external logging service
     :param perf_address: Address for the external performance analysis service
+    :param logging_level: A correct logging level from the logging module. Defaults to INFO.
 
     It has important attributes that you may want to override, like
 
@@ -41,7 +42,8 @@ class ServerTemplate(object):
     def __init__(self,
                  ping_address: str = '',
                  log_address: str = '',
-                 perf_address: str = ''):
+                 perf_address: str = '',
+                 logging_level=logging.INFO):
         # Name of the server
         self.name = ''
 
@@ -49,7 +51,7 @@ class ServerTemplate(object):
         self.palm = False
 
         # Logging level for the server
-        self.logging_level = logging.INFO
+        self.logging_level = logging_level
 
         # Basic Key-value database for storage
         self.cache = DictDB()
