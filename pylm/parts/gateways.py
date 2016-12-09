@@ -37,15 +37,21 @@ class GatewayRouter(ComponentInbound):
     :param logger: Logger class
     :param messages: Number of messages until it is shut down
     """
-    def __init__(self, broker_address="inproc://broker", cache=DictDB(), palm=False, logger=None, messages=sys.maxsize):
+    def __init__(self,
+                 broker_address="inproc://broker",
+                 listen_address='inproc://gateway_router',
+                 cache=DictDB(),
+                 palm=True,
+                 logger=None,
+                 messages=sys.maxsize):
         super(GatewayRouter, self).__init__(
             'gateway_router',
-            'inproc://gateway_router',
+            listen_address,
             zmq.ROUTER,
             reply=False,
             broker_address=broker_address,
             bind=True,
-            palm=True,
+            palm=palm,
             cache=cache,
             logger=logger,
             messages=messages,
@@ -143,6 +149,7 @@ class GatewayDealer(ComponentOutbound):
     """
     def __init__(self,
                  broker_address="inproc://broker",
+                 listen_address='inproc://gateway_router',
                  cache=None,
                  palm=True,
                  logger=None,
@@ -151,7 +158,7 @@ class GatewayDealer(ComponentOutbound):
         self.listen_to = zmq_context.socket(zmq.DEALER)
         self.listen_to.identity = b'dealer'
         self.bind = False
-        self.listen_address = 'inproc://gateway_router'
+        self.listen_address = listen_address
         self.broker = zmq_context.socket(zmq.DEALER)
         self.broker.identity = self.name
         self.broker.connect(broker_address)
