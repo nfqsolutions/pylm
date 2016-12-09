@@ -21,6 +21,7 @@ from pylm.parts.messages_pb2 import BrokerMessage, PalmMessage
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from socketserver import ThreadingMixIn
 from uuid import uuid4
+import traceback
 import threading
 import zmq
 import sys
@@ -112,11 +113,18 @@ class GatewayRouter(ComponentInbound):
                 [target, empty, message_data] = response
                 self.logger.debug('{} Got inbound message'.format(self.name))
                 
-                # TODO: Maybe you can scatter messages here.
-                scattered = self._translate_to_broker(message_data)
-                self.broker.send(scattered.SerializeToString())
-                self.logger.debug('Component {} blocked waiting for broker'.format(self.name))
-                self.broker.recv()
+                try:
+                    for scattered in self.scatter(message_data):
+                        scattered = self._translate_to_broker(scattered)
+                        self.broker.send(scattered.SerializeToString())
+                        self.logger.debug('Component {} blocked waiting for broker'.format(
+                            self.name))
+                        self.broker.recv()
+
+                except:
+                    self.logger.error('Error in scatter function')
+                    lines = traceback.format_exception(*sys.exc_info())
+                    self.logger.exception(lines[0])
 
             elif len(response) == 4 and response[0] == b'dealer':
                 self.listen_to.send_multipart(response[1:])
