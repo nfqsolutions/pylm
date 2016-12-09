@@ -142,25 +142,33 @@ class ServerTemplate(object):
 
         self.outbound_components[name] = instance
 
-    def register_gateway(self, part, name, hostname, port, route, **kwargs):
+    def register_gateway(self, part, name, route, **kwargs):
         """
-        Register an HTTP gateway to work as a microservice. See the documentation
+        Register a gateway to work as a input + output interface. See the documentation
         of the part.
         :param part: part class
         :param name: name of the part
-        :param hostname: hostname of the web server
-        :param port: port of the web server
         :param route: the inbound part routes to this other part.
-        """
-        instance = part(hostname,
-                        port,
-                        broker_inbound_address=self.router.inbound_address,
-                        broker_outbound_address=self.router.outbound_address,
-                        logger=self.logger,
-                        **kwargs)
 
-        self.router.register_inbound("gateway_router", route=route)
-        self.router.register_outbound("gateway_dealer")
+        Possible keyword arguments
+
+        For the HTTP gateway:
+
+        :hostname: hostname of the web server
+        :port: port of the web server
+        """
+        if 'hostname' in kwargs:
+            instance = part(kwargs['hostname'],
+                            kwargs['port'],
+                            broker_inbound_address=self.router.inbound_address,
+                            broker_outbound_address=self.router.outbound_address,
+                            logger=self.logger,
+                            **kwargs)
+        else:
+            raise ValueError('Gateway not properly configured')
+
+        self.router.register_inbound("gateway_inbound", route=route)
+        self.router.register_outbound("gateway_outbound")
 
         self.bypass_components[name] = instance
 

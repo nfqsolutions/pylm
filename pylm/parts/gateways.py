@@ -21,13 +21,14 @@ from pylm.parts.messages_pb2 import BrokerMessage, PalmMessage
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from socketserver import ThreadingMixIn
 from uuid import uuid4
+import concurrent.futures
 import threading
 import logging
 import zmq
 import sys
 
 
-class HttpGatewayRouter(ComponentInbound):
+class GatewayRouter(ComponentInbound):
     """
     Router part of the Http gateway
 
@@ -38,14 +39,14 @@ class HttpGatewayRouter(ComponentInbound):
     :param messages: Number of messages until it is shut down
     """
     def __init__(self, broker_address="inproc://broker", cache=DictDB(), palm=False, logger=None, messages=sys.maxsize):
-        super(HttpGatewayRouter, self).__init__(
+        super(GatewayRouter, self).__init__(
             'gateway_router',
             'inproc://gateway_router',
             zmq.ROUTER,
             reply=False,
             broker_address=broker_address,
             bind=True,
-            palm=palm,
+            palm=True,
             cache=cache,
             logger=logger,
             messages=messages,
@@ -100,6 +101,11 @@ class HttpGatewayRouter(ComponentInbound):
         self.listen_to.bind(self.listen_address)
         self.logger.info('Launch component {}'.format(self.name))
 
+        # The socket this part is listening to is blocked waiting for a
+        # relevant response, not a dummy response that only unblocks.
+        # Therefore, this part sends the message to the router and
+        # handles the input from the dealer, that it is later redirected
+        # to the inbound socket.
         for i in range(self.messages):
             self.logger.debug('Component {} blocked waiting messages'.format(self.name))
             response = self.listen_to.recv_multipart()
@@ -108,18 +114,17 @@ class HttpGatewayRouter(ComponentInbound):
                 [target, empty, message_data] = response
                 self.logger.debug('{} Got inbound message'.format(self.name))
                 
-                # There is no possibility to scatter messages here.
+                # TODO: Maybe you can scatter messages here.
                 scattered = self._translate_to_broker(message_data)
-                self.cache.set('target'+scattered.key, target)
                 self.broker.send(scattered.SerializeToString())
                 self.logger.debug('Component {} blocked waiting for broker'.format(self.name))
                 self.broker.recv()
-                
+
             elif len(response) == 4 and response[0] == b'dealer':
                 self.listen_to.send_multipart(response[1:])
 
     
-class HttpGatewayDealer(ComponentOutbound):
+class GatewayDealer(ComponentOutbound):
     """
     Generic component that connects a REQ socket to the broker, and a
     socket to an inbound external service.
@@ -133,7 +138,7 @@ class HttpGatewayDealer(ComponentOutbound):
     def __init__(self,
                  broker_address="inproc://broker",
                  cache=None,
-                 palm=False,
+                 palm=True,
                  logger=None,
                  messages=sys.maxsize):
         self.name = 'gateway_dealer'.encode('utf-8')
@@ -160,24 +165,17 @@ class HttpGatewayDealer(ComponentOutbound):
         broker_message = BrokerMessage()
         broker_message.ParseFromString(message_data)
 
-        if self.palm:
-            message_data = self.cache.get(broker_message.key)
-            # Clean up the cache. It is an outbound message and no one will
-            # ever need the full message again.
-            self.logger.debug('DELETE: {}'.format(broker_message.key))
-            self.cache.delete(broker_message.key)
-            palm_message = PalmMessage()
-            palm_message.ParseFromString(message_data)
-            palm_message.payload = broker_message.payload
-            message_data = palm_message.SerializeToString()
-        else:
-            message_data = broker_message.payload
-
-        target = self.cache.get('target'+broker_message.key)
-        
-        self.cache.delete('target'+broker_message.key)
+        message_data = self.cache.get(broker_message.key)
+        # Clean up the cache. It is an outbound message and no one will
+        # ever need the full message again.
+        self.logger.debug('DELETE: {}'.format(broker_message.key))
+        self.cache.delete(broker_message.key)
+        palm_message = PalmMessage()
+        palm_message.ParseFromString(message_data)
+        palm_message.payload = broker_message.payload
+        message_data = palm_message.SerializeToString()
             
-        return target, message_data
+        return palm_message.client.encode('utf-8'), message_data
         
     def start(self):
         """
@@ -263,8 +261,8 @@ class HttpGateway(object):
                  broker_inbound_address="inproc://broker",
                  broker_outbound_address="inproc://broker",
                  cache=DictDB(), palm=False, logger=None):
-        self.router = HttpGatewayRouter(broker_inbound_address, cache, palm, logger=logger)
-        self.dealer = HttpGatewayDealer(broker_outbound_address, cache, palm, logger=logger)
+        self.router = GatewayRouter(broker_inbound_address, cache, palm, logger=logger)
+        self.dealer = GatewayDealer(broker_outbound_address, cache, palm, logger=logger)
         self.handler = MyHandler
         self.server = MyServer((hostname, port), self.handler)
         self.logger = logger
@@ -301,23 +299,40 @@ def test_http_gateway_router():
         msg = dummy_router.recv()
         broker_message = BrokerMessage()
         broker_message.ParseFromString(msg)
-        print('At the router:\n', broker_message)
         dummy_router.send(msg)
+        return broker_message.payload
 
     def dummy_initiator():
         dummy_client = zmq_context.socket(zmq.REQ)
+        dummy_client.identity = b'0'
         dummy_client.connect('inproc://gateway_router')
-        dummy_client.send(b'This is a message')
-        #print(dummy_client.recv())
+        message = PalmMessage()
+        message.client = dummy_client.identity
+        message.pipeline = '0'
+        message.function = 'f.servername'
+        message.stage = 1
+        message.payload = b'This is a message'
+        dummy_client.send(message.SerializeToString())
 
-    response_thread = threading.Thread(target=dummy_response)
-    response_thread.start()
+    gateway = GatewayRouter(logger=logging, messages=1)
+    got = []
 
-    starter_thread = threading.Thread(target=dummy_initiator)
-    starter_thread.start()
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+        results = [
+            executor.submit(dummy_initiator),
+            executor.submit(dummy_response),
+            executor.submit(gateway.start)
+        ]
+        for future in concurrent.futures.as_completed(results):
+            try:
+                result = future.result()
+                if result:
+                    got.append(result)
 
-    gateway = HttpGatewayRouter(logger=logging, messages=1)
-    gateway.start()
+            except Exception as exc:
+                print(exc)
+
+    assert got[0] == b'This is a message'
 
     
 def test_complete_gateway():
@@ -334,55 +349,74 @@ def test_complete_gateway():
         
         broker_message = BrokerMessage()
         broker_message.ParseFromString(message)
-        print('at the router: \n', broker_message)
-        
+
         dummy_router.send_multipart([b'gateway_dealer', empty, message])
         [target, message] = dummy_router.recv_multipart()
 
     def dummy_initiator():
         dummy_client = zmq_context.socket(zmq.REQ)
+        dummy_client.identity = b'0'
         dummy_client.connect('inproc://gateway_router')
-        dummy_client.send(b'This is a message')
-        print('Final message at the initiator ->', dummy_client.recv())
+        message = PalmMessage()
+        message.client = dummy_client.identity
+        message.pipeline = '0'
+        message.function = 'f.servername'
+        message.stage = 1
+        message.payload = b'This is a message'
+        dummy_client.send(message.SerializeToString())
+        return dummy_client.recv()
 
-    response_thread = threading.Thread(target=dummy_response)
-    response_thread.start()
+    got = []
 
-    starter_thread = threading.Thread(target=dummy_initiator)
-    starter_thread.start()
+    dealer = GatewayDealer(cache=cache, logger=logging, messages=1)
+    router = GatewayRouter(cache=cache, logger=logging, messages=2)
 
-    dealer_component = HttpGatewayDealer(cache=cache, logger=logging, messages=1)
-    dealer_thread = threading.Thread(target=dealer_component.start)
-    dealer_thread.start()
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+        results = [
+            executor.submit(dummy_response),
+            executor.submit(dummy_initiator),
+            executor.submit(dealer.start),
+            executor.submit(router.start)
+        ]
 
-    gateway = HttpGatewayRouter(cache=cache, logger=logging, messages=2)
-    gateway.start()
+        for future in concurrent.futures.as_completed(results):
+            try:
+                result = future.result()
+                if result:
+                    got.append(result)
+
+            except Exception as exc:
+                print(exc)
+
+    message = PalmMessage()
+    message.ParseFromString(got[0])
+    assert message.payload == b'This is a message'
 
 
-def test_gateway():
-    def dummy_response():
-        dummy_router = zmq_context.socket(zmq.ROUTER)
-        dummy_router.bind('inproc://broker')
+# def test_gateway():
+#     def dummy_response():
+#         dummy_router = zmq_context.socket(zmq.ROUTER)
+#         dummy_router.bind('inproc://broker')
+#
+#         while True:
+#             [target, empty, message] = dummy_router.recv_multipart()
+#             dummy_router.send_multipart([target, empty, b'0'])
+#
+#             broker_message = BrokerMessage()
+#             broker_message.ParseFromString(message)
+#             print('at the router: \n', broker_message)
+#
+#             dummy_router.send_multipart([b'gateway_dealer', empty, message])
+#             [target, message] = dummy_router.recv_multipart()
+#
+#     response_thread = threading.Thread(target=dummy_response)
+#     response_thread.start()
+#
+#     gateway = HttpGateway(logger=logging)
+#     gateway.start()
 
-        while True:
-            [target, empty, message] = dummy_router.recv_multipart()
-            dummy_router.send_multipart([target, empty, b'0'])
-        
-            broker_message = BrokerMessage()
-            broker_message.ParseFromString(message)
-            print('at the router: \n', broker_message)
-        
-            dummy_router.send_multipart([b'gateway_dealer', empty, message])
-            [target, message] = dummy_router.recv_multipart()
-
-    response_thread = threading.Thread(target=dummy_response)
-    response_thread.start()
-
-    gateway = HttpGateway(logger=logging)
-    gateway.start()
-    
     
 if __name__ == "__main__":
-    #test_http_gateway_router()
-    #test_complete_gateway()
-    test_gateway()
+    test_http_gateway_router()
+    test_complete_gateway()
+    #test_gateway()
