@@ -307,24 +307,3 @@ class HttpGateway(object):
         self.server.serve_forever()
 
 
-# def test_gateway():
-#     def dummy_response():
-#         dummy_router = zmq_context.socket(zmq.ROUTER)
-#         dummy_router.bind('inproc://broker')
-#
-#         while True:
-#             [target, empty, message] = dummy_router.recv_multipart()
-#             dummy_router.send_multipart([target, empty, b'0'])
-#
-#             broker_message = BrokerMessage()
-#             broker_message.ParseFromString(message)
-#             print('at the router: \n', broker_message)
-#
-#             dummy_router.send_multipart([b'gateway_dealer', empty, message])
-#             [target, message] = dummy_router.recv_multipart()
-#
-#     response_thread = threading.Thread(target=dummy_response)
-#     response_thread.start()
-#
-#     gateway = HttpGateway(logger=logging)
-#     gateway.start()
