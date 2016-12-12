@@ -1,8 +1,9 @@
 from pylm.parts.core import zmq_context
 from pylm.parts.messages_pb2 import BrokerMessage, PalmMessage
-from pylm.parts.gateways import GatewayRouter, GatewayDealer
+from pylm.parts.gateways import GatewayRouter, GatewayDealer, HttpGateway
 from pylm.persistence.kv import DictDB
 import concurrent.futures
+import requests
 import logging
 import zmq
 
@@ -113,6 +114,56 @@ def test_gateway_dealer():
     assert message.payload == b'This is a message'
 
 
+def test_gateway_http():
+    """
+    Test function for the complete gateway with a dummy router.
+    """
+    cache = DictDB()
+
+    def dummy_response():
+        dummy_router = zmq_context.socket(zmq.ROUTER)
+        dummy_router.bind('inproc://broker')
+        [target, empty, message] = dummy_router.recv_multipart()
+        dummy_router.send_multipart([target, empty, b'0'])
+
+        broker_message = BrokerMessage()
+        broker_message.ParseFromString(message)
+
+        dummy_router.send_multipart([b'gateway_dealer', empty, message])
+        [target, message] = dummy_router.recv_multipart()
+
+    def dummy_initiator():
+        r = requests.get('http://localhost:8888/function')
+        return r.text
+
+    got = []
+
+    dealer = GatewayDealer(cache=cache, logger=logging, messages=1)
+    router = GatewayRouter(cache=cache, logger=logging, messages=2)
+    http = HttpGateway(cache=cache, logger=logging)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        results = [
+            executor.submit(dummy_response),
+            executor.submit(dummy_initiator),
+            executor.submit(dealer.start),
+            executor.submit(router.start),
+            executor.submit(http.debug)
+        ]
+
+        for future in concurrent.futures.as_completed(results):
+            try:
+                result = future.result()
+                if result:
+                    got.append(result)
+
+            except Exception as exc:
+                print(exc)
+
+    assert got[0] == 'No Payload'
+
+
 if __name__ == "__main__":
     test_gateway_router()
     test_gateway_dealer()
+    test_gateway_http()

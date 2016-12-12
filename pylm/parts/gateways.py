@@ -22,7 +22,6 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from socketserver import ThreadingMixIn
 from uuid import uuid4
 import traceback
-import threading
 import zmq
 import sys
 
@@ -224,6 +223,9 @@ class MyServer(ThreadingMixIn, HTTPServer):
 
     
 class MyHandler(BaseHTTPRequestHandler):
+    gateway_router_address = 'inproc://gateway_router'
+    logger = None
+
     @staticmethod
     def path_parser(path):
         """
@@ -238,27 +240,31 @@ class MyHandler(BaseHTTPRequestHandler):
         
     def do_GET(self):
         socket = zmq_context.socket(zmq.REQ)
-        socket.connect('inproc://gateway_router')
+        # This is the identity of the socket and the client.
+        identity = str(uuid4()).encode('utf-8')
+        socket.identity = identity
+        socket.connect(self.gateway_router_address)
         
         function = self.path_parser(self.path)
-        
+
         if function:
             message = PalmMessage()
             message.pipeline = str(uuid4())
-
-            message.function = self.path_parser(self.path)
+            message.function = function
             
             content_length = self.headers.get('content-length')
             if content_length:
                 message.payload = self.rfile.read(int(content_length))
             else:
-                message.payload = b''
+                message.payload = b'No Payload'
                 
             message.stage = 0
-            message.client = 'HttpGateway'
-            
+            # Uses the same identity as the socket to tell the gateway
+            # router where it has to route to
+            message.client = identity
+
             socket.send(message.SerializeToString())
-            message = socket.recv()
+            message.ParseFromString(socket.recv())
             
             self.send_response(200)
             self.send_header('Content-type', 'text/plain')
@@ -269,7 +275,7 @@ class MyHandler(BaseHTTPRequestHandler):
             self.end_headers()
             message = b'Not found'
             
-        self.wfile.write(message)
+        self.wfile.write(message.payload)
 
         socket.close()
         return
@@ -283,33 +289,21 @@ class MyHandler(BaseHTTPRequestHandler):
     
 class HttpGateway(object):
     def __init__(self, hostname='', port=8888,
-                 broker_inbound_address="inproc://broker",
-                 broker_outbound_address="inproc://broker",
-                 cache=DictDB(), palm=False, logger=None):
-        self.router = GatewayRouter(broker_inbound_address, cache, palm, logger=logger)
-        self.dealer = GatewayDealer(broker_outbound_address, cache, palm, logger=logger)
+                 gateway_router_address='inproc://gateway_router',
+                 cache=DictDB(), palm=True, logger=None):
         self.handler = MyHandler
+        self.handler.gateway_router_address = gateway_router_address
+        self.handler.logger = logger
         self.server = MyServer((hostname, port), self.handler)
         self.logger = logger
         self.port = port
-        
-    def start(self):
-        router_thread = threading.Thread(target=self.router.start)
-        dealer_thread = threading.Thread(target=self.dealer.start)
-
-        self.logger.info("Starting HttpGateway router component (inbound)")
-        router_thread.start()
-        self.logger.info("Starting HttpGateway dealer component (outbound)")
-        dealer_thread.start()
-        self.logger.info("Serving HttpGateway on port {}".format(self.port))
-        self.server.serve_forever()
 
     def debug(self):
-        router_thread = threading.Thread(target=self.router.start)
-        dealer_thread = threading.Thread(target=self.dealer.start)
+        self.logger.info("Starting HTTP gateway")
+        self.server.handle_request()
 
-        router_thread.start()
-        dealer_thread.start()
+    def start(self):
+        self.logger.info("Starting HTTP gateway")
         self.server.serve_forever()
 
 
