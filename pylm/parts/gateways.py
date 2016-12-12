@@ -291,11 +291,11 @@ class MyHandler(BaseHTTPRequestHandler):
         
     
 class HttpGateway(object):
-    def __init__(self, hostname='', port=8888,
-                 gateway_router_address='inproc://gateway_router',
+    def __init__(self, listen_address='inproc://gateway_router',
+                 hostname='', port=8888,
                  cache=DictDB(), palm=True, logger=None):
         self.handler = MyHandler
-        self.handler.gateway_router_address = gateway_router_address
+        self.handler.gateway_router_address = listen_address
         self.handler.logger = logger
         self.server = MyServer((hostname, port), self.handler)
         self.logger = logger
