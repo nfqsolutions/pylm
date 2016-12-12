@@ -45,7 +45,7 @@ class Server(object):
     :param str perf_address: Address of the performance counter registry. Leave to None if you don't need performance counters.
     :param str ping_address: Address of the central server registry. Leave to None if you don't want to track the health of the server.
     :param log_level: Minimum output log level.
-    :param int _messages: Total number of messages that the server processes. Useful for debugging.
+    :param int messages: Total number of messages that the server processes. Useful for debugging.
     """
     def __init__(self, name, rep_address, log_address=None, perf_address=None,
                  ping_address=None, log_level=logging.INFO,
