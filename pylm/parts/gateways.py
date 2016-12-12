@@ -214,7 +214,10 @@ class GatewayDealer(ComponentOutbound):
             self.logger.debug('Component {} Got message from broker'.format(self.name))
             target, message_data = self._translate_from_broker(message_data)
 
-            self.listen_to.send_multipart([target, b'', message_data])
+            for scattered in self.scatter(message_data):
+                self.listen_to.send_multipart([target, b'', scattered])
+                self.logger.debug('Component {} sent message'.format(self.name))
+
             self.broker.send(b'')
 
             
