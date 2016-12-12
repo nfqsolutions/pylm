@@ -174,10 +174,10 @@ class Master(ServerTemplate, BaseMaster):
                  palm: bool = False, debug_level: int = logging.INFO):
         """
         """
-        super(Master, self).__init__(ping_address, log_address, perf_address)
+        super(Master, self).__init__(ping_address, log_address, perf_address,
+                                     logging_level=debug_level)
         self.name = name
         self.palm = palm
-        self.logging_level = debug_level
         self.cache = cache
 
         self.register_inbound(PullService, 'Pull', pull_address,
