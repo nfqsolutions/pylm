@@ -19,7 +19,6 @@ from pylm.parts.messages_pb2 import PalmMessage
 from threading import Thread
 from uuid import uuid4
 from itertools import repeat
-import concurrent.futures
 import time
 import zmq
 import sys
@@ -183,7 +182,6 @@ class SubscribedClient(object):
                 raise ValueError('The client got a message that does not belong')
 
             yield message 
-
 
     def set(self, value: bytes, key=None):
         """
