@@ -4,6 +4,7 @@ from pylm.parts.messages_pb2 import PalmMessage, BrokerMessage
 from pylm.parts.services import PubService
 from concurrent.futures import ThreadPoolExecutor
 import concurrent.futures
+import time
 import zmq
 import logging
 import sys
@@ -57,6 +58,8 @@ def fake_client():
     socket.setsockopt_string(zmq.SUBSCRIBE, 'client')
     socket.connect('inproc://pub')
 
+    # Pub sockets take some time.
+    time.sleep(1.0)
     result = socket.recv_multipart()
     return result[1]
 

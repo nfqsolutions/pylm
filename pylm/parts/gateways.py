@@ -28,7 +28,10 @@ import sys
 
 class GatewayRouter(ComponentInbound):
     """
-    Router that allows a parallel server to connect to multiple clients.
+    Router that allows a parallel server to connect to multiple clients. It
+    also allows to recv messages from a dealer socket that feeds back the
+    output from the same router. The goal is to provide blocking jobs
+    to multiple clients.
 
     :param broker_address: Broker address
     :param cache: K-v database for the cache
@@ -37,8 +40,8 @@ class GatewayRouter(ComponentInbound):
     :param messages: Number of messages until it is shut down
     """
     def __init__(self,
-                 broker_address="inproc://broker",
                  listen_address='inproc://gateway_router',
+                 broker_address="inproc://broker",
                  cache=DictDB(),
                  palm=True,
                  logger=None,
@@ -105,11 +108,6 @@ class GatewayRouter(ComponentInbound):
         self.listen_to.bind(self.listen_address)
         self.logger.info('Launch component {}'.format(self.name))
 
-        # The socket this part is listening to is blocked waiting for a
-        # relevant response, not a dummy response that only unblocks.
-        # Therefore, this part sends the message to the router and
-        # handles the input from the dealer, that it is later redirected
-        # to the inbound socket.
         for i in range(self.messages):
             self.logger.debug('Component {} blocked waiting messages'.format(self.name))
             response = self.listen_to.recv_multipart()
@@ -159,8 +157,8 @@ class GatewayDealer(ComponentOutbound):
     :param messages: Maximum number of inbound messages. Defaults to infinity.
     """
     def __init__(self,
-                 broker_address="inproc://broker",
                  listen_address='inproc://gateway_router',
+                 broker_address="inproc://broker",
                  cache=None,
                  palm=True,
                  logger=None,
@@ -308,5 +306,3 @@ class HttpGateway(object):
     def start(self):
         self.logger.info("Starting HTTP gateway")
         self.server.serve_forever()
-
-

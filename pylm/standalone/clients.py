@@ -148,8 +148,6 @@ class SubscribedClient(object):
         time.sleep(0.5)
 
     def clean(self):
-        self.push.close()
-        self.sub.close()
         self.db.close()
 
     def _sender(self, socket, function, generator):
