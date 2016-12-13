@@ -17,6 +17,7 @@
 import zmq
 import sys
 import concurrent.futures
+import traceback
 from pylm.parts.core import ComponentInbound, ComponentOutbound, \
     ComponentBypassInbound, ComponentBypassOutbound, zmq_context
 from urllib.request import Request, urlopen
@@ -194,6 +195,8 @@ class HttpConnection(ComponentOutbound):
                         feedback = future.result()
                     except Exception as exc:
                         self.logger.error('HttpConnection generated an error')
+                        lines = traceback.format_exception(*sys.exc_info())
+                        self.logger.exception(lines[0])
                         feedback = b'0'
 
                     if self.reply:

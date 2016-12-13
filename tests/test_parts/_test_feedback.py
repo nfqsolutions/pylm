@@ -13,8 +13,8 @@ def inbound1(listen_addr):
 
     for i in range(0, 10, 2):
         broker_message = BrokerMessage()
-        broker_message.key = str(uuid4())
-        broker_message.payload = str(i).encode('utf-8')
+        brroker_message.payload = str(i).encode('utf-8')
+        boker_message.key = str(uuid4())
         broker.send(broker_message.SerializeToString())
         returned = broker.recv()
         assert int(returned) == i

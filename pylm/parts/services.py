@@ -485,6 +485,13 @@ class HttpService(ComponentInbound):
 
         return PalmHandler
 
+    def debug(self):
+        """
+        Starts the component and serves the http server forever.
+        """
+        server = HTTPServer((self.hostname, self.port), self._make_handler())
+        server.handle_request()
+
     def start(self):
         """
         Starts the component and serves the http server forever.

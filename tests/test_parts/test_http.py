@@ -2,15 +2,18 @@ from pylm.parts.core import zmq_context
 from pylm.parts.services import HttpService
 from pylm.parts.connections import HttpConnection
 from pylm.parts.messages_pb2 import BrokerMessage
-from threading import Thread
+import concurrent.futures
 import zmq
 import logging
+import time
 
 
 def fake_router():
     socket = zmq_context.socket(zmq.REQ)
     socket.bind('inproc://broker')
 
+    # Give some time for everything to start
+    time.sleep(1.0)
     message = BrokerMessage()
     message.payload = b'test message'
     message.key = 'x'
@@ -25,8 +28,8 @@ def fake_terminator():
     message.ParseFromString(socket.recv())
 
     print("Got the message at the terminator: ")
-    print(message)
     socket.send(b'0')
+    return message
 
 
 def isolated_connection():
@@ -50,30 +53,34 @@ def isolated_service():
         broker_address="inproc://terminator"
     )
     print("Starting server")
-    service.start()
+    service.debug()
 
 
-def test_manual_http():
+def test_http():
     """
     This test
     router -> connector -> service -> terminator
 
     :return:
     """
-    threads = [
-        Thread(target=fake_router),
-        Thread(target=fake_terminator),
-        Thread(target=isolated_connection),
-        Thread(target=isolated_service)
-    ]
+    got = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+        results = [
+            executor.submit(fake_router),
+            executor.submit(fake_terminator),
+            executor.submit(isolated_connection),
+            executor.submit(isolated_service)
+        ]
 
-    print("starting threads")
-    for t in threads:
-        t.start()
+        for future in concurrent.futures.as_completed(results):
+            try:
+                result = future.result()
+                if result:
+                    got.append(result)
+            except Exception as exc:
+                print(exc)
 
-    for t in threads:
-        t.join()
-
+    assert got[0].payload == b"test message"
 
 if __name__ == '__main__':
-    test_manual_http()
+    test_http()
