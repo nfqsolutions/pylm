@@ -144,6 +144,9 @@ class SubscribedClient(object):
             self.pipeline = str(uuid4())
         self.uuid = str(uuid4())
 
+        self.db = zmq_context.socket(zmq.REQ)
+        self.db.connect(db_address)
+
         # PUB-SUB takes a while
         time.sleep(0.5)
 

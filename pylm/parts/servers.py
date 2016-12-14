@@ -19,6 +19,7 @@ from pylm.persistence.kv import DictDB
 from pylm.parts.messages_pb2 import PalmMessage
 from pylm.parts.utils import Pinger, PushHandler, PerformanceCounter
 import concurrent.futures
+import traceback
 import logging
 import sys
 
@@ -191,7 +192,9 @@ class ServerTemplate(object):
                     future.result()
                 except Exception as exc:
                     self.logger.error('This is critical, one of the parts died')
-                    self.logger.error(exc)
+                    lines = traceback.format_exception(*sys.exc_info())
+                    for line in lines:
+                        self.logger.error(line.strip('\n'))
 
 
 class BaseMaster(object):

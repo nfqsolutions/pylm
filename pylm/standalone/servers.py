@@ -179,6 +179,8 @@ class Master(ServerTemplate, BaseMaster):
         self.name = name
         self.palm = palm
         self.cache = cache
+
+        # Cache the server info to be accessible to others within the cluster.
         self.cache.set('pull_address', pull_address)
         self.cache.set('push_address', push_address)
         self.cache.set('worker_pull_address', worker_pull_address)
@@ -222,26 +224,26 @@ class NewMaster(ServerTemplate, BaseMaster):
                  worker_pull_address: str, worker_push_address: str, db_address: str,
                  log_address: str = None, perf_address: str = None,
                  ping_address: str = None, cache: object = DictDB(),
-                 palm: bool = False, debug_level: int = logging.INFO):
+                 debug_level: int = logging.INFO):
         """
         """
-        super(Master, self).__init__(ping_address, log_address, perf_address,
-                                     logging_level=debug_level)
+        super(NewMaster, self).__init__(ping_address, log_address, perf_address,
+                                        logging_level=debug_level)
         self.name = name
-        self.palm = palm
+        self.palm = True
         self.cache = cache
-        self.cache.set('pull_address', pull_address)
-        self.cache.set('pub_address', pub_address)
-        self.cache.set('worker_pull_address', worker_pull_address)
-        self.cache.set('worker_push_address', worker_push_address)
+        self.cache.set('pull_address', pull_address.encode('utf-8'))
+        self.cache.set('pub_address', pub_address.encode('utf-8'))
+        self.cache.set('worker_pull_address', worker_pull_address.encode('utf-8'))
+        self.cache.set('worker_push_address', worker_push_address.encode('utf-8'))
 
         self.register_inbound(PullService, 'Pull', pull_address,
                               route='WorkerPush', log='to_broker')
         self.register_inbound(WorkerPullService, 'WorkerPull', worker_pull_address,
-                              route='Push', log='from_broker')
+                              route='Pub', log='from_broker')
         self.register_outbound(WorkerPushService, 'WorkerPush', worker_push_address,
                                log='to_broker')
-        self.register_outbound(PubService, 'Push', pub_address,
+        self.register_outbound(PubService, 'Pub', pub_address,
                                log='to_sink')
         self.register_bypass(CacheService, 'Cache', db_address)
 

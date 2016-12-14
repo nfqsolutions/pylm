@@ -155,41 +155,46 @@ class Pinger(PushBypassConnection):
 
 class CacheService(RepBypassService):
     def recv(self):
-        message_data = self.listen_to.recv()
-        message = PalmMessage()
-        message.ParseFromString(message_data)
-        instruction = message.function.split('.')[1]
+        for i in range(self.messages):
+            message_data = self.listen_to.recv()
+            message = PalmMessage()
+            message.ParseFromString(message_data)
+            instruction = message.function.split('.')[1]
 
-        if instruction == 'set':
-            if message.HasField('cache'):
-                key = message.cache
+            if instruction == 'set':
+                if message.HasField('cache'):
+                    key = message.cache
+                else:
+                    key = str(uuid4())
+
+                self.logger.debug('Cache Service: Set key {}'.format(key))
+                value = message.payload
+                self.cache.set(key, value)
+                return_value = key.encode('utf-8')
+
+            elif instruction == 'get':
+                key = message.payload.decode('utf-8')
+                self.logger.debug('Cache Service: Get key {}'.format(key))
+                value = self.cache.get(key)
+                if not value:
+                    self.logger.error('key {} not present'.format(key))
+                    return_value = b''
+                else:
+                    return_value = value
+
+            elif instruction == 'delete':
+                key = message.payload.decode('utf-8')
+                self.logger.debug('Cache Service: Delete key {}'.format(key))
+                self.cache.delete(key)
+                return_value = key.encode('utf-8')
+
             else:
-                key = str(uuid4())
+                self.logger.error(
+                    'Cache {}:Key not found in the database'.format(self.name)
+                )
+                return_value = b''
 
-            self.logger.debug('Cache Service: Set key {}'.format(key))
-            value = message.payload
-            self.cache.set(key, value)
-            return_value = key.encode('utf-8')
-
-        elif instruction == 'get':
-            key = message.payload.decode('utf-8')
-            self.logger.debug('Cache Service: Get key {}'.format(key))
-            value = self.cache.get(key)
-            return_value = value
-
-        elif instruction == 'delete':
-            key = message.payload.decode('utf-8')
-            self.logger.debug('Cache Service: Delete key {}'.format(key))
-            self.cache.delete(key)
-            return_value = key.encode('utf-8')
-
-        else:
-            self.logger.error(
-                'Cache {}:Key not found in the database'.format(self.name)
-            )
-            return_value = b'0'
-
-        self.listen_to.send(return_value)
+            self.listen_to.send(return_value)
 
 
 class ResilienceService(RepService):
