@@ -181,6 +181,7 @@ class Master(ServerTemplate, BaseMaster):
         self.cache = cache
 
         # Cache the server info to be accessible to others within the cluster.
+        self.cache.set('name', name)
         self.cache.set('pull_address', pull_address)
         self.cache.set('push_address', push_address)
         self.cache.set('worker_pull_address', worker_pull_address)

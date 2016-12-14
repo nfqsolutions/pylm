@@ -125,19 +125,21 @@ class SubscribedClient(object):
     """
     Client to connect to parallel servers
 
+    :param server_name: Server you are connecting to
+    :param db_address: Address for the cache service, for first connection or configuration.
+    :param push_address: Address of the push service of the server to pull from
     :param sub_address: Address of the pub service of the server to subscribe to
-    :param pull_address: Address of the push service of the server to pull from
-    :param db_address: Address for the cache service
     :param server_name: Name of the server to be connected to
     :param pipeline: Name of the pipeline if the session has to be reused
     """
-    def __init__(self, sub_address: str, pull_address: str,
-                 db_address: str, server_name: str,
+    def __init__(self, server_name: str,
+                 db_address: str,
+                 push_address: str=None,
+                 sub_address: str=None,
                  pipeline: str = None):
-        self.sub_address = sub_address
-        self.pull_address = pull_address
-        self.db_address = db_address
         self.server_name = server_name
+        self.db_address = db_address
+
         if pipeline:
             self.pipeline = pipeline
         else:
@@ -145,10 +147,30 @@ class SubscribedClient(object):
         self.uuid = str(uuid4())
 
         self.db = zmq_context.socket(zmq.REQ)
+        self.db.identity = self.uuid.encode('utf-8')
         self.db.connect(db_address)
+
+        self.sub_address = sub_address
+        self.push_address = push_address
 
         # PUB-SUB takes a while
         time.sleep(0.5)
+
+    def _get_config_from_master(self):
+        name = self.get('name').decode('utf-8')
+        if not name == self.server_name:
+            raise ValueError('You are connecting to the wrong server')
+
+        if not self.sub_address:
+            self.sub_address = self.get('sub_address').decode('utf-8')
+            print('Got subscription address: {}'.format(self.sub_address))
+
+        if not self.push_address:
+            self.push_address = self.get('pull_address').decode('utf-8')
+            print('Got push address: {}'.format(self.push_address))
+
+        return {'sub_address': self.sub_address,
+                'push_address': self.push_address}
 
     def clean(self):
         self.db.close()
