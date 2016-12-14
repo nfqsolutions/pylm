@@ -136,7 +136,7 @@ class SubscribedClient(object):
                  db_address: str,
                  push_address: str=None,
                  sub_address: str=None,
-                 pipeline: str = None):
+                 pipeline: str=None):
         self.server_name = server_name
         self.db_address = db_address
 
@@ -153,6 +153,7 @@ class SubscribedClient(object):
         self.sub_address = sub_address
         self.push_address = push_address
 
+        self._get_config_from_master()
         # PUB-SUB takes a while
         time.sleep(0.5)
 
@@ -162,12 +163,14 @@ class SubscribedClient(object):
             raise ValueError('You are connecting to the wrong server')
 
         if not self.sub_address:
-            self.sub_address = self.get('sub_address').decode('utf-8')
-            print('Got subscription address: {}'.format(self.sub_address))
+            self.sub_address = self.get('pub_address').decode('utf-8')
+            print('CLIENT {}: Got subscription address: {}'.format(self.uuid,
+                                                                   self.sub_address))
 
         if not self.push_address:
             self.push_address = self.get('pull_address').decode('utf-8')
-            print('Got push address: {}'.format(self.push_address))
+            print('CLIENT {}: Got push address: {}'.format(self.uuid,
+                                                           self.push_address))
 
         return {'sub_address': self.sub_address,
                 'push_address': self.push_address}
