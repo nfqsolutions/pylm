@@ -119,7 +119,7 @@ respective outwards-facing socket.
 
 The part library has a part for each one of the needs depicted above. There is a
 :py:class:`pylm.parts.services.PullService` that binds a ZeroMQ Pull socket to the exterior, and sends the
-messages to the router. There is a :py:class:`pylm.parts.services.PushService` that works exactly the other
+messages to the router. There is a :py:class:`pylm.parts.services.PubService` that works exactly the other
 way around. It listens to the router, and forwards the messages to a ZeroMQ Push socket. There are also
 specific services to connect to worker servers, :py:class:`pylm.parts.services.WorkerPullService` and
 :py:class:`pylm.parts.services.WorkerPullService`, that are very similar to the two previously described

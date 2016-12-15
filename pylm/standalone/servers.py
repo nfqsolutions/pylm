@@ -179,6 +179,7 @@ class Master(ServerTemplate, BaseMaster):
         self.name = name
         self.palm = True
         self.cache = cache
+        self.cache.set('name', self.name.encode('utf-8'))
         self.cache.set('pull_address', pull_address.encode('utf-8'))
         self.cache.set('pub_address', pub_address.encode('utf-8'))
         self.cache.set('worker_pull_address', worker_pull_address.encode('utf-8'))

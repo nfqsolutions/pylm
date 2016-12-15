@@ -205,11 +205,13 @@ class ParallelClient(object):
         sub_socket.connect(self.sub_address)
 
         for i in range(messages):
-            [client, message] = sub_socket.recv_multipart()
+            [client, message_data] = sub_socket.recv_multipart()
             if not client.decode('utf-8') == self.uuid:
                 raise ValueError('The client got a message that does not belong')
 
-            yield message 
+            message = PalmMessage()
+            message.ParseFromString(message_data)
+            yield message.payload
 
     def set(self, value: bytes, key=None):
         """
