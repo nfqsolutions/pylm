@@ -44,7 +44,8 @@ class ServerTemplate(object):
                  ping_address: str = '',
                  log_address: str = '',
                  perf_address: str = '',
-                 logging_level=logging.INFO):
+                 logging_level=logging.INFO,
+                 router_messages=sys.maxsize):
         # Name of the server
         self.name = ''
 
@@ -89,7 +90,8 @@ class ServerTemplate(object):
 
         # Finally, the router
         self.router = Router(logger=self.logger,
-                             cache=self.cache)
+                             cache=self.cache,
+                             messages=router_messages)
 
     def register_inbound(self, part, name, listen_address, route='', block=False, log='', **kwargs):
         """
