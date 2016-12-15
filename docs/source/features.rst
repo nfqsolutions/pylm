@@ -15,7 +15,7 @@ side effects.
 For instance, take the simplest of the examples, the one in the introduction, and add an obvious bug in the
 ``foo`` function.
 
-.. literalinclude:: ./examples/error/server.py
+.. literalinclude:: ../../examples/error/server.py
     :language: python
     :linenos:
     :emphasize-lines: 7
@@ -45,7 +45,7 @@ Each server, independently on its variant, has a built-in logger with the usual 
 find them in the :py:mod:`logging` module of the standard library. The following example, that builds upon the
 previous one illustrates how to use the logging capabilities.
 
-.. literalinclude:: ./examples/logging/master.py
+.. literalinclude:: ../../examples/logging/master.py
     :language: python
     :linenos:
     :emphasize-lines: 18, 19, 31
@@ -53,7 +53,7 @@ previous one illustrates how to use the logging capabilities.
 The server sets the ``WARNING`` logging level, and then logs as critical when it changes the payload of the last
 message.
 
-.. literalinclude:: ./examples/logging/worker.py
+.. literalinclude:: ../../examples/logging/worker.py
     :language: python
     :linenos:
     :emphasize-lines: 15

@@ -31,18 +31,18 @@ this is the reason why a different set of servers are available in pylm, the cha
 (:py:class:`pylm.chained.servers.Server`). The first server is analogous to the one in the
 previous example, it prepends the string *you sent me* to the original message.
 
-.. literalinclude:: ./examples/chained_single/step1.py
+.. literalinclude:: ../../examples/chained_single/step1.py
     :language: python
     :linenos:
 
-.. literalinclude:: ./examples/chained_single/step2.py
+.. literalinclude:: ../../examples/chained_single/step2.py
     :language: python
     :linenos:
 
 The last server of the pipeline is slightly different, since it does not chain with another
 server, but with the client. It has to inherit from :py:class:`pylm.chained.servers.LastServer`
 
-.. literalinclude:: ./examples/chained_single/last.py
+.. literalinclude:: ../../examples/chained_single/last.py
     :language: python
     :linenos:
 
@@ -53,7 +53,7 @@ and waits for the result, without the need to wait for the whole pipeline to fin
 that, if the pipeline is complex enough, the results may arrive in a different order than the
 jobs they were sent from.
 
-.. literalinclude:: ./examples/chained_single/client.py
+.. literalinclude:: ../../examples/chained_single/client.py
     :language: python
     :linenos:
 

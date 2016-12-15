@@ -16,7 +16,7 @@
 import sys
 import os
 import shlex
-11
+
 # Set the version string from the version file.
 with open('../../pylm/version.py') as f:
     exec(f.read())
@@ -216,10 +216,10 @@ htmlhelp_basename = 'PALMdoc'
 
 latex_elements = {
 # The paper size ('letterpaper' or 'a4paper').
-#'papersize': 'letterpaper',
+'papersize': 'a4paper',
 
 # The font size ('10pt', '11pt' or '12pt').
-#'pointsize': '10pt',
+'pointsize': '10pt',
 
 # Additional stuff for the LaTeX preamble.
 #'preamble': '',

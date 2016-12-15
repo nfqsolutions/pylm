@@ -125,7 +125,7 @@ specific services to connect to worker servers, :py:class:`pylm.parts.services.W
 :py:class:`pylm.parts.services.WorkerPullService`, that are very similar to the two previously described
 services. With those pieces, we are ready to build a master server as follows
 
-.. literalinclude:: ./examples/template/master.py
+.. literalinclude:: ../../examples/template/master.py
     :language: python
     :linenos:
 

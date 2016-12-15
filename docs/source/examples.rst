@@ -8,85 +8,85 @@ Examples
 Simple server and client communication
 --------------------------------------
 
-.. literalinclude:: ./examples/standalone_single/server.py
+.. literalinclude:: ../../examples/standalone_single/server.py
     :language: python
     :linenos:
 
-.. literalinclude:: ./examples/standalone_single/client.py
+.. literalinclude:: ../../examples/standalone_single/client.py
     :language: python
     :linenos:
 
 Simple parallel server and client communication
 -----------------------------------------------
 
-.. literalinclude:: ./examples/standalone_parallel/master.py
+.. literalinclude:: ../../examples/standalone_parallel/master.py
     :language: python
     :linenos:
 
-.. literalinclude:: ./examples/standalone_parallel/worker.py
+.. literalinclude:: ../../examples/standalone_parallel/worker.py
     :language: python
     :linenos:
 
-.. literalinclude:: ./examples/standalone_parallel/client.py
+.. literalinclude:: ../../examples/standalone_parallel/client.py
     :language: python
     :linenos:
 
 Cache operation for the standalone parallel version
 ---------------------------------------------------
 
-.. literalinclude:: ./examples/cache/master.py
+.. literalinclude:: ../../examples/cache/master.py
     :language: python
     :linenos:
 
-.. literalinclude:: ./examples/cache/worker.py
+.. literalinclude:: ../../examples/cache/worker.py
     :language: python
     :linenos:
 
-.. literalinclude:: ./examples/cache/client.py
+.. literalinclude:: ../../examples/cache/client.py
     :language: python
     :linenos:
 
 Usage of the scatter function
 -----------------------------
 
-.. literalinclude:: ./examples/scatter/master.py
+.. literalinclude:: ../../examples/scatter/master.py
     :language: python
     :linenos:
 
-.. literalinclude:: ./examples/scatter/worker.py
+.. literalinclude:: ../../examples/scatter/worker.py
     :language: python
     :linenos:
 
-.. literalinclude:: ./examples/scatter/client.py
+.. literalinclude:: ../../examples/scatter/client.py
     :language: python
     :linenos:
 
 Usage of the gather function
 ----------------------------
 
-.. literalinclude:: ./examples/gather/master.py
+.. literalinclude:: ../../examples/gather/master.py
     :language: python
     :linenos:
 
-.. literalinclude:: ./examples/gather/worker.py
+.. literalinclude:: ../../examples/gather/worker.py
     :language: python
     :linenos:
 
-.. literalinclude:: ./examples/gather/client.py
+.. literalinclude:: ../../examples/gather/client.py
     :language: python
     :linenos:
 
 Building a master server from its components
 --------------------------------------------
 
-.. literalinclude:: ./examples/template/master.py
+.. literalinclude:: ../../examples/template/master.py
     :language: python
     :linenos:
 
-.. literalinclude:: ./examples/template/worker.py
+.. literalinclude:: ../../examples/template/worker.py
     :language: python
     :linenos:
 
-.. literalinclude:: ./examples/template/client.py
+.. literalinclude:: ../../examples/template/client.py
     :language: python
     :linenos:

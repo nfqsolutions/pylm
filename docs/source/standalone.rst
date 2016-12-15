@@ -28,15 +28,15 @@ The following is a simple example on how to configure and run a parallel server.
 is designed to handle a large workload, the job method of the client expects a generator that creates a
 series of binary messages.
 
-.. literalinclude:: ./examples/standalone_parallel/master.py
+.. literalinclude:: ../../examples/standalone_parallel/master.py
     :language: python
     :linenos:
 
-.. literalinclude:: ./examples/standalone_parallel/worker.py
+.. literalinclude:: ../../examples/standalone_parallel/worker.py
     :language: python
     :linenos:
 
-.. literalinclude:: ./examples/standalone_parallel/client.py
+.. literalinclude:: ../../examples/standalone_parallel/client.py
     :language: python
     :linenos:
 
@@ -93,16 +93,16 @@ the job, it sets a value in the temporary cache of the master server. The worker
 cached variable is hardcoded within the function that is executed, get the value and they use it to build the
 response. The variations respect to the previous examples have been empasized.
 
-.. literalinclude:: ./examples/cache/master.py
+.. literalinclude:: ../../examples/cache/master.py
     :language: python
     :linenos:
 
-.. literalinclude:: ./examples/cache/worker.py
+.. literalinclude:: ../../examples/cache/worker.py
     :language: python
     :linenos:
     :emphasize-lines: 7,8
 
-.. literalinclude:: ./examples/cache/client.py
+.. literalinclude:: ../../examples/cache/client.py
     :language: python
     :linenos:
     :emphasize-lines: 10,11
@@ -132,7 +132,7 @@ generator is executed. It is useful to modify the message stream in any conceiva
 following example, right at the highlighted lines, a new master server overrides this ``scatter``
 generator with a new one that sends the message it gets three times.
 
-.. literalinclude:: ./examples/scatter/master.py
+.. literalinclude:: ../../examples/scatter/master.py
     :language: python
     :linenos:
     :emphasize-lines: 4,5,6,7,8
@@ -140,7 +140,7 @@ generator with a new one that sends the message it gets three times.
 The workers are identical than in the previous example. Since each message that the client sends
 to the master is repeated three times, the client expects 30 messages instead of 10.
 
-.. literalinclude:: ./examples/scatter/client.py
+.. literalinclude:: ../../examples/scatter/client.py
     :language: python
     :linenos:
     :emphasize-lines: 30
@@ -176,7 +176,7 @@ to the server for the counter, and we have to modify a message with :py:meth:`py
 See that this example is incremental respect to the previous one, and in consequence it uses the cache service and
 the scatter and the gather generators.
 
-.. literalinclude:: ./examples/gather/master.py
+.. literalinclude:: ../../examples/gather/master.py
     :language: python
     :linenos:
     :emphasize-lines: 6-8, 14-20

@@ -11,7 +11,7 @@ Standalone Servers
 Standalone Clients
 ..................
 
-.. automodule:: pylm.standalone.client
+.. automodule:: pylm.standalone.clients
    :members:
    :inherited-members:
 
@@ -25,6 +25,6 @@ Chained Servers
 Chained Clients
 ...............
 
-.. automodule:: pylm.chained.client
+.. automodule:: pylm.chained.clients
    :members:
    :inherited-members:
