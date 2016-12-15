@@ -1,4 +1,5 @@
 from pylm.parts.core import zmq_context, Router
+from pylm.parts.messages_pb2 import PalmMessage
 from pylm.standalone.clients import SubscribedClient
 from pylm.parts.utils import CacheService
 from pylm.parts.services import PullService, PubService
@@ -182,14 +183,21 @@ def test_multiple_clients():
         for i, future in enumerate(concurrent.futures.as_completed(results)):
             try:
                 result = future.result()
-                print(result)
+                if type(result) == list:
+                    got = []
+                    for r in result:
+                        message = PalmMessage()
+                        message.ParseFromString(r)
+                        got.append(message.payload)
+
+                    assert got == [b'1', b'2'] or got == [b'3', b'4']
 
             except Exception as exc:
                 print(exc)
                 lines = traceback.format_exception(*sys.exc_info())
                 print(*lines)
 
-        assert i == 5
+    assert i == 5
 
 
 if __name__ == '__main__':
