@@ -143,6 +143,8 @@ class Router(object):
             else:
                 self.inbound.send_multipart([component, empty, b'1'])
 
+        return b'router'
+
     def cleanup(self):
         self.inbound.close()
         self.outbound.close()
