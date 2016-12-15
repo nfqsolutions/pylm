@@ -319,6 +319,8 @@ class ComponentInbound(object):
                 if self.reply:
                     self.listen_to.send(b'0')
 
+        return self.name
+
     def cleanup(self):
         self.broker.close()
         self.listen_to.close()
@@ -468,6 +470,8 @@ class ComponentOutbound(object):
 
             self.broker.send(self.reply_feedback())
 
+        return self.name
+
     def cleanup(self):
         self.listen_to.close()
         self.broker.close()
@@ -524,6 +528,8 @@ class ComponentBypassInbound(object):
 
         for i in range(self.messages):
             self.recv()
+
+        return self.name
 
     def cleanup(self):
         self.listen_to.close()

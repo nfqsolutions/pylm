@@ -234,6 +234,8 @@ class PubService(ComponentOutbound):
 
             self.broker.send(self.reply_feedback())
 
+        return self.name
+
         
 class WorkerPushService(PushService):
     """

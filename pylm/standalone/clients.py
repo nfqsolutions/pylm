@@ -178,26 +178,28 @@ class SubscribedClient(object):
     def clean(self):
         self.db.close()
 
-    def _sender(self, socket, function, generator):
+    def _sender(self, socket, function, generator, cache):
         for payload in generator:
             message = PalmMessage()
             message.function = function
-            message.stage = 1
+            message.stage = 0
             message.pipeline = self.pipeline
             message.client = self.uuid
             message.payload = payload
+            if cache:
+                message.cache = cache
 
             socket.send(message.SerializeToString())
         
     def job(self, function, generator, cache=None, messages=sys.maxsize):
         push_socket = zmq_context.socket(zmq.PUSH)
-        push_socket.connect(self.pull_address)
+        push_socket.connect(self.push_address)
         sender_thread = Thread(target=self._sender,
-                               args=(push_socket, function, generator))
+                               args=(push_socket, function, generator, cache))
 
         # Sender runs in background.
         sender_thread.start()
-        
+
         sub_socket = zmq_context.socket(zmq.SUB)
         sub_socket.setsockopt_string(zmq.SUBSCRIBE, self.uuid)
         sub_socket.connect(self.sub_address)
