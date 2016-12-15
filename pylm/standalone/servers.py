@@ -156,60 +156,6 @@ class Master(ServerTemplate, BaseMaster):
 
     :param name: Name of the server
     :param pull_address: Valid address for the pull service
-    :param push_address: Valid address for the push service
-    :param worker_pull_address: Valid address for the pull-from-workers service
-    :param worker_push_address: Valid address for the push-to-workers service
-    :param db_address: Valid address to bind the Cache service
-    :param log_address: Address of the centralized logging service
-    :param perf_address: Address of the centralized performance counter service
-    :param ping_address: Address of the centralized health service
-    :param cache: Key-value embeddable database. Pick from one of the supported ones
-    :param palm: If messages are of the PALM kind
-    :param debug_level: Logging level
-    """
-    def __init__(self, name: str, pull_address: str, push_address: str,
-                 worker_pull_address: str, worker_push_address: str, db_address: str,
-                 log_address: str = None, perf_address: str = None,
-                 ping_address: str = None, cache: object = DictDB(),
-                 palm: bool = False, debug_level: int = logging.INFO):
-        """
-        """
-        super(Master, self).__init__(ping_address, log_address, perf_address,
-                                     logging_level=debug_level)
-        self.name = name
-        self.palm = palm
-        self.cache = cache
-
-        # Cache the server info to be accessible to others within the cluster.
-        self.cache.set('name', name)
-        self.cache.set('pull_address', pull_address)
-        self.cache.set('push_address', push_address)
-        self.cache.set('worker_pull_address', worker_pull_address)
-        self.cache.set('worker_push_address', worker_push_address)
-
-        self.register_inbound(PullService, 'Pull', pull_address,
-                              route='WorkerPush', log='to_broker')
-        self.register_inbound(WorkerPullService, 'WorkerPull', worker_pull_address,
-                              route='Push', log='from_broker')
-        self.register_outbound(WorkerPushService, 'WorkerPush', worker_push_address,
-                               log='to_broker')
-        self.register_outbound(PushService, 'Push', push_address,
-                               log='to_sink')
-        self.register_bypass(CacheService, 'Cache', db_address)
-
-        # Monkey patches the scatter and gather functions to the
-        # scatter function of Push and Pull parts respectively.
-        self.inbound_components['Pull'].scatter = self.scatter
-        self.outbound_components['Push'].scatter = self.gather
-
-
-class NewMaster(ServerTemplate, BaseMaster):
-    """
-    Standalone master server, intended to send workload to workers.
-    WARNING. This implementation is not using the resilience service.
-
-    :param name: Name of the server
-    :param pull_address: Valid address for the pull service
     :param pub_address: Valid address for the pub service
     :param worker_pull_address: Valid address for the pull-from-workers service
     :param worker_push_address: Valid address for the push-to-workers service
@@ -228,8 +174,8 @@ class NewMaster(ServerTemplate, BaseMaster):
                  debug_level: int = logging.INFO):
         """
         """
-        super(NewMaster, self).__init__(ping_address, log_address, perf_address,
-                                        logging_level=debug_level)
+        super(Master, self).__init__(ping_address, log_address, perf_address,
+                                     logging_level=debug_level)
         self.name = name
         self.palm = True
         self.cache = cache
