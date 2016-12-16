@@ -16,7 +16,7 @@
 
 from pylm.parts.core import zmq_context
 from pylm.parts.services import WorkerPullService, WorkerPushService
-from pylm.parts.services import PullService, PushService, PubService
+from pylm.parts.services import PullService, PubService
 from pylm.parts.utils import PushHandler, Pinger, PerformanceCounter, CacheService
 from pylm.parts.servers import BaseMaster, ServerTemplate
 from pylm.parts.messages_pb2 import PalmMessage, BrokerMessage
@@ -204,10 +204,20 @@ class Master(ServerTemplate, BaseMaster):
 class Worker(object):
     """
     Standalone worker for the standalone master.
+
+    :param name: Name assigned to this worker server
+    :param db_address: Address of the db service of the master
+    :param push_address: Address the workers push to. If left blank, fetches it from the master
+    :param pull_address: Address the workers pull from. If left blank, fetches it from the master
+    :param log_address: Address for the log service. If left blank, it logs to screen
+    :param perf_address: Address for the performance counting service. If left blank, it logs to screen.
+    :param ping_address: Address for the health monitoring service.
+    :param log_level: Log level for this server.
+    :param messages: Number of messages befor it is shut down.
     """
-    def __init__(self, name, push_address, pull_address, db_address,
+    def __init__(self, name, db_address, push_address=None, pull_address=None,
                  log_address=None, perf_address=None, ping_address=None,
-                 debug_level=logging.INFO, messages=sys.maxsize):
+                 log_level=logging.INFO, messages=sys.maxsize):
         self.name = name
         self.uuid = str(uuid4())
 
@@ -216,32 +226,34 @@ class Worker(object):
             handler = PushHandler(log_address)
             self.logger = logging.getLogger(name)
             self.logger.addHandler(handler)
-            self.logger.setLevel(debug_level)
+            self.logger.setLevel(log_level)
 
         else:
             self.logger = logging.getLogger(name=name)
-            self.logger.setLevel(debug_level)
             handler = logging.StreamHandler(sys.stdout)
             handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
             self.logger.addHandler(handler)
-            self.logger.setLevel(debug_level)
+            self.logger.setLevel(log_level)
 
         # Configure the performance counter
         if perf_address:
             self.perfcounter = PerformanceCounter(listen_address=perf_address)
 
-        # Configure the push and pull connections.
+        # Configure the connections.
         self.push_address = push_address
-        self.pull = zmq_context.socket(zmq.PULL)
-        self.pull.connect(push_address)
-
         self.pull_address = pull_address
-        self.push = zmq_context.socket(zmq.PUSH)
-        self.push.connect(pull_address)
 
         self.db_address = db_address
         self.db = zmq_context.socket(zmq.REQ)
         self.db.connect(db_address)
+
+        self._get_config_from_master()
+
+        self.pull = zmq_context.socket(zmq.PULL)
+        self.pull.connect(self.push_address)
+
+        self.push = zmq_context.socket(zmq.PUSH)
+        self.push.connect(self.pull_address)
 
         self.messages = messages
         self.message = BrokerMessage()
@@ -254,6 +266,18 @@ class Worker(object):
             pinger_thread = Thread(target=self.pinger.start)
             pinger_thread.daemon = True
             pinger_thread.start()
+
+    def _get_config_from_master(self):
+        if not self.push_address:
+            self.push_address = self.get('worker_push_address').decode('utf-8')
+            self.logger.info('Got worker push address: {}'.format(self.push_address))
+
+        if not self.pull_address:
+            self.pull_address = self.get('worker_pull_address').decode('utf-8')
+            self.logger.info('Got worker pull address: {}'.format(self.pull_address))
+
+        return {'push_address': self.push_address,
+                'pull_address': self.pull_address}
 
     def start(self):
         for i in range(self.messages):
