@@ -22,13 +22,12 @@ class MyMaster(Master):
             yield message
 
 server = MyMaster(name='server',
+                  db_address='tcp://127.0.0.1:5559',
                   pull_address='tcp://127.0.0.1:5555',
-                  push_address='tcp://127.0.0.1:5556',
+                  pub_address='tcp://127.0.0.1:5556',
                   worker_pull_address='tcp://127.0.0.1:5557',
                   worker_push_address='tcp://127.0.0.1:5558',
-                  db_address='tcp://127.0.0.1:5559',
-                  palm=True,
-                  debug_level=logging.WARNING)
+                  log_level=logging.WARNING)
 
 if __name__ == '__main__':
     server.start()

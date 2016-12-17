@@ -14,14 +14,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from pylm.standalone import ParallelClient
+from pylm.standalone import Client
 from pylm.parts.core import zmq_context
 from uuid import uuid4
 import zmq
 import sys
 
 
-class LoopClient(ParallelClient):
+class LoopClient(Client):
     """
     Client for pipelines that end in a client.
     """

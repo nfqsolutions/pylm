@@ -94,10 +94,27 @@ class Router(object):
 
     def start(self):
         self.logger.info('Launch router')
-        self.logger.info('Inbound socket: {}'.format(self.inbound))
-        self.logger.info('Inbound parts: {}'.format(self.inbound_components))
-        self.logger.info('Outbound socket: {}'.format(self.outbound))
-        self.logger.info('Outbound parts: {}'.format(self.outbound_components))
+        for part in self.inbound_components:
+            route = self.inbound_components[part]['route'].decode('utf-8')
+            if not route:
+                route = 'exterior'
+            self.logger.info(
+                'Inbound {} connects to {}'.format(
+                    part.decode('utf-8'),
+                    route
+                )
+            )
+            
+        for part in self.outbound_components:
+            route = self.outbound_components[part]['route'].decode('utf-8')
+            if not route:
+                route = 'exterior'
+            self.logger.info(
+                'Outbound {} connects to {}'.format(
+                    part.decode('utf-8'),
+                    route
+                )
+            )
 
         for i in range(self.messages):
             component, empty, message_data = self.inbound.recv_multipart()
@@ -297,9 +314,9 @@ class ComponentInbound(object):
         else:
             self.listen_to.connect(self.listen_address)
 
-        self.logger.info('Launch component {}'.format(self.name))
+        self.logger.info('{} successfully started'.format(self.name))
         for i in range(self.messages):
-            self.logger.debug('Component {} blocked waiting messages'.format(self.name))
+            self.logger.debug('{} blocked waiting messages'.format(self.name))
             message_data = self.listen_to.recv()
             self.logger.debug('{} Got inbound message'.format(self.name))
 
@@ -307,7 +324,7 @@ class ComponentInbound(object):
                 for scattered in self.scatter(message_data):
                     scattered = self._translate_to_broker(scattered)
                     self.broker.send(scattered)
-                    self.logger.debug('Component {} blocked waiting for broker'.format(
+                    self.logger.debug('{} blocked waiting for broker'.format(
                         self.name))
                     self.handle_feedback(self.broker.recv())
 
@@ -455,15 +472,17 @@ class ComponentOutbound(object):
         else:
             self.listen_to.connect(self.listen_address)
 
+        self.logger.info('{} successfully started'.format(self.name))
+            
         for i in range(self.messages):
-            self.logger.debug('Component {} blocked waiting for broker'.format(self.name))
+            self.logger.debug('{} blocked waiting for broker'.format(self.name))
             message_data = self.broker.recv()
-            self.logger.debug('Component {} Got message from broker'.format(self.name))
+            self.logger.debug('{} Got message from broker'.format(self.name))
             message_data = self._translate_from_broker(message_data)
 
             for scattered in self.scatter(message_data):
                 self.listen_to.send(scattered)
-                self.logger.debug('Component {} Sent message'.format(self.name))
+                self.logger.debug('{} Sent message'.format(self.name))
 
                 if self.reply:
                     feedback = self.listen_to.recv()

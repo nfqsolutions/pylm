@@ -1,4 +1,4 @@
-from pylm.standalone import Client, ParallelClient, Server, Master, EndPoint
+from pylm.standalone import Client, Client, Server, Master, EndPoint
 from pylm.parts.utils import PushHandler, CacheService
 from pylm.persistence.kv import DictDB
 from threading import Thread
@@ -87,8 +87,8 @@ def test_cache_component():
     for t in threads:
         t.start()
 
-    client = ParallelClient(this_push_address, this_pull_address,
-                            this_rep_address, "Server")
+    client = Client(this_push_address, this_pull_address,
+                    this_rep_address, "Server")
 
     key = client.set(b'something')
 
@@ -144,8 +144,8 @@ def test_cache_master():
     for t in threads:
         t.start()
 
-    client = ParallelClient(this_push_address, this_pull_address,
-                            this_rep_address, "Server")
+    client = Client(this_push_address, this_pull_address,
+                    this_rep_address, "Server")
 
     key = client.set(b'something')
 

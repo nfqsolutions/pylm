@@ -208,12 +208,13 @@ class PubService(ComponentOutbound):
         """
         Call this function to start the component
         """
-        self.listen_to.bind(self.listen_address)            
+        self.listen_to.bind(self.listen_address)
+        self.logger.info('{} successfully started'.format(self.name))
 
         for i in range(self.messages):
-            self.logger.debug('Component {} blocked waiting for broker'.format(self.name))
+            self.logger.debug('{} blocked waiting for broker'.format(self.name))
             message_data = self.broker.recv()
-            self.logger.debug('Component {} Got message from broker'.format(self.name))
+            self.logger.debug('{} Got message from broker'.format(self.name))
             message_data = self._translate_from_broker(message_data)
 
             if self.pipelined:
@@ -375,14 +376,14 @@ class PushPullService(object):
         return self.last_message
 
     def start(self):
-        self.logger.info('Launch component {}'.format(self.name))
+        self.logger.info('{} Successfully started'.format(self.name))
         initial_broker_message = BrokerMessage()
         initial_broker_message.key = '0'
         initial_broker_message.payload = b'0'
         self.broker.send(initial_broker_message.SerializeToString())
 
         for i in range(self.messages):
-            self.logger.debug('Component {} blocked waiting for broker'.format(self.name))
+            self.logger.debug('{} blocked waiting for broker'.format(self.name))
             # Workers use BrokerMessages, because they want to know the message ID.
             message_data = self.broker.recv()
             self.logger.debug('Got message {} from broker'.format(i))
@@ -391,6 +392,8 @@ class PushPullService(object):
                 self.handle_feedback(self.pull.recv())
 
             self.broker.send(self.reply_feedback())
+
+        return self.name
 
     def cleanup(self):
         self.push.close()

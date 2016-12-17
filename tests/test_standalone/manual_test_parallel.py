@@ -1,7 +1,7 @@
 # Test for the prototype of the client for the parallel client.
 
 from threading import Thread
-from pylm.standalone import Master, EndPoint, Worker, ParallelClient
+from pylm.standalone import Master, EndPoint, Worker, Client
 
 
 class NewWorker(Worker):
@@ -46,9 +46,9 @@ def test_standalone_parallel_client():
                         this_perf_address,
                         this_ping_address)
 
-    client = ParallelClient(master.push_address,
-                            master.pull_address,
-                            master.db_address,
+    client = Client(master.push_address,
+                    master.pull_address,
+                    master.db_address,
                             'master')
 
     threads = [

@@ -1,4 +1,4 @@
-from pylm.standalone import ParallelClient, Master, Worker, EndPoint
+from pylm.standalone import Client, Master, Worker, EndPoint
 from threading import Thread
 
 
@@ -60,8 +60,8 @@ def test_cache_worker():
     for t in threads:
         t.start()
 
-    client = ParallelClient(this_push_address, this_pull_address,
-                            this_rep_address, "Server")
+    client = Client(this_push_address, this_pull_address,
+                    this_rep_address, "Server")
 
     key = client.set(b'something')
 

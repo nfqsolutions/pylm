@@ -25,103 +25,6 @@ import sys
 
 
 class Client(object):
-    """Serial client"""
-    def __init__(self, connection, server_name, pipeline=None):
-        self.req = zmq_context.socket(zmq.REQ)
-        self.req.connect(connection)
-        self.server_name = server_name
-        self.uuid = str(uuid4())
-        if pipeline:
-            self.pipeline = pipeline
-        else:
-            self.pipeline = str(uuid4())
-
-    def set(self, data, key=None):
-        """
-        Sets some data in the server's internal cache.
-
-        :param data: Data to be cached.
-        :param key: Sets a key. Otherwise it returns an automatically generated key
-        :return: UUID of the key
-        """
-        if not type(data) == bytes:
-            raise TypeError('First argument *data* must be of type <bytes>')
-
-        message = PalmMessage()
-        message.pipeline = self.pipeline
-        message.client = self.uuid
-        message.stage = 0
-        message.function = '.'.join([self.server_name, 'set'])
-        message.payload = data
-        if key:
-            message.cache = key
-        self.req.send(message.SerializeToString())
-        message.ParseFromString(self.req.recv())
-        return message.payload.decode('utf-8')
-
-    def get(self, key):
-        """
-        Gets data from the server's internal cache.
-
-        :param key: Key for the data to get
-        :return:
-        """
-        message = PalmMessage()
-        message.pipeline = self.pipeline
-        message.client = self.uuid
-        message.stage = 0
-        message.function = '.'.join([self.server_name, 'get'])
-        message.payload = key.encode('utf-8')
-        self.req.send(message.SerializeToString())
-        message.ParseFromString(self.req.recv())
-        return message.payload
-
-    def delete(self, key):
-        """
-        Deletes data in the server's internal cache.
-
-        :param key: Key of the data to be deleted
-        :return:
-        """
-        message = PalmMessage()
-        message.pipeline = self.pipeline
-        message.client = self.uuid
-        message.stage = 0
-        message.function = '.'.join([self.server_name, 'delete'])
-        message.payload = key.encode('utf-8')
-        self.req.send(message.SerializeToString())
-        message.ParseFromString(self.req.recv())
-        return message.payload.decode('utf-8')
-
-    def job(self, function, data, pipeline=None, cache=None):
-        """
-        RPC function with data
-
-        :param function: Function name as string, already defined in the server
-        :param data: Binary message to be sent as argument
-        :param pipeline: Name of the pipeline if an existing one has to be used
-        :param cache: Value of the cache for manually overriding that internal variable
-        :return: Result
-        """
-        message = PalmMessage()
-        if pipeline:
-            message.pipeline = pipeline
-        else:
-            message.pipeline = str(uuid4())
-
-        if cache:
-            message.cache = cache
-
-        message.client = self.uuid
-        message.stage = 0
-        message.function = '.'.join([self.server_name, function])
-        message.payload = data
-        self.req.send(message.SerializeToString())
-        message.ParseFromString(self.req.recv())
-        return message.payload
-
-
-class ParallelClient(object):
     """
     Client to connect to parallel servers
 
@@ -142,8 +45,11 @@ class ParallelClient(object):
 
         if pipeline:
             self.pipeline = pipeline
+            self.session_set = True
         else:
             self.pipeline = str(uuid4())
+            self.session_set = False
+            
         self.uuid = str(uuid4())
 
         self.db = zmq_context.socket(zmq.REQ)
@@ -194,15 +100,16 @@ class ParallelClient(object):
     def job(self, function, generator, cache=None, messages=sys.maxsize):
         push_socket = zmq_context.socket(zmq.PUSH)
         push_socket.connect(self.push_address)
+
+        sub_socket = zmq_context.socket(zmq.SUB)
+        sub_socket.setsockopt_string(zmq.SUBSCRIBE, self.uuid)
+        sub_socket.connect(self.sub_address)
+
         sender_thread = Thread(target=self._sender,
                                args=(push_socket, function, generator, cache))
 
         # Sender runs in background.
         sender_thread.start()
-
-        sub_socket = zmq_context.socket(zmq.SUB)
-        sub_socket.setsockopt_string(zmq.SUBSCRIBE, self.uuid)
-        sub_socket.connect(self.sub_address)
 
         for i in range(messages):
             [client, message_data] = sub_socket.recv_multipart()
@@ -212,6 +119,49 @@ class ParallelClient(object):
             message = PalmMessage()
             message.ParseFromString(message_data)
             yield message.payload
+
+    def eval(self, function, payload, messages=1, cache=None):
+        """
+        Execute single evaluation.
+
+        :param function:
+        :param payload:
+        :param messages:
+        :param cache:
+        :return:
+        """
+        push_socket = zmq_context.socket(zmq.PUSH)
+        push_socket.connect(self.push_address)
+
+        sub_socket = zmq_context.socket(zmq.SUB)
+        sub_socket.setsockopt_string(zmq.SUBSCRIBE, self.uuid)
+        sub_socket.connect(self.sub_address)
+
+        message = PalmMessage()
+        message.function = function
+        message.stage = 0
+        message.pipeline = self.pipeline
+        message.client = self.uuid
+        message.payload = payload
+        if cache:
+            message.cache = cache
+
+        print('sending message')
+        push_socket.send(message.SerializeToString())
+
+        result = []
+
+        for i in range(messages):
+            print('Waiting for response')
+            [client, message_data] = sub_socket.recv_multipart()
+            message.ParseFromString(message_data)
+            result.append(message.payload)
+
+        if messages == 1:
+            return result[0]
+
+        else:
+            return result
 
     def set(self, value: bytes, key=None):
         """

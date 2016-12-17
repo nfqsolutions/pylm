@@ -50,7 +50,7 @@ class ServerTemplate(object):
         self.name = ''
 
         # Messages use the PALM specification
-        self.palm = False
+        self.palm = True
 
         # Logging level for the server
         self.logging_level = logging_level
@@ -110,7 +110,6 @@ class ServerTemplate(object):
                         broker_address=self.router.inbound_address,
                         logger=self.logger,
                         palm=self.palm,
-                        cache=self.cache,
                         **kwargs)
 
         self.router.register_inbound(name,
@@ -136,7 +135,6 @@ class ServerTemplate(object):
                         broker_address=self.router.outbound_address,
                         logger=self.logger,
                         palm=self.palm,
-                        cache=self.cache,
                         **kwargs)
 
         self.router.register_outbound(name,
@@ -157,7 +155,6 @@ class ServerTemplate(object):
         instance = part(name,
                         listen_address,
                         logger=self.logger,
-                        cache=self.cache,
                         **kwargs)
 
         self.bypass_components[name] = instance

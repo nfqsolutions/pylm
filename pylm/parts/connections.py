@@ -180,9 +180,9 @@ class HttpConnection(ComponentOutbound):
             return response.read()
 
         for i in range(self.messages):
-            self.logger.debug('Component {} blocked waiting for broker'.format(self.name))
+            self.logger.debug('{} blocked waiting for broker'.format(self.name))
             message_data = self.broker.recv()
-            self.logger.debug('Component {} Got message from broker'.format(self.name))
+            self.logger.debug('{} Got message from broker'.format(self.name))
             message_data = self._translate_from_broker(message_data)
 
             with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:

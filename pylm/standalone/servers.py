@@ -24,6 +24,7 @@ from pylm.persistence.kv import DictDB
 from google.protobuf.message import DecodeError
 from threading import Thread
 from uuid import uuid4
+import concurrent.futures
 import traceback
 import logging
 import zmq
@@ -40,19 +41,37 @@ class Server(object):
     Standalone and minimal server that replies single requests.
 
     :param str name: Name of the server
-    :param str rep_address: ZeroMQ address this server binds to.
-    :param str log_address: Address of the central logging system. Leave to None to let the server manage the logs itself
-    :param str perf_address: Address of the performance counter registry. Leave to None if you don't need performance counters.
-    :param str ping_address: Address of the central server registry. Leave to None if you don't want to track the health of the server.
+    :param str db_address: ZeroMQ address of the cache service.
+    :param str pull_address: Address of the pull socket
+    :param str pub_address: Address of the pub socket
+    :param pipelined: True if the server is chained to another server.
+    :param str log_address: Address of the central logging system. Leave
+     to None to let the server manage the logs itself
+    :param str perf_address: Address of the performance counter registry.
+     Leave to None if you don't need performance counters.
+    :param str ping_address: Address of the central server registry. Set to
+     None if you don't want to track the health of the server.
     :param log_level: Minimum output log level.
-    :param int messages: Total number of messages that the server processes. Useful for debugging.
+    :param int messages: Total number of messages that the server processes.
+     Useful for debugging.
     """
-    def __init__(self, name, rep_address, log_address=None, perf_address=None,
+    def __init__(self, name, db_address,
+                 pull_address, pub_address, pipelined=False,
+                 log_address=None, perf_address=None,
                  ping_address=None, log_level=logging.INFO,
                  messages=sys.maxsize):
         self.name = name
-        self.cache = {}  # The simplest possible cache
-        self.rep_address = rep_address
+        self.cache = DictDB()
+        self.db_address = db_address
+        self.pull_address = pull_address
+        self.pub_address = pub_address
+        self.pipelined = pipelined
+        self.ping_address = ping_address
+        self.log_address = log_address
+
+        self.cache.set('name', name.encode('utf-8'))
+        self.cache.set('pull_address', pull_address.encode('utf-8'))
+        self.cache.set('pub_address', pub_address.encode('utf-8'))
 
         # Configure the log handler
         if log_address:
@@ -63,7 +82,6 @@ class Server(object):
 
         else:
             self.logger = logging.getLogger(name=name)
-            self.logger.setLevel(log_level)
             handler = logging.StreamHandler(sys.stdout)
             handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
             self.logger.addHandler(handler)
@@ -73,43 +91,18 @@ class Server(object):
             # Configure the performance counter
             self.perfcounter = PerformanceCounter(listen_address=perf_address)
 
-        if ping_address:
-            # Configure the pinger.
-            self.pinger = Pinger(listen_address=ping_address, every=30.0)
-
-        # Configure the rep connection that binds and blocks.
-        self.rep = zmq_context.socket(zmq.REP)
-
-        # This is the function storage
-        self.user_functions = {}
-
         self.messages = messages
 
-        if ping_address:
-            # This is the pinger thread that keeps the pinger alive.
-            pinger_thread = Thread(target=self.pinger.start)
-            pinger_thread.daemon = True
-            pinger_thread.start()
+    def _execution_handler(self):
+        pull_socket = zmq_context.socket(zmq.PULL)
+        pull_socket.bind(self.pull_address)
 
-    def set(self, data, key=None):
-        if not key:
-            key = str(uuid4())
-
-        self.cache[key] = data
-        return key.encode('utf-8')
-
-    def delete(self, key):
-        del self.cache[key.decode('utf-8')]
-        return key
-
-    def get(self, key):
-        return self.cache[key.decode('utf-8')]
-
-    def start(self):
-        self.rep.bind(self.rep_address)
+        pub_socket = zmq_context.socket(zmq.PUB)
+        pub_socket.bind(self.pub_address)
 
         for i in range(self.messages):
-            message_data = self.rep.recv()
+            self.logger.debug('Server waiting for messages')
+            message_data = pull_socket.recv()
             self.logger.debug('Got message {}'.format(i + 1))
             result = b'0'
             message = PalmMessage()
@@ -124,13 +117,7 @@ class Server(object):
                         user_function = getattr(self, function)
                         self.logger.debug('Looking for {}'.format(function))
                         try:
-                            # This is a little exception for the cache to accept
-                            # a value
-                            if message.HasField('cache'):
-                                result = user_function(message.payload,
-                                                       message.cache)
-                            else:
-                                result = user_function(message.payload)
+                            result = user_function(message.payload)
                         except:
                             self.logger.error('User function gave an error')
                             exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -146,7 +133,46 @@ class Server(object):
                 self.logger.error('Message could not be decoded')
 
             message.payload = result
-            self.rep.send(message.SerializeToString())
+
+            if self.pipelined:
+                topic = None
+            else:
+                topic = message.client
+
+            pub_socket.send_multipart(
+                [topic.encode('utf-8'), message.SerializeToString()]
+            )
+
+    def start(self, cache_messages=sys.maxsize):
+        """
+
+        :param cache_messages:
+        :return:
+        """
+        threads = []
+
+        if self.ping_address:
+            pinger = Pinger(listen_address=self.ping_address, every=30.0)
+            threads.append(pinger.start)
+
+        cache = CacheService('cache', self.db_address, logger=self.logger,
+                             cache=self.cache, messages=cache_messages)
+
+        threads.append(cache.start)
+        threads.append(self._execution_handler)
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(threads)) as executor:
+            results = [executor.submit(thread) for thread in threads]
+            for future in concurrent.futures.as_completed(results):
+                try:
+                    future.result()
+                except Exception as exc:
+                    self.logger.error('This is critical, one of the components of the server died')
+                    lines = traceback.format_exception(*sys.exc_info())
+                    for line in lines:
+                        self.logger.error(line.strip('\n'))
+
+        return self.name.encode('utf-8')
 
 
 class Master(ServerTemplate, BaseMaster):
@@ -165,17 +191,17 @@ class Master(ServerTemplate, BaseMaster):
     :param ping_address: Address of the centralized health service
     :param cache: Key-value embeddable database. Pick from one of the supported ones
     :param palm: If messages are of the PALM kind
-    :param debug_level: Logging level
+    :param log_level: Logging level
     """
     def __init__(self, name: str, pull_address: str, pub_address: str,
                  worker_pull_address: str, worker_push_address: str, db_address: str,
                  log_address: str = None, perf_address: str = None,
                  ping_address: str = None, cache: object = DictDB(),
-                 debug_level: int = logging.INFO):
+                 log_level: int = logging.INFO):
         """
         """
         super(Master, self).__init__(ping_address, log_address, perf_address,
-                                     logging_level=debug_level)
+                                     logging_level=log_level)
         self.name = name
         self.palm = True
         self.cache = cache
@@ -186,14 +212,14 @@ class Master(ServerTemplate, BaseMaster):
         self.cache.set('worker_push_address', worker_push_address.encode('utf-8'))
 
         self.register_inbound(PullService, 'Pull', pull_address,
-                              route='WorkerPush', log='to_broker')
+                              route='WorkerPush', log='to_broker', cache=self.cache)
         self.register_inbound(WorkerPullService, 'WorkerPull', worker_pull_address,
-                              route='Pub', log='from_broker')
+                              route='Pub', log='from_broker', cache=self.cache)
         self.register_outbound(WorkerPushService, 'WorkerPush', worker_push_address,
-                               log='to_broker')
+                               log='to_broker', cache=self.cache)
         self.register_outbound(PubService, 'Pub', pub_address,
-                               log='to_sink')
-        self.register_bypass(CacheService, 'Cache', db_address)
+                               log='to_sink', cache=self.cache)
+        self.register_bypass(CacheService, 'Cache', db_address, cache=self.cache)
 
         # Monkey patches the scatter and gather functions to the
         # scatter function of Push and Pull parts respectively.
@@ -259,6 +285,7 @@ class Worker(object):
         self.message = BrokerMessage()
 
         # Configure the pinger.
+        # TODO: Move with the other parts at start
         if ping_address:
             self.pinger = Pinger(listen_address=ping_address, every=30.0)
 
