@@ -59,7 +59,6 @@ setup(name='pylm',
                 'pylm.persistence',
                 'pylm.standalone',
                 'pylm.chained',
-                'pylm.pipelined',
                 'pylm.remote'],
       classifiers=[
           'Development Status :: 4 - Beta',
