@@ -145,8 +145,10 @@ class Server(object):
 
     def start(self, cache_messages=sys.maxsize):
         """
+        Start the server
 
-        :param cache_messages:
+        :param cache_messages: Number of messages the cache service handles before it
+          shuts down. Useful for debugging
         :return:
         """
         threads = []
