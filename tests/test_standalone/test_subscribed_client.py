@@ -1,10 +1,12 @@
+import concurrent.futures
+import time
+from concurrent.futures import ThreadPoolExecutor
+
+import zmq
+
+from pylm.clients import Client
 from pylm.parts.core import zmq_context
 from pylm.parts.messages_pb2 import PalmMessage
-from pylm.standalone.clients import SubscribedClient
-from concurrent.futures import ThreadPoolExecutor
-import time
-import concurrent.futures
-import zmq
 
 
 def fake_server(messages=1):
@@ -29,7 +31,7 @@ def fake_server(messages=1):
         pub_socket.send_multipart([topic.encode('utf-8'), message_data])
 
 
-client = SubscribedClient(
+client = Client(
     sub_address='inproc://pub',
     pull_address='inproc://pull',
     db_address='inproc://db',
@@ -37,7 +39,7 @@ client = SubscribedClient(
     pipeline=None)
 
 
-client1 = SubscribedClient(
+client1 = Client(
     sub_address='inproc://pub',
     pull_address='inproc://pull',
     db_address='inproc://db',

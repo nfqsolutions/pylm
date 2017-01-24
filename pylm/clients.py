@@ -18,7 +18,6 @@ from pylm.parts.core import zmq_context
 from pylm.parts.messages_pb2 import PalmMessage
 from threading import Thread
 from uuid import uuid4
-from itertools import repeat
 import time
 import zmq
 import sys

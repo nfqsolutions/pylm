@@ -31,11 +31,6 @@ import zmq
 import sys
 
 
-# Standalone servers use some of the infrastructure of PALM, but they
-# are not run-time configurable. You have to wire the connections yourself,
-# but on the other hand, hou have a logger and the performance counter, and
-# a convenient endpoint for these services.
-
 class Server(object):
     """
     Standalone and minimal server that replies single requests.
@@ -45,51 +40,29 @@ class Server(object):
     :param str pull_address: Address of the pull socket
     :param str pub_address: Address of the pub socket
     :param pipelined: True if the server is chained to another server.
-    :param str log_address: Address of the central logging system. Leave
-     to None to let the server manage the logs itself
-    :param str perf_address: Address of the performance counter registry.
-     Leave to None if you don't need performance counters.
-    :param str ping_address: Address of the central server registry. Set to
-     None if you don't want to track the health of the server.
     :param log_level: Minimum output log level.
     :param int messages: Total number of messages that the server processes.
      Useful for debugging.
     """
     def __init__(self, name, db_address,
                  pull_address, pub_address, pipelined=False,
-                 log_address=None, perf_address=None,
-                 ping_address=None, log_level=logging.INFO,
-                 messages=sys.maxsize):
+                 log_level=logging.INFO, messages=sys.maxsize):
         self.name = name
         self.cache = DictDB()
         self.db_address = db_address
         self.pull_address = pull_address
         self.pub_address = pub_address
         self.pipelined = pipelined
-        self.ping_address = ping_address
-        self.log_address = log_address
 
         self.cache.set('name', name.encode('utf-8'))
         self.cache.set('pull_address', pull_address.encode('utf-8'))
         self.cache.set('pub_address', pub_address.encode('utf-8'))
 
-        # Configure the log handler
-        if log_address:
-            handler = PushHandler(log_address)
-            self.logger = logging.getLogger(name)
-            self.logger.addHandler(handler)
-            self.logger.setLevel(log_level)
-
-        else:
-            self.logger = logging.getLogger(name=name)
-            handler = logging.StreamHandler(sys.stdout)
-            handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
-            self.logger.addHandler(handler)
-            self.logger.setLevel(log_level)
-
-        if perf_address:
-            # Configure the performance counter
-            self.perfcounter = PerformanceCounter(listen_address=perf_address)
+        self.logger = logging.getLogger(name=name)
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+        self.logger.addHandler(handler)
+        self.logger.setLevel(log_level)
 
         self.messages = messages
 
@@ -153,10 +126,6 @@ class Server(object):
         """
         threads = []
 
-        if self.ping_address:
-            pinger = Pinger(listen_address=self.ping_address, every=30.0)
-            threads.append(pinger.start)
-
         cache = CacheService('cache', self.db_address, logger=self.logger,
                              cache=self.cache, messages=cache_messages)
 
@@ -188,22 +157,15 @@ class Master(ServerTemplate, BaseMaster):
     :param worker_pull_address: Valid address for the pull-from-workers service
     :param worker_push_address: Valid address for the push-to-workers service
     :param db_address: Valid address to bind the Cache service
-    :param log_address: Address of the centralized logging service
-    :param perf_address: Address of the centralized performance counter service
-    :param ping_address: Address of the centralized health service
     :param cache: Key-value embeddable database. Pick from one of the supported ones
-    :param palm: If messages are of the PALM kind
     :param log_level: Logging level
     """
     def __init__(self, name: str, pull_address: str, pub_address: str,
                  worker_pull_address: str, worker_push_address: str, db_address: str,
-                 log_address: str = None, perf_address: str = None,
-                 ping_address: str = None, cache: object = DictDB(),
-                 log_level: int = logging.INFO):
+                 cache: object = DictDB(), log_level: int = logging.INFO):
         """
         """
-        super(Master, self).__init__(ping_address, log_address, perf_address,
-                                     logging_level=log_level)
+        super(Master, self).__init__(logging_level=log_level)
         self.name = name
         self.palm = True
         self.cache = cache
@@ -237,35 +199,20 @@ class Worker(object):
     :param db_address: Address of the db service of the master
     :param push_address: Address the workers push to. If left blank, fetches it from the master
     :param pull_address: Address the workers pull from. If left blank, fetches it from the master
-    :param log_address: Address for the log service. If left blank, it logs to screen
-    :param perf_address: Address for the performance counting service. If left blank, it logs to screen.
-    :param ping_address: Address for the health monitoring service.
     :param log_level: Log level for this server.
-    :param messages: Number of messages befor it is shut down.
+    :param messages: Number of messages before it is shut down.
     """
     def __init__(self, name, db_address, push_address=None, pull_address=None,
-                 log_address=None, perf_address=None, ping_address=None,
                  log_level=logging.INFO, messages=sys.maxsize):
         self.name = name
         self.uuid = str(uuid4())
 
         # Configure the log handler
-        if log_address:
-            handler = PushHandler(log_address)
-            self.logger = logging.getLogger(name)
-            self.logger.addHandler(handler)
-            self.logger.setLevel(log_level)
-
-        else:
-            self.logger = logging.getLogger(name=name)
-            handler = logging.StreamHandler(sys.stdout)
-            handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
-            self.logger.addHandler(handler)
-            self.logger.setLevel(log_level)
-
-        # Configure the performance counter
-        if perf_address:
-            self.perfcounter = PerformanceCounter(listen_address=perf_address)
+        self.logger = logging.getLogger(name=name)
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+        self.logger.addHandler(handler)
+        self.logger.setLevel(log_level)
 
         # Configure the connections.
         self.push_address = push_address
@@ -285,16 +232,6 @@ class Worker(object):
 
         self.messages = messages
         self.message = BrokerMessage()
-
-        # Configure the pinger.
-        # TODO: Move with the other parts at start
-        if ping_address:
-            self.pinger = Pinger(listen_address=ping_address, every=30.0)
-
-            # This is the pinger thread that keeps the pinger alive.
-            pinger_thread = Thread(target=self.pinger.start)
-            pinger_thread.daemon = True
-            pinger_thread.start()
 
     def _get_config_from_master(self):
         if not self.push_address:

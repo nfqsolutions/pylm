@@ -5,7 +5,7 @@ import zmq
 
 from pylm.parts.core import zmq_context
 from pylm.parts.messages_pb2 import PalmMessage
-from pylm.standalone import Server, EndPoint
+from pylm.servers import Server
 
 this_log_address = "inproc://log1"
 this_perf_address = "inproc://perf1"
@@ -54,22 +54,10 @@ class RemoteServer(Server):
 
 
 def test_standalone():
-    endpoint = EndPoint('EndPoint',
-                        this_log_address,
-                        this_perf_address,
-                        this_ping_address)
     server = RemoteServer('Echo_server',
-                          this_rep_address,
-                          endpoint.log_address,
-                          endpoint.perf_address,
-                          endpoint.ping_address)
+                          this_rep_address)
 
     client = DummyClient(this_rep_address, 'Echo_server')
-
-    print('Starting')
-    t1 = Thread(target=endpoint.start_debug)
-    t1.daemon = True
-    t1.start()
 
     t2 = Thread(target=server.start)
     t2.daemon = True

@@ -17,7 +17,6 @@
 from pylm.parts.core import Router
 from pylm.persistence.kv import DictDB
 from pylm.parts.messages_pb2 import PalmMessage
-from pylm.parts.utils import Pinger, PushHandler, PerformanceCounter
 import concurrent.futures
 import traceback
 import logging
@@ -28,9 +27,6 @@ class ServerTemplate(object):
     """
     Low-level tool to build a server from parts.
 
-    :param ping_address: Address for the external health monitoring service
-    :param log_address: Address for the external logging service
-    :param perf_address: Address for the external performance analysis service
     :param logging_level: A correct logging level from the logging module. Defaults to INFO.
 
     It has important attributes that you may want to override, like
@@ -41,9 +37,6 @@ class ServerTemplate(object):
     :router: Here's the router, you may want to change its attributes too.
     """
     def __init__(self,
-                 ping_address: str = '',
-                 log_address: str = '',
-                 perf_address: str = '',
                  logging_level=logging.INFO,
                  router_messages=sys.maxsize):
         # Name of the server
@@ -62,31 +55,12 @@ class ServerTemplate(object):
         self.outbound_components = {}
         self.bypass_components = {}
 
-        # Services that may be configured or not
-
-        # Configure the pinger.
-        if ping_address:
-            self.pinger = Pinger(listen_address=ping_address, every=30.0)
-        else:
-            self.pinger = None
-
-        if log_address:
-            handler = PushHandler(log_address)
-            self.logger = logging.getLogger(self.name)
-            self.logger.addHandler(handler)
-            self.logger.setLevel(self.logging_level)
-
-        else:
-            # Basic console logging
-            self.logger = logging.getLogger(name=self.name)
-            handler = logging.StreamHandler(sys.stdout)
-            handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
-            self.logger.addHandler(handler)
-            self.logger.setLevel(self.logging_level)
-
-        if perf_address:
-            # Configure the performance counter
-            self.perfcounter = PerformanceCounter(listen_address=perf_address)
+        # Basic console logging
+        self.logger = logging.getLogger(name=self.name)
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+        self.logger.addHandler(handler)
+        self.logger.setLevel(self.logging_level)
 
         # Finally, the router
         self.router = Router(logger=self.logger,
@@ -167,10 +141,6 @@ class ServerTemplate(object):
 
         self.logger.info("Starting the router")
         threads.append(self.router.start)
-
-        # This is the pinger thread that keeps the pinger alive.
-        if self.pinger:
-            threads.append(self.pinger.start)
         
         for name, part in self.inbound_components.items():
             self.logger.info("Starting inbound part {}".format(name))

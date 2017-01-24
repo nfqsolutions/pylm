@@ -1,7 +1,8 @@
 # Test for the prototype of the client for the parallel client.
 
 from threading import Thread
-from pylm.standalone import Master, EndPoint, Worker, Client
+from pylm.servers import Master, Worker
+from pylm.clients import Client
 
 
 class NewWorker(Worker):
@@ -12,47 +13,30 @@ class NewWorker(Worker):
 
 
 def test_standalone_parallel_client():
-    this_log_address = "inproc://log6"
-    this_perf_address = "inproc://perf6"
-    this_ping_address = "inproc://ping6"
     this_db_address = "inproc://db6"
-
-    endpoint = EndPoint('EndPoint',
-                        this_log_address,
-                        this_perf_address,
-                        this_ping_address)
 
     master = Master('master',
                     'inproc://pull6',
                     'inproc://push6',
                     'inproc://worker_pull6',
                     'inproc://worker_push6',
-                    this_db_address,
-                    endpoint.log_address, endpoint.perf_address,
-                    endpoint.ping_address, palm=True)
+                    this_db_address)
 
     worker1 = NewWorker('worker1',
                         master.worker_push_address,
                         master.worker_pull_address,
-                        master.db_address,
-                        this_log_address,
-                        this_perf_address,
-                        this_ping_address)
+                        master.db_address)
     worker2 = NewWorker('worker2',
                         master.worker_push_address,
                         master.worker_pull_address,
-                        master.db_address,
-                        this_log_address,
-                        this_perf_address,
-                        this_ping_address)
+                        master.db_address)
 
     client = Client(master.push_address,
                     master.pull_address,
                     master.db_address,
-                            'master')
+                    'master')
 
     threads = [
-        Thread(target=endpoint.start_debug),
         Thread(target=master.start),
         Thread(target=worker1.start),
         Thread(target=worker2.start)

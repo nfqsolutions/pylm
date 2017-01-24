@@ -3,7 +3,7 @@
 
 from threading import Thread
 from pylm.parts.core import zmq_context
-from pylm.standalone import Master, EndPoint, Worker
+from pylm.servers import Master, Worker
 import zmq
 
 
@@ -25,39 +25,23 @@ def outbound(listen_addr):
 
 
 def test_feedback():
-    this_log_address = "inproc://log5"
-    this_perf_address = "inproc://perf5"
-    this_ping_address = "inproc://ping5"
     this_db_address = "inproc://db5"
 
-    endpoint = EndPoint('EndPoint',
-                        this_log_address,
-                        this_perf_address,
-                        this_ping_address)
     master = Master('master', 'inproc://pull5', 'inproc://push5',
                     'inproc://worker_pull5', 'inproc://worker_push5',
-                    this_db_address,
-                    endpoint.log_address, endpoint.perf_address,
-                    endpoint.ping_address)
+                    this_db_address)
 
     worker1 = Worker('worker1',
                      master.worker_push_address,
                      master.worker_pull_address,
-                     master.db_address,
-                     this_log_address,
-                     this_perf_address,
-                     this_ping_address)
+                     master.db_address)
 
     worker2 = Worker('worker2',
                      master.worker_push_address,
                      master.worker_pull_address,
-                     master.db_address,
-                     this_log_address,
-                     this_perf_address,
-                     this_ping_address)
+                     master.db_address)
 
     threads = [
-        Thread(target=endpoint.start_debug),
         Thread(target=master.start),
         Thread(target=inbound, args=(master.pull_address,)),
         Thread(target=outbound, args=(master.push_address,)),

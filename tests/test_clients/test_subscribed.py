@@ -1,14 +1,16 @@
-from pylm.parts.core import zmq_context, Router
-from pylm.parts.messages_pb2 import PalmMessage
-from pylm.standalone.clients import SubscribedClient
-from pylm.parts.utils import CacheService
-from pylm.parts.services import PullService, PubService
-from pylm.persistence.kv import DictDB
 import concurrent.futures
-import traceback
 import logging
 import sys
+import traceback
+
 import zmq
+
+from pylm.clients import Client
+from pylm.parts.core import zmq_context, Router
+from pylm.parts.messages_pb2 import PalmMessage
+from pylm.parts.services import PullService, PubService
+from pylm.parts.utils import CacheService
+from pylm.persistence.kv import DictDB
 
 pull_address = 'inproc://pull'
 pub_address = 'inproc://pub'
@@ -29,9 +31,9 @@ def test_get_config():
                          )
 
     def boot_client():
-        client = SubscribedClient('master',
-                                  db_address,
-                                  pipeline=None)
+        client = Client('master',
+                        db_address,
+                        pipeline=None)
         return client.push_address, client.sub_address
 
     def broker():
@@ -86,9 +88,9 @@ def test_send_job():
                            messages=1)
 
     def client_job():
-        client = SubscribedClient('master',
-                                  db_address,
-                                  pipeline=None)
+        client = Client('master',
+                        db_address,
+                        pipeline=None)
         return [r for r in client.job('master.something', [b'1'], messages=1)]
 
     def broker():
@@ -158,15 +160,15 @@ def test_multiple_clients():
                            messages=4)
 
     def client1_job():
-        client = SubscribedClient('master',
-                                  db_address,
-                                  pipeline=None)
+        client = Client('master',
+                        db_address,
+                        pipeline=None)
         return [r for r in client.job('master.something', [b'1', b'2'], messages=2)]
 
     def client2_job():
-        client = SubscribedClient('master',
-                                  db_address,
-                                  pipeline=None)
+        client = Client('master',
+                        db_address,
+                        pipeline=None)
         return [r for r in client.job('master.something', [b'3', b'4'], messages=2)]
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:

@@ -1,5 +1,6 @@
-from pylm.standalone.servers import Worker
 import sys
+
+from pylm.servers import Worker
 
 
 class MyWorker(Worker):
