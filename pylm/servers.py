@@ -17,12 +17,11 @@
 from pylm.parts.core import zmq_context
 from pylm.parts.services import WorkerPullService, WorkerPushService
 from pylm.parts.services import PullService, PubService
-from pylm.parts.utils import PushHandler, Pinger, PerformanceCounter, CacheService
+from pylm.parts.utils import CacheService
 from pylm.parts.servers import BaseMaster, ServerTemplate
 from pylm.parts.messages_pb2 import PalmMessage, BrokerMessage
 from pylm.persistence.kv import DictDB
 from google.protobuf.message import DecodeError
-from threading import Thread
 from uuid import uuid4
 import concurrent.futures
 import traceback
