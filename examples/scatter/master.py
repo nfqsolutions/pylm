@@ -1,4 +1,4 @@
-from pylm.standalone import Master
+from pylm.servers import Master
 
 
 class MyMaster(Master):

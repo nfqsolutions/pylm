@@ -1,4 +1,4 @@
-from pylm.standalone import Client
+from pylm.clients import Client
 from itertools import repeat
 
 client = Client('server', 'tcp://127.0.0.1:5559')
@@ -8,4 +8,4 @@ if __name__ == '__main__':
     print(client.get('cached'))
     
     for response in client.job('server.foo', repeat(b'a message', 10), messages=30):
-       print(response)
+        print(response)

@@ -1,4 +1,4 @@
-from pylm.standalone import Master
+from pylm.servers import Master
 
 server = Master(name='server',
                 pull_address='tcp://127.0.0.1:5555',

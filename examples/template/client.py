@@ -1,4 +1,4 @@
-from pylm.standalone import Client
+from pylm.clients import Client
 from itertools import repeat
 
 client = Client('server', 'tcp://127.0.0.1:5559',
