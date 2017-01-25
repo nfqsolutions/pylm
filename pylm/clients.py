@@ -104,6 +104,7 @@ class Client(object):
         sub_socket.setsockopt_string(zmq.SUBSCRIBE, self.uuid)
         sub_socket.connect(self.sub_address)
 
+        # Remember that sockets are not thread safe
         sender_thread = Thread(target=self._sender,
                                args=(push_socket, function, generator, cache))
 
@@ -145,13 +146,11 @@ class Client(object):
         if cache:
             message.cache = cache
 
-        print('sending message')
         push_socket.send(message.SerializeToString())
 
         result = []
 
         for i in range(messages):
-            print('Waiting for response')
             [client, message_data] = sub_socket.recv_multipart()
             message.ParseFromString(message_data)
             result.append(message.payload)

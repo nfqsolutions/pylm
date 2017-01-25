@@ -40,6 +40,7 @@ class GatewayRouter(ComponentInbound):
     :param messages: Number of messages until it is shut down
     """
     def __init__(self,
+                 name='gateway_router',
                  listen_address='inproc://gateway_router',
                  broker_address="inproc://broker",
                  cache=DictDB(),
@@ -58,6 +59,9 @@ class GatewayRouter(ComponentInbound):
             logger=logger,
             messages=messages,
             )
+        if name:
+            self.logger.warning('Gateway router part is called "gateway_router",')
+            self.logger.warning('check that you have called this way')
 
     def _translate_to_broker(self, message_data):
         """
@@ -157,12 +161,14 @@ class GatewayDealer(ComponentOutbound):
     :param messages: Maximum number of inbound messages. Defaults to infinity.
     """
     def __init__(self,
+                 name='',
                  listen_address='inproc://gateway_router',
                  broker_address="inproc://broker",
                  cache=None,
                  palm=True,
                  logger=None,
                  messages=sys.maxsize):
+
         self.name = 'gateway_dealer'.encode('utf-8')
         self.listen_to = zmq_context.socket(zmq.DEALER)
         self.listen_to.identity = b'dealer'
@@ -177,6 +183,9 @@ class GatewayDealer(ComponentOutbound):
         self.messages = messages
         self.reply = False
         self.last_message = b''
+        if name:
+            self.logger.warning('Gateway dealer part is called "gateway_dealer",')
+            self.logger.warning('check that you have called this way')
 
     def _translate_from_broker(self, message_data):
         """
@@ -289,9 +298,14 @@ class MyHandler(BaseHTTPRequestHandler):
         
     
 class HttpGateway(object):
-    def __init__(self, listen_address='inproc://gateway_router',
-                 hostname='', port=8888,
-                 cache=DictDB(), palm=True, logger=None):
+    def __init__(self,
+                 name='',
+                 listen_address='inproc://gateway_router',
+                 hostname='',
+                 port=8888,
+                 cache=DictDB(),
+                 palm=True,
+                 logger=None):
         self.handler = MyHandler
         self.handler.gateway_router_address = listen_address
         self.handler.logger = logger

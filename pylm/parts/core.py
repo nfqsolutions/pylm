@@ -67,7 +67,8 @@ class Router(object):
         Register component by name.
 
         :param name: Name of the component. Each component has a name, that uniquely identifies it to the broker
-        :param route: Each message that the broker gets from the component may be routed to another component. This argument gives the name of the target component for the message.
+        :param route: Each message that the broker gets from the component may be routed to another component. This
+         argument gives the name of the target component for the message.
         :param block: Register if the component is waiting for a reply.
         :param log: Log message for each inbound connection.
         :return:

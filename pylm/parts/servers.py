@@ -67,7 +67,7 @@ class ServerTemplate(object):
                              cache=self.cache,
                              messages=router_messages)
 
-    def register_inbound(self, part, name, listen_address, route='', block=False, log='', **kwargs):
+    def register_inbound(self, part, name='', listen_address='', route='', block=False, log='', **kwargs):
         """
         Register inbound part to this server.
 
@@ -93,7 +93,7 @@ class ServerTemplate(object):
 
         self.inbound_components[name] = instance
 
-    def register_outbound(self, part, name, listen_address, route='', log='', **kwargs):
+    def register_outbound(self, part, name='', listen_address='', route='', log='', **kwargs):
         """
         Register outbound part to this server
 
@@ -117,7 +117,7 @@ class ServerTemplate(object):
 
         self.outbound_components[name] = instance
 
-    def register_bypass(self, part, name, listen_address, **kwargs):
+    def register_bypass(self, part, name='', listen_address='', **kwargs):
         """
         Register a bypass part to this server
 

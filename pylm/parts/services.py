@@ -300,7 +300,6 @@ class WorkerPullService(PullService):
         :param message_data:
         :return:
         """
-        print('hi---------------')
         return message_data
 
 
