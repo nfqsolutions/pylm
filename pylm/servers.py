@@ -201,10 +201,16 @@ class Worker(object):
     :param log_level: Log level for this server.
     :param messages: Number of messages before it is shut down.
     """
-    def __init__(self, name, db_address, push_address=None, pull_address=None,
+    def __init__(self, name='', db_address='', push_address=None, pull_address=None,
                  log_level=logging.INFO, messages=sys.maxsize):
-        self.name = name
+
         self.uuid = str(uuid4())
+
+        # Give a random name if not given
+        if not name:
+            self.name = self.uuid
+        else:
+            self.name = name
 
         # Configure the log handler
         self.logger = logging.getLogger(name=name)
@@ -216,6 +222,9 @@ class Worker(object):
         # Configure the connections.
         self.push_address = push_address
         self.pull_address = pull_address
+
+        if not db_address:
+            raise ValueError('db_address argument is mandatory')
 
         self.db_address = db_address
         self.db = zmq_context.socket(zmq.REQ)

@@ -8,4 +8,4 @@ if __name__ == '__main__':
     print(client.get('cached'))
     
     for response in client.job('server.foo', repeat(b'a message', 10), messages=30):
-       print(response)
+        print(response)

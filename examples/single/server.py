@@ -1,4 +1,4 @@
-from pylm.standalone import Server
+from pylm.servers import Server
 import logging
 
 

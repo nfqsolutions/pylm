@@ -1,4 +1,4 @@
-from pylm.standalone import Client
+from pylm.clients import Client
 
 client = Client('my_server', 'tcp://127.0.0.1:5555')
 
