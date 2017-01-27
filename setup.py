@@ -57,8 +57,6 @@ setup(name='pylm',
       packages=['pylm',
                 'pylm.parts',
                 'pylm.persistence',
-                'pylm.standalone',
-                'pylm.chained',
                 'pylm.remote'],
       classifiers=[
           'Development Status :: 4 - Beta',
