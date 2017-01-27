@@ -7,19 +7,19 @@ or some servers may have to run behind traffic-sniffing firewalls. You name it.
 
 For this reason, pylm includes two parts
 
-.. literalinclude:: ../../examples/standalone_http/master.py
+.. literalinclude:: ../../examples/http/master.py
     :language: python
     :linenos:
 
 
 The
 
-.. literalinclude:: ../../examples/standalone_http/web_worker.py
+.. literalinclude:: ../../examples/http/web_worker.py
     :language: python
     :linenos:
 
 
-.. literalinclude:: ../../examples/standalone_http/client.py
+.. literalinclude:: ../../examples/http/client.py
     :language: python
     :linenos:
 

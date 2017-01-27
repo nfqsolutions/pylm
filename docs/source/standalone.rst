@@ -28,15 +28,15 @@ The following is a simple example on how to configure and run a parallel server.
 is designed to handle a large workload, the job method of the client expects a generator that creates a
 series of binary messages.
 
-.. literalinclude:: ../../examples/standalone_parallel/master.py
+.. literalinclude:: ../../examples/parallel/master.py
     :language: python
     :linenos:
 
-.. literalinclude:: ../../examples/standalone_parallel/worker.py
+.. literalinclude:: ../../examples/parallel/worker.py
     :language: python
     :linenos:
 
-.. literalinclude:: ../../examples/standalone_parallel/client.py
+.. literalinclude:: ../../examples/parallel/client.py
     :language: python
     :linenos:
 

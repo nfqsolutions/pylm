@@ -22,13 +22,13 @@ fashion of a RPC server.
 
 With pylm, the first step is to create the server by subclassing one of the available templates in the high-level API:
 
-.. literalinclude:: ../../examples/standalone_single/server.py
+.. literalinclude:: ../../examples/single/server.py
     :language: python
     :linenos:
 
 Secondly, we create the client that connects to the server and calls the ``foo`` function from the server.
 
-.. literalinclude:: ../../examples/standalone_single/client.py
+.. literalinclude:: ../../examples/single/client.py
     :language: python
     :linenos:
 

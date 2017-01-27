@@ -8,26 +8,26 @@ Examples
 Simple server and client communication
 --------------------------------------
 
-.. literalinclude:: ../../examples/standalone_single/server.py
+.. literalinclude:: ../../examples/single/server.py
     :language: python
     :linenos:
 
-.. literalinclude:: ../../examples/standalone_single/client.py
+.. literalinclude:: ../../examples/single/client.py
     :language: python
     :linenos:
 
 Simple parallel server and client communication
 -----------------------------------------------
 
-.. literalinclude:: ../../examples/standalone_parallel/master.py
+.. literalinclude:: ../../examples/parallel/master.py
     :language: python
     :linenos:
 
-.. literalinclude:: ../../examples/standalone_parallel/worker.py
+.. literalinclude:: ../../examples/parallel/worker.py
     :language: python
     :linenos:
 
-.. literalinclude:: ../../examples/standalone_parallel/client.py
+.. literalinclude:: ../../examples/parallel/client.py
     :language: python
     :linenos:
 
