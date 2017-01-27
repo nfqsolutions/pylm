@@ -28,7 +28,7 @@ The result is that the server logs the error::
     2016-08-26 09:41:59,053 - my_server - ERROR - User function gave an error
     2016-08-26 09:41:59,054 - my_server - ERROR - Traceback (most recent call last):
     Traceback (most recent call last):
-      File "/usr/lib/python3.5/site-packages/pylm/standalone/servers.py", line 117, in start
+      File "/usr/lib/python3.5/site-packages/pylm/servers.py", line 117, in start
         result = user_function(message.payload)
       File "server.py", line 7, in foo
         print(x)

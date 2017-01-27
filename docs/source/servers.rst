@@ -74,13 +74,13 @@ Cache
 -----
 
 One of the services that the master offers is a small key-value database that **can be seen by all the workers**.
-You can use that database with RPC-style using :py:meth:`pylm.standalone.client.Client.set`,
-:py:meth:`pylm.standalone.client.Client.get`, and :py:meth:`pylm.standalone.client.Client.delete` methods.
+You can use that database with RPC-style using :py:meth:`pylm.clients.Client.set`,
+:py:meth:`pylm.clients.Client.get`, and :py:meth:`pylm.clients.Client.delete` methods.
 Like the messages, the data to be stored in the database must be binary.
 
 .. note::
 
-   Note that the calling convention of :py:meth:`pylm.standalone.client.Client.set` is not that conventional.
+   Note that the calling convention of :py:meth:`pylm.clients.Client.set` is not that conventional.
    Remember to pass first the value, and then the key if you want to use your own.
 
 .. important::
@@ -126,7 +126,7 @@ And the output is the following::
 Scatter messages from the master to the workers
 -----------------------------------------------
 
-Master server has a useful method called :py:meth:`pylm.standalone.servers.Master.scatter`, that
+Master server has a useful method called :py:meth:`pylm.servers.Master.scatter`, that
 is in fact a generator. For each message that the master gets from the inbound socket, this
 generator is executed. It is useful to modify the message stream in any conceivable way. In the
 following example, right at the highlighted lines, a new master server overrides this ``scatter``
@@ -164,14 +164,14 @@ Gather messages from the workers
 --------------------------------
 
 You can also alter the message stream after the workers have done their job. The master server also includes a
-:py:meth:`pylm.standalone.servers.Master.gather` method, that is a generator too, that is executed for each message.
+:py:meth:`pylm.servers.Master.gather` method, that is a generator too, that is executed for each message.
 Being a generator, this means that gather has to yield, and that the result can be either no message, or an arbitrary
 amount of messages. To make this example a little more interesting, we will also disassemble one of these messages that
 were apparently just a bunch of bytes.
 
 We will define a gather generator that counts the amount of messages, and when the message number 30 arrives,
 the final message, its payload is changed with a different binary string. This means that we need to add an attribute
-to the server for the counter, and we have to modify a message with :py:meth:`pylm.standalone.servers.Master.change_payload`.
+to the server for the counter, and we have to modify a message with :py:meth:`pylm.servers.Master.change_payload`.
 
 See that this example is incremental respect to the previous one, and in consequence it uses the cache service and
 the scatter and the gather generators.
