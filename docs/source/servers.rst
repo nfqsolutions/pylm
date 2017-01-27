@@ -1,7 +1,7 @@
 .. _standalone:
 
-Standalone servers
-==================
+Servers
+=======
 
 An example of the simplest standalone server was presented in the :ref:`introduction`. A single server running
 in a single process may be useful, but there are a million alternatives to pylm for that. The real usefulness
@@ -15,12 +15,12 @@ only to the master.
 
 .. only:: html
 
-    .. figure:: _images/standalone_parallel.png
+    .. figure:: _images/parallel.png
         :align: center
 
 .. only:: latex
 
-    .. figure:: _images/standalone_parallel.pdf
+    .. figure:: _images/parallel.pdf
         :align: center
         :scale: 60
 

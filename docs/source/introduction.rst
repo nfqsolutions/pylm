@@ -11,12 +11,12 @@ fashion of a RPC server.
 
 .. only:: html
 
-    .. figure:: _images/standalone_single.png
+    .. figure:: _images/single.png
         :align: center
 
 .. only:: latex
 
-    .. figure:: _images/standalone_single.pdf
+    .. figure:: _images/single.pdf
         :align: center
         :scale: 60
 
@@ -56,7 +56,7 @@ allows us to discover some important aspects of pylm.
   (replacing line 6 for ``result = client.job('foo', 1)``), the client would
   crash with a *TypeError*.
 
-* The server inherits from :py:class:`pylm.standalone.servers.Server`. This parent
+* The server inherits from :py:class:`pylm.servers.Server`. This parent
   class includes some interesting capabilities so you don't have to deal with
   health monitoring, logging, performance analysis and so on. Maybe you don't need
   all these things with a single server, but they become really handy when you

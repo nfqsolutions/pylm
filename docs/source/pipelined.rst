@@ -1,5 +1,0 @@
-.. _pipelined:
-
-Pipelined servers
-=================
-
