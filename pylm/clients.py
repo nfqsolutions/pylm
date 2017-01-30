@@ -18,6 +18,7 @@ from pylm.parts.core import zmq_context
 from pylm.parts.messages_pb2 import PalmMessage
 from threading import Thread
 from uuid import uuid4
+import logging
 import time
 import zmq
 import sys
@@ -38,7 +39,8 @@ class Client(object):
                  db_address: str,
                  push_address: str=None,
                  sub_address: str=None,
-                 pipeline: str=None):
+                 pipeline: str=None,
+                 logging_level: int=logging.INFO):
         self.server_name = server_name
         self.db_address = db_address
 
@@ -58,6 +60,13 @@ class Client(object):
         self.sub_address = sub_address
         self.push_address = push_address
 
+        # Basic console logging
+        self.logger = logging.getLogger(name=self.uuid)
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+        self.logger.addHandler(handler)
+        self.logger.setLevel(logging_level)
+
         self._get_config_from_master()
         # PUB-SUB takes a while
         time.sleep(0.5)
@@ -69,13 +78,19 @@ class Client(object):
 
         if not self.sub_address:
             self.sub_address = self.get('pub_address').decode('utf-8')
-            print('CLIENT {}: Got subscription address: {}'.format(self.uuid,
-                                                                   self.sub_address))
+            self.logger.info(
+                'CLIENT {}: Got subscription address: {}'.format(
+                    self.uuid,
+                    self.sub_address)
+                )
 
         if not self.push_address:
             self.push_address = self.get('pull_address').decode('utf-8')
-            print('CLIENT {}: Got push address: {}'.format(self.uuid,
-                                                           self.push_address))
+            self.logger.info(
+                'CLIENT {}: Got push address: {}'.format(
+                    self.uuid,
+                    self.push_address)
+                )
 
         return {'sub_address': self.sub_address,
                 'push_address': self.push_address}

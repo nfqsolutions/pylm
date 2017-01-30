@@ -79,6 +79,10 @@ class ServerTemplate(object):
         :param log: Log message in DEBUG level for each message processed.
         :param kwargs: Additional keyword arguments to pass to the part
         """
+        # Inject the server cache in case it is not configured for the component
+        if 'cache' not in kwargs:
+            kwargs['cache'] = self.cache
+
         instance = part(name,
                         listen_address,
                         broker_address=self.router.inbound_address,
@@ -104,6 +108,10 @@ class ServerTemplate(object):
         :param log: Log message in DEBUG level for each message processed
         :param kwargs: Additional keyword arguments to pass to the part
         """
+        # Inject the server cache in case it is not configured for the component
+        if 'cache' not in kwargs:
+            kwargs['cache'] = self.cache
+
         instance = part(name,
                         listen_address,
                         broker_address=self.router.outbound_address,
@@ -126,12 +134,30 @@ class ServerTemplate(object):
         :param listen_address: Valid ZeroMQ address listening to the exterior
         :param kwargs: Additional keyword arguments to pass to the part
         """
+        # Inject the server cache in case it is not configured for the component
+        if 'cache' not in kwargs:
+            kwargs['cache'] = self.cache
+
         instance = part(name,
                         listen_address,
                         logger=self.logger,
                         **kwargs)
 
         self.bypass_components[name] = instance
+
+    def preset_cache(self, **kwargs):
+        """
+        Send the following keyword arguments as cache variables. Useful
+        for configuration variables that the workers or the clients
+        fetch straight from the cache.
+
+        :param kwargs:
+        """
+        for arg, val in kwargs.items():
+            if type(val) == str:
+                self.cache.set(arg, val.encode('utf-8'))
+            else:
+                self.cache.set(arg, val)
 
     def start(self):
         """

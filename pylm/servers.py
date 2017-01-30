@@ -174,15 +174,17 @@ class Master(ServerTemplate, BaseMaster):
         self.cache.set('worker_pull_address', worker_pull_address.encode('utf-8'))
         self.cache.set('worker_push_address', worker_push_address.encode('utf-8'))
 
-        self.register_inbound(PullService, 'Pull', pull_address,
-                              route='WorkerPush', log='to_broker', cache=self.cache)
-        self.register_inbound(WorkerPullService, 'WorkerPull', worker_pull_address,
-                              route='Pub', log='from_broker', cache=self.cache)
-        self.register_outbound(WorkerPushService, 'WorkerPush', worker_push_address,
-                               log='to_broker', cache=self.cache)
-        self.register_outbound(PubService, 'Pub', pub_address,
-                               log='to_sink', cache=self.cache)
-        self.register_bypass(CacheService, 'Cache', db_address, cache=self.cache)
+        self.register_inbound(PullService, 'Pull', pull_address, route='WorkerPush')
+        self.register_inbound(WorkerPullService, 'WorkerPull', worker_pull_address, route='Pub')
+        self.register_outbound(WorkerPushService, 'WorkerPush', worker_push_address)
+        self.register_outbound(PubService, 'Pub', pub_address, log='to_sink')
+        self.register_bypass(CacheService, 'Cache', db_address)
+        self.preset_cache(name=name,
+                          db_address=db_address,
+                          pull_address=pull_address,
+                          pub_address=pub_address,
+                          worker_pull_address=worker_pull_address,
+                          worker_push_address=worker_push_address)
 
         # Monkey patches the scatter and gather functions to the
         # scatter function of Push and Pull parts respectively.
