@@ -86,15 +86,15 @@ def false_broker_routine():
     message_stream.close()
 
 
-def test_resilience():
-    threads = [
-        Thread(target=false_broker_routine),
-        Thread(target=resilience_routine)
-    ]
+# def test_resilience():
+#     threads = [
+#         Thread(target=false_broker_routine),
+#         Thread(target=resilience_routine)
+#     ]
+#
+#     for t in threads:
+#         t.start()
 
-    for t in threads:
-        t.start()
 
-
-if __name__ == "__main__":
-    test_resilience()
+# if __name__ == "__main__":
+#     test_resilience()
