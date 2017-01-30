@@ -122,7 +122,7 @@ The part library has a part for each one of the needs depicted above. There is a
 messages to the router. There is a :py:class:`pylm.parts.services.PubService` that works exactly the other
 way around. It listens to the router, and forwards the messages to a ZeroMQ Push socket. There are also
 specific services to connect to worker servers, :py:class:`pylm.parts.services.WorkerPullService` and
-:py:class:`pylm.parts.services.WorkerPullService`, that are very similar to the two previously described
+:py:class:`pylm.parts.services.WorkerPushService`, that are very similar to the two previously described
 services. With those pieces, we are ready to build a master server as follows
 
 .. literalinclude:: ../../examples/template/master.py
