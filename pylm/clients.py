@@ -34,13 +34,15 @@ class Client(object):
     :param sub_address: Address of the pub service of the server to subscribe to
     :param server_name: Name of the server to be connected to
     :param pipeline: Name of the pipeline if the session has to be reused
+    :param this_config: Do not fetch configuration from the server
     """
     def __init__(self, server_name: str,
                  db_address: str,
                  push_address: str=None,
                  sub_address: str=None,
                  pipeline: str=None,
-                 logging_level: int=logging.INFO):
+                 logging_level: int=logging.INFO,
+                 this_config=False):
         self.server_name = server_name
         self.db_address = db_address
 
@@ -67,7 +69,12 @@ class Client(object):
         self.logger.addHandler(handler)
         self.logger.setLevel(logging_level)
 
-        self._get_config_from_master()
+        if this_config:
+            self.logger.warning('Not fetching config from the server')
+        else:
+            self.logger.info('Fetching configuration from the server')
+            self._get_config_from_master()
+
         # PUB-SUB takes a while
         time.sleep(0.5)
 

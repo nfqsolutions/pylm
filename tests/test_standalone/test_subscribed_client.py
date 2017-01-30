@@ -24,6 +24,7 @@ def fake_server(messages=1):
     
     for i in range(messages):
         message_data = pull_socket.recv()
+        print(i)
         message = PalmMessage()
         message.ParseFromString(message_data)
 
@@ -31,25 +32,16 @@ def fake_server(messages=1):
         pub_socket.send_multipart([topic.encode('utf-8'), message_data])
 
 
-client = Client(
-    sub_address='inproc://pub',
-    pull_address='inproc://pull',
-    db_address='inproc://db',
-    server_name='someserver',
-    pipeline=None)
-
-
-client1 = Client(
-    sub_address='inproc://pub',
-    pull_address='inproc://pull',
-    db_address='inproc://db',
-    server_name='someserver',
-    pipeline=None)
-
-
 def test_subscribed_client_single():
     got = []
-        
+
+    client = Client(
+        server_name='someserver',
+        db_address='inproc://db',
+        push_address='inproc://pull',
+        sub_address='inproc://pub',
+        this_config=True)
+
     with ThreadPoolExecutor(max_workers=2) as executor:
         results = [
             executor.submit(fake_server, messages=2),
@@ -71,7 +63,21 @@ def test_subscribed_client_single():
 
 def test_subscribed_client_multiple():
     got = []
-    
+
+    client = Client(
+        server_name='someserver',
+        db_address='inproc://db',
+        sub_address='inproc://pub',
+        push_address='inproc://pull',
+        this_config=True)
+
+    client1 = Client(
+        server_name='someserver',
+        db_address='inproc://db',
+        sub_address='inproc://pub',
+        push_address='inproc://pull',
+        this_config=True)
+
     with ThreadPoolExecutor(max_workers=2) as executor:
         results = [
             executor.submit(fake_server, messages=4),
