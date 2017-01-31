@@ -148,7 +148,6 @@ class Server(object):
 class Master(ServerTemplate, BaseMaster):
     """
     Standalone master server, intended to send workload to workers.
-    WARNING. This implementation is not using the resilience service.
 
     :param name: Name of the server
     :param pull_address: Valid address for the pull service

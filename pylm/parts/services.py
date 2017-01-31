@@ -92,17 +92,6 @@ class PullService(ComponentInbound):
             cache=cache,
             messages=messages
         )
-        self.resilience_socket = None
-
-    def connect_resilience(self, resilience_address):
-        """
-        Creates and connects a socket to the resilience server
-        :param resilience_address:
-        :return:
-        """
-        self.logger.info('{} connected to the resilience service'.format(self.name))
-        self.resilience_socket = zmq_context.socket(zmq.REQ)
-        self.resilience_socket.connect(resilience_address)
 
 
 class PushService(ComponentOutbound):
@@ -138,17 +127,6 @@ class PushService(ComponentOutbound):
             cache=cache,
             messages=messages
         )
-        self.resilience_socket = None
-
-    def connect_resilience(self, resilience_address):
-        """
-        Connect a socket to the resilience service
-        :param resilience_address:
-        :return:
-        """
-        self.logger.info('{} connected to the resilience service'.format(self.name))
-        self.resilience_socket = zmq_context.socket(zmq.REQ)
-        self.resilience_socket.connect(resilience_address)
 
 
 class PubService(ComponentOutbound):
@@ -191,18 +169,6 @@ class PubService(ComponentOutbound):
 
         if not self.palm:
             raise ValueError('This part only works with PALM Components')
-                    
-        self.resilience_socket = None
-
-    def connect_resilience(self, resilience_address):
-        """
-        Connect a socket to the resilience service
-        :param resilience_address:
-        :return:
-        """
-        self.logger.info('{} connected to the resilience service'.format(self.name))
-        self.resilience_socket = zmq_context.socket(zmq.REQ)
-        self.resilience_socket.connect(resilience_address)
 
     def start(self):
         """
@@ -250,15 +216,6 @@ class WorkerPushService(PushService):
         :return:
         """
         self.logger.debug('{} translating from broker'.format(self.name))
-        if self.resilience_socket:
-            self.logger.debug('{} sending to resilience service'.format(self.name))
-            self.resilience_socket.send_multipart([b'to', message_data])
-            self.resilience_socket.recv()
-            self.logger.debug('----> Message registered in resilience service')
-
-        else:
-            self.logger.debug('----> No resilience service available')
-
         return message_data
 
     def _translate_to_broker(self, message_data):
@@ -281,18 +238,7 @@ class WorkerPullService(PullService):
         :param message_data:
         :return:
         """
-        if self.resilience_socket:
-            self.resilience_socket.send_multipart([b'from', message_data])
-            action = self.resilience_socket.recv()
-            if action == b'1':
-                self.logger.debug('----> Resilience says go for it.')
-                return message_data
-            else:
-                self.logger.debug('----> Resilience says discard the message')
-                return ''
-        else:
-            self.logger.debug('----> No resilience service running')
-            return message_data
+        return message_data
 
     def _translate_from_broker(self, message_data):
         """
