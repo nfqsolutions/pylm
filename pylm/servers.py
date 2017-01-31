@@ -15,9 +15,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from pylm.parts.core import zmq_context
-from pylm.parts.services import WorkerPullService, WorkerPushService
+from pylm.parts.services import WorkerPullService, WorkerPushService, \
+    CacheService
 from pylm.parts.services import PullService, PubService
-from pylm.parts.utils import CacheService
 from pylm.parts.servers import BaseMaster, ServerTemplate
 from pylm.parts.messages_pb2 import PalmMessage, BrokerMessage
 from pylm.persistence.kv import DictDB

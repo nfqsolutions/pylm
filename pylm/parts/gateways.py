@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from pylm.parts.core import ComponentInbound, ComponentOutbound
+from pylm.parts.core import Inbound, Outbound
 from pylm.parts.core import zmq_context
 from pylm.persistence.kv import DictDB
 from pylm.parts.messages_pb2 import BrokerMessage, PalmMessage
@@ -26,7 +26,7 @@ import zmq
 import sys
 
 
-class GatewayRouter(ComponentInbound):
+class GatewayRouter(Inbound):
     """
     Router that allows a parallel server to connect to multiple clients. It
     also allows to recv messages from a dealer socket that feeds back the
@@ -140,7 +140,7 @@ class GatewayRouter(ComponentInbound):
                 self.listen_to.send_multipart(response[1:])
 
     
-class GatewayDealer(ComponentOutbound):
+class GatewayDealer(Outbound):
     """
     Generic component that connects a REQ socket to the broker, and a
     socket to an inbound external service.

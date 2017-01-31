@@ -1,8 +1,7 @@
 from pylm.parts.servers import ServerTemplate
-from pylm.parts.services import WorkerPullService, WorkerPushService
+from pylm.parts.services import WorkerPullService, WorkerPushService, \
+    CacheService
 from pylm.parts.gateways import GatewayDealer, GatewayRouter, HttpGateway
-from pylm.parts.utils import CacheService
-from pylm.persistence.kv import DictDB
 
 server = ServerTemplate()
 
@@ -22,7 +21,8 @@ server.register_bypass(HttpGateway,
                        listen_address='inproc://gateway_router',
                        hostname='localhost',
                        port=8888)
-server.register_inbound(WorkerPullService, 'WorkerPull', worker_pull_address, route='gateway_dealer')
+server.register_inbound(WorkerPullService, 'WorkerPull', worker_pull_address,
+                        route='gateway_dealer')
 server.register_outbound(WorkerPushService, 'WorkerPush', worker_push_address)
 server.register_bypass(CacheService, 'Cache', db_address)
 

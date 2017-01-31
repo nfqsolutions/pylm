@@ -8,8 +8,7 @@ import zmq
 from pylm.clients import Client
 from pylm.parts.core import zmq_context, Router
 from pylm.parts.messages_pb2 import PalmMessage
-from pylm.parts.services import PullService, PubService
-from pylm.parts.utils import CacheService
+from pylm.parts.services import PullService, PubService, CacheService
 from pylm.persistence.kv import DictDB
 
 pull_address = 'inproc://pull'

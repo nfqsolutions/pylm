@@ -168,9 +168,9 @@ class Router(object):
         self.outbound.close()
 
 
-class ComponentInbound(object):
+class Inbound(object):
     """
-    Generic component that connects a REQ socket to the broker, and a
+    Generic part that connects a REQ socket to the broker, and a
     socket to an inbound external service.
 
     :param name: Name of the component
@@ -346,9 +346,9 @@ class ComponentInbound(object):
         self.listen_to.close()
 
 
-class ComponentOutbound(object):
+class Outbound(object):
     """
-    Generic component that connects a REQ socket to the broker, and a
+    Generic part that connects a REQ socket to the broker, and a
     socket to an inbound external service.
 
     :param name: Name of the component
@@ -419,7 +419,8 @@ class ComponentOutbound(object):
 
     def _translate_from_broker(self, message_data):
         """
-        Translate the message that the component gets from the broker to the output format
+        Translate the message that the component gets from the router to the
+        output format
 
         :param message_data:
         """
@@ -499,9 +500,9 @@ class ComponentOutbound(object):
         self.broker.close()
 
 
-class ComponentBypassInbound(object):
+class BypassInbound(object):
     """
-    Generic inbound component that does not connect to the broker.
+    Generic inbound part that does not connect to the router.
 
     :param name: Name of the component
     :param listen_address: ZMQ socket address to listen to
@@ -557,7 +558,7 @@ class ComponentBypassInbound(object):
         self.listen_to.close()
 
 
-class ComponentBypassOutbound(object):
+class BypassOutbound(object):
     """
     Generic inbound component that does not connect to the broker.
 

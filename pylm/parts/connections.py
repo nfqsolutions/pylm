@@ -18,12 +18,12 @@ import zmq
 import sys
 import concurrent.futures
 import traceback
-from pylm.parts.core import ComponentInbound, ComponentOutbound, \
-    ComponentBypassInbound, ComponentBypassOutbound, zmq_context
+from pylm.parts.core import Inbound, Outbound, \
+    BypassInbound, BypassOutbound, zmq_context
 from urllib.request import Request, urlopen
 
 
-class RepConnection(ComponentInbound):
+class RepConnection(Inbound):
     """
     RepConnection is a component that connects a REQ socket to the broker, and a REP
     socket to an external service.
@@ -52,7 +52,7 @@ class RepConnection(ComponentInbound):
         )
 
 
-class PullConnection(ComponentInbound):
+class PullConnection(Inbound):
     """
     PullConnection is a component that connects a REQ socket to the broker, and a PULL
     socket to an external service.
@@ -81,7 +81,7 @@ class PullConnection(ComponentInbound):
         )
 
 
-class PushConnection(ComponentOutbound):
+class PushConnection(Outbound):
     """
     PushConnection is a component that connects a REQ socket to the broker, and a PUSH
     socket to an external service.
@@ -110,7 +110,7 @@ class PushConnection(ComponentOutbound):
         )
 
 
-class PushBypassConnection(ComponentBypassOutbound):
+class PushBypassConnection(BypassOutbound):
     """
     Generic connection that sends a message to a sub service. Good for logs or metrics.
     """
@@ -126,7 +126,7 @@ class PushBypassConnection(ComponentBypassOutbound):
                                                    logger=logger)
 
 
-class PullBypassConnection(ComponentBypassInbound):
+class PullBypassConnection(BypassInbound):
     """
     Generic connection that opens a Sub socket and bypasses the broker.
     """
@@ -143,7 +143,7 @@ class PullBypassConnection(ComponentBypassInbound):
                                                    logger=logger)
 
 
-class HttpConnection(ComponentOutbound):
+class HttpConnection(Outbound):
     """
     Similar to PushConnection. An HTTP client deals with outbound messages.
     """

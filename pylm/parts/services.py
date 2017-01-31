@@ -16,15 +16,17 @@
 
 # The difference between connections and services is that connections
 # connect, while services bind.
-from pylm.parts.core import ComponentInbound, ComponentOutbound,\
-    zmq_context, ComponentBypassInbound
+from uuid import uuid4
+
+from pylm.parts.core import Inbound, Outbound,\
+    zmq_context, BypassInbound
 from pylm.parts.messages_pb2 import BrokerMessage, PalmMessage
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import zmq
 import sys
 
 
-class RepService(ComponentInbound):
+class RepService(Inbound):
     """
     RepService binds to a given socket and returns something.
     """
@@ -59,7 +61,7 @@ class RepService(ComponentInbound):
         )
 
 
-class PullService(ComponentInbound):
+class PullService(Inbound):
     """
     PullService binds to a socket waits for messages from a push-pull queue.
     """
@@ -94,7 +96,7 @@ class PullService(ComponentInbound):
         )
 
 
-class PushService(ComponentOutbound):
+class PushService(Outbound):
     """
     PullService binds to a socket waits for messages from a push-pull queue.
     """
@@ -129,7 +131,7 @@ class PushService(ComponentOutbound):
         )
 
 
-class PubService(ComponentOutbound):
+class PubService(Outbound):
     """
     PullService binds to a socket waits for messages from a push-pull queue.
 
@@ -346,7 +348,7 @@ class PushPullService(object):
         self.broker.close()
 
 
-class RepBypassService(ComponentBypassInbound):
+class RepBypassService(BypassInbound):
     """
     Generic connection that opens a Rep socket and bypasses the broker.
     """
@@ -365,7 +367,7 @@ class RepBypassService(ComponentBypassInbound):
                                                messages=messages)
 
 
-class HttpService(ComponentInbound):
+class HttpService(Inbound):
     """
     Similar to PullService, but the connection offered is an HTTP server
     that deals with inbound messages.
@@ -448,3 +450,49 @@ class HttpService(ComponentInbound):
         """
         server = HTTPServer((self.hostname, self.port), self._make_handler())
         server.serve_forever()
+
+
+class CacheService(RepBypassService):
+    """
+    Cache service for clients and workers
+    """
+    def recv(self):
+        message_data = self.listen_to.recv()
+        message = PalmMessage()
+        message.ParseFromString(message_data)
+        instruction = message.function.split('.')[1]
+
+        if instruction == 'set':
+            if message.HasField('cache'):
+                key = message.cache
+            else:
+                key = str(uuid4())
+
+            self.logger.debug('Cache Service: Set key {}'.format(key))
+            value = message.payload
+            self.cache.set(key, value)
+            return_value = key.encode('utf-8')
+
+        elif instruction == 'get':
+            key = message.payload.decode('utf-8')
+            self.logger.debug('Cache Service: Get key {}'.format(key))
+            value = self.cache.get(key)
+            if not value:
+                self.logger.error('key {} not present'.format(key))
+                return_value = b''
+            else:
+                return_value = value
+
+        elif instruction == 'delete':
+            key = message.payload.decode('utf-8')
+            self.logger.debug('Cache Service: Delete key {}'.format(key))
+            self.cache.delete(key)
+            return_value = key.encode('utf-8')
+
+        else:
+            self.logger.error(
+                'Cache {}:Key not found in the database'.format(self.name)
+            )
+            return_value = b''
+
+        self.listen_to.send(return_value)

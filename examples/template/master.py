@@ -1,6 +1,6 @@
 from pylm.parts.servers import ServerTemplate
-from pylm.parts.services import PullService, PubService, WorkerPullService, WorkerPushService
-from pylm.parts.utils import CacheService
+from pylm.parts.services import PullService, PubService, WorkerPullService, WorkerPushService, \
+    CacheService
 
 server = ServerTemplate()
 
