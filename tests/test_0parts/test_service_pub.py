@@ -35,10 +35,13 @@ broker_message.pipeline = 'pipeline'
 
 cache.set(broker_message_key, original_message.SerializeToString())
 
+listen_address = 'inproc://pub4623'
+broker_address = 'inproc://broker2346'
+
 pub_service = PubService(
     'pull_service',
-    listen_address='inproc://pub',
-    broker_address='inproc://broker',
+    listen_address=listen_address,
+    broker_address=broker_address,
     palm=True,
     logger=logger,
     cache=cache,
@@ -47,7 +50,7 @@ pub_service = PubService(
 
 def fake_router():
     socket = zmq_context.socket(zmq.REQ)
-    socket.bind('inproc://broker')
+    socket.bind(broker_address)
 
     socket.send(broker_message.SerializeToString())
     socket.recv()
@@ -56,7 +59,7 @@ def fake_router():
 def fake_client():
     socket = zmq_context.socket(zmq.SUB)
     socket.setsockopt_string(zmq.SUBSCRIBE, 'client')
-    socket.connect('inproc://pub')
+    socket.connect(listen_address)
 
     # Pub sockets take some time.
     time.sleep(1.0)

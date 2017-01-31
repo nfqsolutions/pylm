@@ -71,5 +71,6 @@ setup(name='pylm',
           'Programming Language :: Python :: 3.6',
           'License :: OSI Approved :: GNU Affero General Public License v3'
       ],
+      setup_requires=['pytest-runner'],
       install_requires=['protobuf>=3.0.0', 'requests', 'pyzmq']
       )
