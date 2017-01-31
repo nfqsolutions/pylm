@@ -32,8 +32,8 @@ class Client(object):
     :param db_address: Address for the cache service, for first connection or configuration.
     :param push_address: Address of the push service of the server to pull from
     :param sub_address: Address of the pub service of the server to subscribe to
-    :param server_name: Name of the server to be connected to
     :param pipeline: Name of the pipeline if the session has to be reused
+    :param logging_level: Specify the logging level.
     :param this_config: Do not fetch configuration from the server
     """
     def __init__(self, server_name: str,
