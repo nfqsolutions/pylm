@@ -5,7 +5,7 @@ from argparse import ArgumentParser
 def parse_arguments():
     parser = ArgumentParser()
     parser.add_argument('--name', type=str,
-                        help="Name of the server", required=True)
+                        help="Name of the component", required=True)
     parser.add_argument('--pull', type=str,
                         help="Tcp address of the pull service",
                         default='tcp://127.0.0.1:5555')

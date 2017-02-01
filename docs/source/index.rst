@@ -49,6 +49,7 @@ for `NFQ Solutions <http://nfqsolutions.com>`_.
     hl-api-docstrings
     ll-api-docstrings
     examples
+    registry
     beyond
 
 

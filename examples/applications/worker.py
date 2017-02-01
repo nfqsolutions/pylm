@@ -10,10 +10,12 @@ class MyWorker(Worker):
 
 def parse_arguments():
     parser = ArgumentParser()
-    parser.add_argument('--name', type=str, help='Name of this worker server',
+    parser.add_argument('--name', type=str, help='Name of this worker '
+                                                 'component',
                         default=str(uuid4()))
     parser.add_argument('--db', type=str,
-                        help='Address for the db socket of the master server',
+                        help='Address for the db socket of the master '
+                             'component',
                         default='tcp://127.0.0.1:5559')
 
     return parser.parse_args()

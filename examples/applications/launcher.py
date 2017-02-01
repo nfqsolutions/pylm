@@ -6,13 +6,14 @@ from argparse import ArgumentParser
 def parse_arguments():
     parser = ArgumentParser()
     parser.add_argument('--server', type=str,
-                        help="Name of the server you want to connect to",
+                        help="Name of the component you want to connect to",
                         required=True)
     parser.add_argument('--function', type=str,
                         help="Name of the function you want to call",
                         required=True)
     parser.add_argument('--db', type=str,
-                        help="tcp address of the cache service of the server",
+                        help="tcp address of the cache service of the master "
+                             "component",
                         default='tcp://127.0.0.1:5559')
     return parser.parse_args()
 
