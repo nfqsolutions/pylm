@@ -92,3 +92,35 @@ Building a master server from its components
 .. literalinclude:: ../../examples/template/client.py
     :language: python
     :linenos:
+
+
+Turning a component into a mircoservice with the HTTP gateway
+-------------------------------------------------------------
+
+.. literalinclude:: ../../examples/gateway/microservice.py
+    :language: python
+    :linenos:
+
+.. literalinclude:: ../../examples/gateway/worker.py
+    :language: python
+    :linenos:
+
+.. literalinclude:: ../../examples/gateway/client.py
+    :language: python
+    :linenos:
+
+
+Using microservices as workers via the HTTP protocol
+----------------------------------------------------
+
+.. literalinclude:: ../../examples/http/master.py
+    :language: python
+    :linenos:
+
+.. literalinclude:: ../../examples/http/web_worker.py
+    :language: python
+    :linenos:
+
+.. literalinclude:: ../../examples/http/client.py
+    :language: python
+    :linenos:
