@@ -16,6 +16,8 @@ Simple server and client communication
     :language: python
     :linenos:
 
+.. _simple-parallel:
+
 Simple parallel server and client communication
 -----------------------------------------------
 
