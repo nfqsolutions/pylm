@@ -1,6 +1,15 @@
 Welcome to pylm's documentation!
 ================================
 
+.. image:: https://badge.fury.io/py/pylm.svg
+    :target: https://badge.fury.io/py/pylm
+
+.. image:: https://img.shields.io/badge/docs-latest-brightgreen.svg?style=flat
+    :target: https://pylm.readthedocs.io/en/latest
+
+.. image:: https://badge.fury.io/gh/nfqsolutions%2Fpylm.svg
+    :target: https://badge.fury.io/gh/nfqsolutions%2Fpylm
+
 Pylm is the Python implementation of PALM, a framework to build
 clusters of high performance backend components. It is presented in two
 different levels of abstraction. In the high level API you will find
@@ -18,17 +27,6 @@ component and your custom communication pattern.
     Pylm requires a version of Python equal or higher than 3.4, and it is more
     thoroughly tested with Python 3.5.
 
-Installing **pylm** is as easy as:
-
-.. code-block:: bash
-
-   $> pip install pylm
-
-* `PYPI package page <https://pypi.python.org/pypi/pylm/>`_
-
-* `Documentation <http://pythonhosted.org/pylm/>`_
-
-* `Source code <https://github.com/nfqsolutions/pylm>`_
   
 Pylm is released under a dual licensing scheme. The source is released
 as-is under the the AGPL version 3 license, a copy of the license is
