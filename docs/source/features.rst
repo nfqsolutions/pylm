@@ -1,3 +1,5 @@
+.. _features:
+
 Server features
 ===============
 
@@ -70,10 +72,3 @@ And the output of any of the workers (the two workers are probably doing exactly
     2016-08-26 08:08:38,672 - worker1 - INFO - Processed 10 messages
 
 
-Endpoints
----------
-
-The size of your cluster may easily grow to tens or hundreds of servers, all of them logging important information
-to each one's stdout. This is not a big deal if you already have a good distributed log collector in your
-infrastructure, but this may not be the case. The logging infrastructure may be some of the last things you add to
-your cluster.
