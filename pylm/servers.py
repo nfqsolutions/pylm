@@ -19,7 +19,7 @@ from pylm.parts.services import WorkerPullService, WorkerPushService, \
     CacheService
 from pylm.parts.services import PullService, PubService
 from pylm.parts.servers import BaseMaster, ServerTemplate
-from pylm.parts.messages_pb2 import PalmMessage, BrokerMessage
+from pylm.parts.messages_pb2 import PalmMessage
 from pylm.persistence.kv import DictDB
 from google.protobuf.message import DecodeError
 from uuid import uuid4
@@ -240,7 +240,7 @@ class Worker(object):
         self.push.connect(self.pull_address)
 
         self.messages = messages
-        self.message = BrokerMessage()
+        self.message = PalmMessage()
 
     def _get_config_from_master(self):
         if not self.push_address:
@@ -261,7 +261,7 @@ class Worker(object):
             result = b'0'
             try:
                 self.message.ParseFromString(message_data)
-                instruction = self.message.instruction
+                instruction = self.message.function.split('.')[1]
                 try:
                     user_function = getattr(self, instruction)
                     self.logger.debug('Looking for {}'.format(instruction))

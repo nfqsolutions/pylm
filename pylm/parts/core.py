@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from pylm.parts.messages_pb2 import PalmMessage, BrokerMessage
+from pylm.parts.messages_pb2 import PalmMessage
 from uuid import uuid4
 import traceback
 import zmq
@@ -216,77 +216,27 @@ class Inbound(object):
 
         :param message_data: Message data from the component to the router
         """
-        if self.palm:
-            palm_message = PalmMessage()
-            palm_message.ParseFromString(message_data)
-            payload = palm_message.payload
-            instruction = palm_message.function.split('.')[1]
-            pipeline = palm_message.pipeline
+        palm_message = PalmMessage()
+        palm_message.ParseFromString(message_data)
 
-            if palm_message.HasField('cache'):
-                broker_message_key = ''.join(['_', palm_message.pipeline, palm_message.cache])
-            else:
-                broker_message_key = str(uuid4())
+        if not palm_message.cache:
+            palm_message.cache = str(uuid4())
 
-            # I store the message to get it later when the message is outbound. See that
-            # if I am just sending binary messages, I do not need to assign any envelope.
-
-            # The same message cannot be used, because it confuses the router.
-            if broker_message_key in self.cache:
-                new_key = ''.join([broker_message_key, str(uuid4())[:8]])
-                self.logger.error(
-                    'Message key {} found, changed to {}'.format(broker_message_key,
-                                                                 new_key)
-                )
-                broker_message_key = new_key
-
-            self.logger.debug('Set message key {}'.format(broker_message_key))
-            self.cache.set(broker_message_key, message_data)
-        else:
-            broker_message_key = str(uuid4())
-            payload = message_data
-            instruction = ''
-            pipeline = ''
-
-        broker_message = BrokerMessage()
-        broker_message.key = broker_message_key
-        broker_message.instruction = instruction
-        broker_message.payload = payload
-        broker_message.pipeline = pipeline
-
-        return broker_message.SerializeToString()
+        return palm_message.SerializeToString()
 
     def _translate_from_broker(self, message_data):
         """
-        Translate the message that the component gets from the router to the output format
+        Translate the message that the component gets from the router to the
+        output format
 
         :param message_data: Data from the router
         """
-        broker_message = BrokerMessage()
-        broker_message.ParseFromString(message_data)
-
-        if self.palm:
-            message_data = self.cache.get(broker_message.key)
-            # Clean up the cache. It is an outbound message and
-            # the metadata is not necessary anymore. This may cause
-            # double deletions, so be ready to manage the messages
-            # yourself. Note this may cause memory leaks in the cache.
-            self.logger.debug('DELETE: {}'.format(broker_message.key))
-            self.cache.delete(broker_message.key)
-            palm_message = PalmMessage()
-            palm_message.ParseFromString(message_data)
-            palm_message.payload = broker_message.payload
-            message_data = palm_message.SerializeToString()
-
-        else:
-            message_data = broker_message.payload
-
         return message_data
 
     def scatter(self, message_data):
         """
-        Abstract method. Picks a message and returns a generator that multiplies the messages
-        to the broker.
+        Abstract method. Picks a message and returns a generator that
+        multiplies the messages to the broker.
 
         :param message_data:
         """
@@ -389,33 +339,13 @@ class Outbound(object):
 
     def _translate_to_broker(self, message_data):
         """
-        Translate the message that the component has got to be digestible by the broker
+        Translate the message that the component has got to be digestible by
+        the broker
+
         :param message_data:
         :return:
         """
-        broker_message_key = str(uuid4())
-        if self.palm:
-            palm_message = PalmMessage()
-            palm_message.ParseFromString(message_data)
-            payload = palm_message.payload
-            instruction = palm_message.function.split('.')[1]
-            pipeline = palm_message.pipeline
-
-            # I store the message to get it later when the message is outbound. See that
-            # if I am just sending binary messages, I do not need to assign any envelope.
-            self.cache.set(broker_message_key, message_data)
-        else:
-            payload = message_data
-            instruction = ''
-            pipeline = ''
-
-        broker_message = BrokerMessage()
-        broker_message.key = broker_message_key
-        broker_message.instruction = instruction
-        broker_message.payload = payload
-        broker_message.pipeline = pipeline
-
-        return broker_message.SerializeToString()
+        return message_data
 
     def _translate_from_broker(self, message_data):
         """
@@ -424,22 +354,6 @@ class Outbound(object):
 
         :param message_data:
         """
-        broker_message = BrokerMessage()
-        broker_message.ParseFromString(message_data)
-
-        if self.palm:
-            message_data = self.cache.get(broker_message.key)
-            # Clean up the cache. It is an outbound message and no one will
-            # ever need the full message again.
-            self.logger.debug('DELETE: {}'.format(broker_message.key))
-            self.cache.delete(broker_message.key)
-            palm_message = PalmMessage()
-            palm_message.ParseFromString(message_data)
-            palm_message.payload = broker_message.payload
-            message_data = palm_message.SerializeToString()
-        else:
-            message_data = broker_message.payload
-
         return message_data
 
     def scatter(self, message_data):

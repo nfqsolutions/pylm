@@ -17,7 +17,7 @@
 from pylm.parts.core import Inbound, Outbound
 from pylm.parts.core import zmq_context
 from pylm.persistence.kv import DictDB
-from pylm.parts.messages_pb2 import BrokerMessage, PalmMessage
+from pylm.parts.messages_pb2 import PalmMessage
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from socketserver import ThreadingMixIn
 from uuid import uuid4
@@ -73,37 +73,9 @@ class GatewayRouter(Inbound):
         """
         palm_message = PalmMessage()
         palm_message.ParseFromString(message_data)
-        payload = palm_message.payload
-        instruction = palm_message.function.split('.')[1]
-        pipeline = palm_message.pipeline
+        palm_message.cache = str(uuid4())
 
-        if palm_message.HasField('cache'):
-            broker_message_key = ''.join(['_', palm_message.pipeline, palm_message.cache])
-        else:
-            broker_message_key = str(uuid4())
-
-        # I store the message to get it later when the message is outbound. See that
-        # if I am just sending binary messages, I do not need to assign any envelope.
-
-        # The same message cannot be used, because it confuses the router.
-        if broker_message_key in self.cache:
-            new_key = ''.join([broker_message_key, str(uuid4())[:8]])
-            self.logger.error(
-                'Message key {} found, changed to {}'.format(broker_message_key,
-                                                             new_key)
-            )
-            broker_message_key = new_key
-
-        self.logger.debug('Set message key {}'.format(broker_message_key))
-        self.cache.set(broker_message_key, message_data)
-
-        broker_message = BrokerMessage()
-        broker_message.key = broker_message_key
-        broker_message.instruction = instruction
-        broker_message.payload = payload
-        broker_message.pipeline = pipeline
-
-        return broker_message
+        return palm_message
         
     def start(self):
         """
@@ -193,17 +165,8 @@ class GatewayDealer(Outbound):
 
         :param message_data:
         """
-        broker_message = BrokerMessage()
-        broker_message.ParseFromString(message_data)
-
-        message_data = self.cache.get(broker_message.key)
-        # Clean up the cache. It is an outbound message and no one will
-        # ever need the full message again.
-        self.logger.debug('DELETE: {}'.format(broker_message.key))
-        self.cache.delete(broker_message.key)
         palm_message = PalmMessage()
         palm_message.ParseFromString(message_data)
-        palm_message.payload = broker_message.payload
         message_data = palm_message.SerializeToString()
             
         return palm_message.client.encode('utf-8'), message_data

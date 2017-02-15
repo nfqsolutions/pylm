@@ -1,18 +1,12 @@
+syntax = "proto3";
+
 message PalmMessage {
-  required string pipeline = 1;
-  required string client   = 2;
-  required int64 stage     = 3;
-  required string function = 4;
-  optional int64 idx       = 5;
-  optional bool  end       = 6;
-  optional string cache    = 7;
-  optional bytes payload   = 8;
-}
-
-
-message BrokerMessage {
-  required string key =    1;
-  required bytes payload = 2;
-  optional string instruction = 3;
-  optional string pipeline = 4;
+  string pipeline = 1;
+  string client   = 2;
+  int64  stage    = 3;
+  string function = 4;
+  int64  idx      = 5;
+  bool   end      = 6;
+  string cache    = 7;
+  bytes  payload  = 8;
 }

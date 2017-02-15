@@ -1,5 +1,5 @@
 from pylm.parts.core import zmq_context
-from pylm.parts.messages_pb2 import BrokerMessage, PalmMessage
+from pylm.parts.messages_pb2 import PalmMessage
 from pylm.parts.gateways import GatewayRouter, GatewayDealer, HttpGateway
 from pylm.persistence.kv import DictDB
 import concurrent.futures
@@ -18,10 +18,10 @@ def test_gateway_router():
         dummy_router = zmq_context.socket(zmq.REP)
         dummy_router.bind('inproc://broker')
         msg = dummy_router.recv()
-        broker_message = BrokerMessage()
-        broker_message.ParseFromString(msg)
+        message = PalmMessage()
+        message.ParseFromString(msg)
         dummy_router.send(msg)
-        return broker_message.payload
+        return message.payload
 
     def dummy_initiator():
         dummy_client = zmq_context.socket(zmq.REQ)
@@ -68,7 +68,7 @@ def test_gateway_dealer():
         [target, empty, message] = dummy_router.recv_multipart()
         dummy_router.send_multipart([target, empty, b'0'])
 
-        broker_message = BrokerMessage()
+        broker_message = PalmMessage()
         broker_message.ParseFromString(message)
 
         dummy_router.send_multipart([b'gateway_dealer', empty, message])
@@ -126,7 +126,7 @@ def test_gateway_http():
         [target, empty, message] = dummy_router.recv_multipart()
         dummy_router.send_multipart([target, empty, b'0'])
 
-        broker_message = BrokerMessage()
+        broker_message = PalmMessage()
         broker_message.ParseFromString(message)
 
         dummy_router.send_multipart([b'gateway_dealer', empty, message])

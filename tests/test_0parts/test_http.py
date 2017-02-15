@@ -1,7 +1,7 @@
 from pylm.parts.core import zmq_context
 from pylm.parts.services import HttpService
 from pylm.parts.connections import HttpConnection
-from pylm.parts.messages_pb2 import BrokerMessage
+from pylm.parts.messages_pb2 import PalmMessage
 import concurrent.futures
 import zmq
 import logging
@@ -14,9 +14,8 @@ def fake_router():
 
     # Give some time for everything to start
     time.sleep(1.0)
-    message = BrokerMessage()
+    message = PalmMessage()
     message.payload = b'test message'
-    message.key = 'x'
     socket.send(message.SerializeToString())
     socket.recv()
 
@@ -24,7 +23,7 @@ def fake_router():
 def fake_terminator():
     socket = zmq_context.socket(zmq.REP)
     socket.bind('inproc://terminator')
-    message = BrokerMessage()
+    message = PalmMessage()
     message.ParseFromString(socket.recv())
 
     print("Got the message at the terminator: ")

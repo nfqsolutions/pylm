@@ -20,7 +20,7 @@ from uuid import uuid4
 
 from pylm.parts.core import Inbound, Outbound,\
     zmq_context, BypassInbound
-from pylm.parts.messages_pb2 import BrokerMessage, PalmMessage
+from pylm.parts.messages_pb2 import PalmMessage
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import zmq
 import sys
@@ -186,6 +186,7 @@ class PubService(Outbound):
             message_data = self._translate_from_broker(message_data)
 
             if self.pipelined:
+                raise NotImplementedError('Pipelined not supported yet')
                 topic = None
             else:
                 message = PalmMessage()
@@ -193,7 +194,11 @@ class PubService(Outbound):
                 topic = message.client
 
             for scattered in self.scatter(message_data):
-                self.listen_to.send_multipart([topic.encode('utf-8'), scattered])
+                scattered_message = PalmMessage()
+                scattered_message.ParseFromString(scattered)
+                self.listen_to.send_multipart(
+                    [topic.encode('utf-8'), scattered]
+                )
                 self.logger.debug('Component {} Sent message'.format(self.name))
 
                 if self.reply:
@@ -324,10 +329,13 @@ class PushPullService(object):
 
     def start(self):
         self.logger.info('{} Successfully started'.format(self.name))
-        initial_broker_message = BrokerMessage()
-        initial_broker_message.key = '0'
-        initial_broker_message.payload = b'0'
-        self.broker.send(initial_broker_message.SerializeToString())
+        initial_message = PalmMessage()
+        initial_message.pipeline = '0'
+        initial_message.client = '0'
+        initial_message.stage = 0
+        initial_message.function = ''
+        initial_message.payload = b'0'
+        self.broker.send(initial_message.SerializeToString())
 
         for i in range(self.messages):
             self.logger.debug('{} blocked waiting for broker'.format(self.name))
@@ -463,7 +471,7 @@ class CacheService(RepBypassService):
         instruction = message.function.split('.')[1]
 
         if instruction == 'set':
-            if message.HasField('cache'):
+            if message.cache:
                 key = message.cache
             else:
                 key = str(uuid4())
