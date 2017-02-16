@@ -187,7 +187,12 @@ class Client(object):
         """
         Sets a key value pare in the remote database. If the key is not set,
         the function returns a new key. Note that the order of the arguments
-        is reversed from the usual
+        is reversed from the usual.
+
+        .. warning::
+
+            If the session attribute is specified, all the keys will be
+            prepended with the session id.
 
         :param value: Value to be stored
         :param key: Key for the k-v storage
