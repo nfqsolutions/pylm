@@ -59,7 +59,11 @@ class Server(object):
 
         self.logger = logging.getLogger(name=name)
         handler = logging.StreamHandler(sys.stdout)
-        handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+        handler.setFormatter(
+            logging.Formatter(
+                '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            )
+        )
         self.logger.addHandler(handler)
         self.logger.setLevel(log_level)
 
@@ -93,7 +97,8 @@ class Server(object):
                         except:
                             self.logger.error('User function gave an error')
                             exc_type, exc_value, exc_traceback = sys.exc_info()
-                            lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+                            lines = traceback.format_exception(
+                                exc_type, exc_value, exc_traceback)
                             for l in lines:
                                 self.logger.exception(l)
 
@@ -119,8 +124,8 @@ class Server(object):
         """
         Start the server
 
-        :param cache_messages: Number of messages the cache service handles before it
-          shuts down. Useful for debugging
+        :param cache_messages: Number of messages the cache service handles
+        before it shuts down. Useful for debugging
         :return:
         """
         threads = []
@@ -137,7 +142,9 @@ class Server(object):
                 try:
                     future.result()
                 except Exception as exc:
-                    self.logger.error('This is critical, one of the components of the server died')
+                    self.logger.error(
+                        'This is critical, one of the components of the '
+                        'server died')
                     lines = traceback.format_exception(*sys.exc_info())
                     for line in lines:
                         self.logger.error(line.strip('\n'))
@@ -173,11 +180,16 @@ class Master(ServerTemplate, BaseMaster):
         self.cache.set('worker_pull_address', worker_pull_address.encode('utf-8'))
         self.cache.set('worker_push_address', worker_push_address.encode('utf-8'))
 
-        self.register_inbound(PullService, 'Pull', pull_address, route='WorkerPush')
-        self.register_inbound(WorkerPullService, 'WorkerPull', worker_pull_address, route='Pub')
-        self.register_outbound(WorkerPushService, 'WorkerPush', worker_push_address)
-        self.register_outbound(PubService, 'Pub', pub_address, log='to_sink')
-        self.register_bypass(CacheService, 'Cache', db_address)
+        self.register_inbound(
+            PullService, 'Pull', pull_address, route='WorkerPush')
+        self.register_inbound(
+            WorkerPullService, 'WorkerPull', worker_pull_address, route='Pub')
+        self.register_outbound(
+            WorkerPushService, 'WorkerPush', worker_push_address)
+        self.register_outbound(
+            PubService, 'Pub', pub_address, log='to_sink')
+        self.register_bypass(
+            CacheService, 'Cache', db_address)
         self.preset_cache(name=name,
                           db_address=db_address,
                           pull_address=pull_address,
@@ -197,13 +209,16 @@ class Worker(object):
 
     :param name: Name assigned to this worker server
     :param db_address: Address of the db service of the master
-    :param push_address: Address the workers push to. If left blank, fetches it from the master
-    :param pull_address: Address the workers pull from. If left blank, fetches it from the master
+    :param push_address: Address the workers push to. If left blank, fetches
+    it from the master
+    :param pull_address: Address the workers pull from. If left blank,
+    fetches it from the master
     :param log_level: Log level for this server.
     :param messages: Number of messages before it is shut down.
     """
-    def __init__(self, name='', db_address='', push_address=None, pull_address=None,
-                 log_level=logging.INFO, messages=sys.maxsize):
+    def __init__(self, name='', db_address='', push_address=None,
+                 pull_address=None, log_level=logging.INFO,
+                 messages=sys.maxsize):
 
         self.uuid = str(uuid4())
 
@@ -216,7 +231,9 @@ class Worker(object):
         # Configure the log handler
         self.logger = logging.getLogger(name=name)
         handler = logging.StreamHandler(sys.stdout)
-        handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+        handler.setFormatter(logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        )
         self.logger.addHandler(handler)
         self.logger.setLevel(log_level)
 
@@ -245,11 +262,13 @@ class Worker(object):
     def _get_config_from_master(self):
         if not self.push_address:
             self.push_address = self.get('worker_push_address').decode('utf-8')
-            self.logger.info('Got worker push address: {}'.format(self.push_address))
+            self.logger.info(
+                'Got worker push address: {}'.format(self.push_address))
 
         if not self.pull_address:
             self.pull_address = self.get('worker_pull_address').decode('utf-8')
-            self.logger.info('Got worker pull address: {}'.format(self.pull_address))
+            self.logger.info(
+                'Got worker pull address: {}'.format(self.pull_address))
 
         return {'push_address': self.push_address,
                 'pull_address': self.pull_address}
@@ -270,14 +289,16 @@ class Worker(object):
                         self.logger.debug('{} Ok'.format(instruction))
                     except:
                         self.logger.error(
-                            '{} User function {} gave an error'.format(self.name,
-                                                                       instruction)
+                            '{} User function {} gave an error'.format(
+                                self.name, instruction)
                         )
                         lines = traceback.format_exception(*sys.exc_info())
                         self.logger.exception(lines[0])
                         
                 except AttributeError:
-                    self.logger.error('Function {} was not found'.format(instruction))
+                    self.logger.error(
+                        'Function {} was not found'.format(instruction)
+                    )
             except DecodeError:
                 self.logger.error('Message could not be decoded')
 
@@ -306,6 +327,7 @@ class Worker(object):
     def get(self, key):
         """
         Gets a value from server's internal cache
+
         :param key: Key for the data to be selected.
         :return:
         """
@@ -321,6 +343,7 @@ class Worker(object):
     def delete(self, key):
         """
         Deletes data in the server's internal cache.
+
         :param key: Key of the data to be deleted
         :return:
         """
