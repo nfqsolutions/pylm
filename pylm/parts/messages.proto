@@ -5,8 +5,6 @@ message PalmMessage {
   string client   = 2;
   int64  stage    = 3;
   string function = 4;
-  int64  idx      = 5;
-  bool   end      = 6;
-  string cache    = 7;
-  bytes  payload  = 8;
+  string cache    = 5;
+  bytes  payload  = 6;
 }
