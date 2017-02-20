@@ -18,6 +18,7 @@ from pylm.parts.core import zmq_context
 from pylm.parts.services import WorkerPullService, WorkerPushService, \
     CacheService
 from pylm.parts.services import PullService, PubService
+from pylm.parts.connections import SubConnection
 from pylm.parts.servers import BaseMaster, ServerTemplate
 from pylm.parts.messages_pb2 import PalmMessage
 from pylm.persistence.kv import DictDB
@@ -235,11 +236,6 @@ class Master(ServerTemplate, BaseMaster):
         self.name = name
         self.palm = True
         self.cache = cache
-        self.cache.set('name', self.name.encode('utf-8'))
-        self.cache.set('pull_address', pull_address.encode('utf-8'))
-        self.cache.set('pub_address', pub_address.encode('utf-8'))
-        self.cache.set('worker_pull_address', worker_pull_address.encode('utf-8'))
-        self.cache.set('worker_push_address', worker_push_address.encode('utf-8'))
 
         self.register_inbound(
             PullService, 'Pull', pull_address, route='WorkerPush')
@@ -267,8 +263,48 @@ class Master(ServerTemplate, BaseMaster):
 class Hub(object):
     """
     A Hub is a pipelined Master.
+
+    :param name: Name of the server
+    :param sub_address: Valid address for the sub service
+    :param pub_address: Valid address for the pub service
+    :param worker_pull_address: Valid address for the pull-from-workers service
+    :param worker_push_address: Valid address for the push-to-workers service
+    :param db_address: Valid address to bind the Cache service
+    :param cache: Key-value embeddable database. Pick from one of the supported ones
+    :param log_level: Logging level
     """
-    pass
+    def __init__(self, name: str, sub_address: str, pub_address: str,
+                 worker_pull_address: str, worker_push_address: str, db_address: str,
+                 previous: str, cache: object = DictDB(),
+                 log_level: int = logging.INFO):
+
+        super(Master, self).__init__(logging_level=log_level)
+        self.name = name
+        self.palm = True
+        self.cache = cache
+
+        self.register_inbound(
+            SubConnection, 'Sub', sub_address, route='WorkerPush',
+            previous=previous)
+        self.register_inbound(
+            WorkerPullService, 'WorkerPull', worker_pull_address, route='Pub')
+        self.register_outbound(
+            WorkerPushService, 'WorkerPush', worker_push_address)
+        self.register_outbound(
+            PubService, 'Pub', pub_address, log='to_sink')
+        self.register_bypass(
+            CacheService, 'Cache', db_address)
+        self.preset_cache(name=name,
+                          db_address=db_address,
+                          sub_address=sub_address,
+                          pub_address=pub_address,
+                          worker_pull_address=worker_pull_address,
+                          worker_push_address=worker_push_address)
+
+        # Monkey patches the scatter and gather functions to the
+        # scatter function of Push and Pull parts respectively.
+        self.inbound_components['Sub'].scatter = self.scatter
+        self.outbound_components['Pub'].scatter = self.gather
 
 
 class Worker(object):

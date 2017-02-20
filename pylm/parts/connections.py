@@ -27,17 +27,15 @@ class RepConnection(Inbound):
     """
     RepConnection is a component that connects a REQ socket to the broker, and a REP
     socket to an external service.
+
+    :param name: Name of the component
+    :param listen_address: ZMQ socket address to listen to
+    :param broker_address: ZMQ socket address for the broker
+    :param logger: Logger instance
+    :param messages: Maximum number of inbound messages. Defaults to infinity.
     """
     def __init__(self, name, listen_address, broker_address="inproc://broker",
                  logger=None, cache=None, messages=sys.maxsize):
-        """
-        :param name: Name of the component
-        :param listen_address: ZMQ socket address to listen to
-        :param broker_address: ZMQ socket address for the broker
-        :param logger: Logger instance
-        :param messages: Maximum number of inbound messages. Defaults to infinity.
-        :return:
-        """
         super(RepConnection, self).__init__(
             name,
             listen_address,
@@ -50,21 +48,85 @@ class RepConnection(Inbound):
         )
 
 
+class SubConnection(Inbound):
+    """
+    Part that connects to a Pub service and subscribes to its message queue
+
+    :param name:
+    :param listen_address:
+    :param previous:
+    :param broker_address:
+    :param logger:
+    :param cache:
+    :param messages:
+    """
+    def __init__(self, name, listen_address, previous,
+                 broker_address="inproc://broker", logger=None, cache=None,
+                 messages=sys.maxsize):
+
+        super(SubConnection, self).__init__(
+            name,
+            listen_address,
+            zmq.SUB,
+            reply=False,
+            broker_address=broker_address,
+            logger=logger,
+            cache=cache,
+            messages=messages
+        )
+        self.previous = previous
+
+    def start(self):
+        """
+        Call this function to start the component
+        """
+        self.listen_to.setsockopt_string(zmq.SUBSCRIBE, self.previous)
+        self.listen_to.connect(self.listen_address)
+
+        self.logger.info('{} successfully started'.format(self.name))
+        for i in range(self.messages):
+            self.logger.debug('{} blocked waiting messages'.format(self.name))
+            message_data = self.listen_to.recv()
+            self.logger.debug('{} Got inbound message'.format(self.name))
+
+            try:
+                for scattered in self.scatter(message_data):
+                    scattered = self._translate_to_broker(scattered)
+                    self.broker.send(scattered)
+                    self.logger.debug('{} blocked waiting for broker'.format(
+                        self.name))
+                    self.handle_feedback(self.broker.recv())
+
+                if self.reply:
+                    self.listen_to.send(self.reply_feedback())
+            except:
+                self.logger.error('Error in scatter function')
+                lines = traceback.format_exception(*sys.exc_info())
+                self.logger.exception(lines[0])
+
+                if self.reply:
+                    self.listen_to.send(b'0')
+
+        return self.name
+
+    def cleanup(self):
+        self.broker.close()
+        self.listen_to.close()
+
+
 class PullConnection(Inbound):
     """
-    PullConnection is a component that connects a REQ socket to the broker, and a PULL
-    socket to an external service.
+    PullConnection is a component that connects a REQ socket to the broker,
+    and a PULL socket to an external service.
+
+    :param name: Name of the component
+    :param listen_address: ZMQ socket address to listen to
+    :param broker_address: ZMQ socket address for the broker
+    :param logger: Logger instance
+    :param messages: Maximum number of inbound messages. Defaults to infinity.
     """
     def __init__(self, name, listen_address, broker_address="inproc://broker",
                  logger=None, cache=None, messages=sys.maxsize):
-        """
-        :param name: Name of the component
-        :param listen_address: ZMQ socket address to listen to
-        :param broker_address: ZMQ socket address for the broker
-        :param logger: Logger instance
-        :param messages: Maximum number of inbound messages. Defaults to infinity.
-        :return:
-        """
         super(PullConnection, self).__init__(
             name,
             listen_address,
