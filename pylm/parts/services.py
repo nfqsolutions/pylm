@@ -154,8 +154,6 @@ class PubService(Outbound):
             messages=messages
         )
         self.pipelined = pipelined
-        if self.pipelined:
-            raise NotImplementedError('pipelined=True not supported yet')
 
     def handle_topic(self, message_data):
         """

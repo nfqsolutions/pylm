@@ -224,11 +224,14 @@ class Master(ServerTemplate, BaseMaster):
     :param worker_pull_address: Valid address for the pull-from-workers service
     :param worker_push_address: Valid address for the push-to-workers service
     :param db_address: Valid address to bind the Cache service
-    :param cache: Key-value embeddable database. Pick from one of the supported ones
+    :param pipelined: The output connects to a Pipeline or a Hub.
+    :param cache: Key-value embeddable database. Pick from one of the
+    supported ones
     :param log_level: Logging level
     """
     def __init__(self, name: str, pull_address: str, pub_address: str,
-                 worker_pull_address: str, worker_push_address: str, db_address: str,
+                 worker_pull_address: str, worker_push_address: str,
+                 db_address: str, pipelined: bool=False,
                  cache: object = DictDB(), log_level: int = logging.INFO):
         """
         """
@@ -244,7 +247,7 @@ class Master(ServerTemplate, BaseMaster):
         self.register_outbound(
             WorkerPushService, 'WorkerPush', worker_push_address)
         self.register_outbound(
-            PubService, 'Pub', pub_address, log='to_sink')
+            PubService, 'Pub', pub_address, log='to_sink', pipelined=pipelined)
         self.register_bypass(
             CacheService, 'Cache', db_address)
         self.preset_cache(name=name,
