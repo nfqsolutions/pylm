@@ -270,6 +270,7 @@ class Hub(object):
     :param worker_pull_address: Valid address for the pull-from-workers service
     :param worker_push_address: Valid address for the push-to-workers service
     :param db_address: Valid address to bind the Cache service
+    :param previous: Name of the previous server to subscribe to the queue.
     :param cache: Key-value embeddable database. Pick from one of the supported ones
     :param log_level: Logging level
     """
