@@ -237,7 +237,6 @@ class Master(ServerTemplate, BaseMaster):
         """
         super(Master, self).__init__(logging_level=log_level)
         self.name = name
-        self.palm = True
         self.cache = cache
 
         self.register_inbound(
@@ -284,7 +283,6 @@ class Hub(object):
 
         super(Master, self).__init__(logging_level=log_level)
         self.name = name
-        self.palm = True
         self.cache = cache
 
         self.register_inbound(
