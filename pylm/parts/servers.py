@@ -27,7 +27,8 @@ class ServerTemplate(object):
     """
     Low-level tool to build a server from parts.
 
-    :param logging_level: A correct logging level from the logging module. Defaults to INFO.
+    :param logging_level: A correct logging level from the logging module.
+    Defaults to INFO.
 
     It has important attributes that you may want to override, like
 
@@ -54,7 +55,10 @@ class ServerTemplate(object):
         # Basic console logging
         self.logger = logging.getLogger(name=self.name)
         handler = logging.StreamHandler(sys.stdout)
-        handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+        handler.setFormatter(
+            logging.Formatter(
+                '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        )
         self.logger.addHandler(handler)
         self.logger.setLevel(self.logging_level)
 
@@ -63,7 +67,8 @@ class ServerTemplate(object):
                              cache=self.cache,
                              messages=router_messages)
 
-    def register_inbound(self, part, name='', listen_address='', route='', block=False, log='', **kwargs):
+    def register_inbound(self, part, name='', listen_address='', route='',
+                         block=False, log='', **kwargs):
         """
         Register inbound part to this server.
 
@@ -92,7 +97,8 @@ class ServerTemplate(object):
 
         self.inbound_components[name] = instance
 
-    def register_outbound(self, part, name='', listen_address='', route='', log='', **kwargs):
+    def register_outbound(self, part, name='', listen_address='', route='',
+                          log='', **kwargs):
         """
         Register outbound part to this server
 

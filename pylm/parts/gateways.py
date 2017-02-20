@@ -85,7 +85,8 @@ class GatewayRouter(Inbound):
             self.logger.debug('Component {} blocked waiting messages'.format(self.name))
             response = self.listen_to.recv_multipart()
 
-            # If the message is from anything but the dealer, send it to the router.
+            # If the message is from anything but the dealer, send it to the
+            # router.
             if len(response) == 3:
                 [target, empty, message_data] = response
                 self.logger.debug('{} Got inbound message'.format(self.name))
@@ -94,7 +95,8 @@ class GatewayRouter(Inbound):
                     for scattered in self.scatter(message_data):
                         scattered = self._translate_to_broker(scattered)
                         self.broker.send(scattered.SerializeToString())
-                        self.logger.debug('Component {} blocked waiting for broker'.format(
+                        self.logger.debug(
+                            'Component {} blocked waiting for broker'.format(
                             self.name))
                         self.broker.recv()
 
@@ -155,7 +157,8 @@ class GatewayDealer(Outbound):
 
     def _translate_from_broker(self, message_data):
         """
-        Translate the message that the component gets from the broker to the output format
+        Translate the message that the component gets from the broker to the
+        output format
 
         :param message_data:
         """
@@ -172,10 +175,12 @@ class GatewayDealer(Outbound):
         self.listen_to.connect(self.listen_address)
 
         for i in range(self.messages):
-            self.logger.debug('Component {} blocked waiting for broker'.format(self.name))
+            self.logger.debug(
+                'Component {} blocked waiting for broker'.format(self.name))
             [me, message_data] = self.broker.recv_multipart()
             
-            self.logger.debug('Component {} Got message from broker'.format(self.name))
+            self.logger.debug(
+                'Component {} Got message from broker'.format(self.name))
             target, message_data = self._translate_from_broker(message_data)
 
             for scattered in self.scatter(message_data):
