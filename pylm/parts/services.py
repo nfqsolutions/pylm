@@ -157,6 +157,27 @@ class PubService(Outbound):
         if self.pipelined:
             raise NotImplementedError('pipelined=True not supported yet')
 
+    def handle_topic(self, message_data):
+        """
+        Handle the topic of the pub thing. TBD
+
+        :param message_data:
+        :return:
+        """
+        if self.pipelined:
+            # If the master is pipelined,
+            message = PalmMessage()
+            message.ParseFromString(message_data)
+            topic = self.name
+            message.stage += 1
+            message_data = message.SerializeToString()
+        else:
+            message = PalmMessage()
+            message.ParseFromString(message_data)
+            topic = message.client
+
+        return topic, message_data
+
     def start(self):
         """
         Call this function to start the component
@@ -170,17 +191,9 @@ class PubService(Outbound):
             self.logger.debug('{} Got message from broker'.format(self.name))
             message_data = self._translate_from_broker(message_data)
 
-            if self.pipelined:
-                raise NotImplementedError('Pipelined not supported yet')
-                topic = None
-            else:
-                message = PalmMessage()
-                message.ParseFromString(message_data)
-                topic = message.client
-
             for scattered in self.scatter(message_data):
-                scattered_message = PalmMessage()
-                scattered_message.ParseFromString(scattered)
+                topic, scattered = self.handle_topic(scattered)
+
                 self.listen_to.send_multipart(
                     [topic.encode('utf-8'), scattered]
                 )
