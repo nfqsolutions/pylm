@@ -271,3 +271,6 @@ class Client(object):
         return self.db.recv().decode('utf-8')
 
 
+class Tee(object):
+    # TODO: A tee that creates new pipelines from a pipeline may be useful too
+    pass
