@@ -69,25 +69,41 @@ class Server(object):
 
         self.messages = messages
 
+        self.pull_socket = zmq_context.socket(zmq.PULL)
+        self.pull_socket.bind(self.pull_address)
+
+        self.pub_socket = zmq_context.socket(zmq.PUB)
+        self.pub_socket.bind(self.pub_address)
+
+    def _handle_topic(self, message):
+        if self.pipelined:
+            topic = self.name
+            message.stage += 1
+        else:
+            topic = message.client
+
+        return topic
+
     def _execution_handler(self):
-        pull_socket = zmq_context.socket(zmq.PULL)
-        pull_socket.bind(self.pull_address)
-
-        pub_socket = zmq_context.socket(zmq.PUB)
-        pub_socket.bind(self.pub_address)
-
         for i in range(self.messages):
             self.logger.debug('Server waiting for messages')
-            message_data = pull_socket.recv()
+            message_data = self.pull_socket.recv()
             self.logger.debug('Got message {}'.format(i + 1))
             result = b'0'
             message = PalmMessage()
             try:
                 message.ParseFromString(message_data)
-                [server, function] = message.function.split('.')
+
+                # Handle the fact that the message may be a complete pipeline
+                if ' ' in message.function:
+                    [server, function] = message.function.split()[
+                        message.stage].split('.')
+                else:
+                    [server, function] = message.function.split('.')
 
                 if not self.name == server:
-                    self.logger.error('You called the wrong server')
+                    self.logger.error('You called {}, instead of {}'.format(
+                        server, self.name))
                 else:
                     try:
                         user_function = getattr(self, function)
@@ -111,12 +127,9 @@ class Server(object):
 
             message.payload = result
 
-            if self.pipelined:
-                topic = None
-            else:
-                topic = message.client
+            topic = self._handle_topic(message)
 
-            pub_socket.send_multipart(
+            self.pub_socket.send_multipart(
                 [topic.encode('utf-8'), message.SerializeToString()]
             )
 
@@ -150,6 +163,54 @@ class Server(object):
                         self.logger.error(line.strip('\n'))
 
         return self.name.encode('utf-8')
+
+
+class Pipeline(Server):
+    """
+    Minimal server that acts as a pipeline.
+
+    :param str name: Name of the server
+    :param str db_address: ZeroMQ address of the cache service.
+    :param str sub_address: Address of the pub socket of the previous server
+    :param str pub_address: Address of the pub socket
+    :param previous: Name of the previous server.
+    :param to_client: True if the message is sent back to the client.
+    :param log_level: Minimum output log level.
+    :param int messages: Total number of messages that the server processes.
+     Useful for debugging.
+    """
+    def __init__(self, name, db_address,
+                 sub_address, pub_address, previous, to_client=True,
+                 log_level=logging.INFO, messages=sys.maxsize):
+        self.name = name
+        self.cache = DictDB()
+        self.db_address = db_address
+        self.sub_address = sub_address
+        self.pub_address = pub_address
+        self.pipelined = not to_client
+
+        self.cache.set('name', name.encode('utf-8'))
+        self.cache.set('sub_address', sub_address.encode('utf-8'))
+        self.cache.set('pub_address', pub_address.encode('utf-8'))
+
+        self.logger = logging.getLogger(name=name)
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setFormatter(
+            logging.Formatter(
+                '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            )
+        )
+        self.logger.addHandler(handler)
+        self.logger.setLevel(log_level)
+
+        self.messages = messages
+
+        self.pull_socket = zmq_context.socket(zmq.SUB)
+        self.pull_socket.setsockopt_string(zmq.SUBSCRIBE, previous)
+        self.pull_socket.connect(self.sub_address)
+
+        self.pub_socket = zmq_context.socket(zmq.PUB)
+        self.pub_socket.bind(self.pub_address)
 
 
 class Master(ServerTemplate, BaseMaster):
@@ -201,6 +262,13 @@ class Master(ServerTemplate, BaseMaster):
         # scatter function of Push and Pull parts respectively.
         self.inbound_components['Pull'].scatter = self.scatter
         self.outbound_components['Pub'].scatter = self.gather
+
+
+class Hub(object):
+    """
+    A Hub is a pipelined Master.
+    """
+    pass
 
 
 class Worker(object):

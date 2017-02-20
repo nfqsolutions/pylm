@@ -32,7 +32,7 @@ def test_get_config():
     def boot_client():
         client = Client('master',
                         db_address,
-                        pipeline=None)
+                        session=None)
         return client.push_address, client.sub_address
 
     def broker():
@@ -87,7 +87,7 @@ def test_send_job():
     def client_job():
         client = Client('master',
                         db_address,
-                        pipeline=None)
+                        session=None)
         return [r for r in client.job('master.something', [b'1'], messages=1)]
 
     def broker():
@@ -157,13 +157,13 @@ def test_multiple_clients():
     def client1_job():
         client = Client('master',
                         db_address,
-                        pipeline=None)
+                        session=None)
         return [r for r in client.job('master.something', [b'1', b'2'], messages=2)]
 
     def client2_job():
         client = Client('master',
                         db_address,
-                        pipeline=None)
+                        session=None)
         return [r for r in client.job('master.something', [b'3', b'4'], messages=2)]
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:

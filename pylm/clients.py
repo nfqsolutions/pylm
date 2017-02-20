@@ -32,7 +32,7 @@ class Client(object):
     :param db_address: Address for the cache service, for first connection or configuration.
     :param push_address: Address of the push service of the server to pull from
     :param sub_address: Address of the pub service of the server to subscribe to
-    :param pipeline: Name of the pipeline if the session has to be reused
+    :param session: Name of the pipeline if the session has to be reused
     :param logging_level: Specify the logging level.
     :param this_config: Do not fetch configuration from the server
     """
@@ -40,14 +40,14 @@ class Client(object):
                  db_address: str,
                  push_address: str=None,
                  sub_address: str=None,
-                 pipeline: str=None,
+                 session: str=None,
                  logging_level: int=logging.INFO,
                  this_config=False):
         self.server_name = server_name
         self.db_address = db_address
 
-        if pipeline:
-            self.pipeline = pipeline
+        if session:
+            self.pipeline = session
             self.session_set = True
         else:
             self.pipeline = str(uuid4())
@@ -119,12 +119,28 @@ class Client(object):
             socket.send(message.SerializeToString())
         
     def job(self, function, generator, cache=None, messages=sys.maxsize):
+        """
+        Submit a job to the cluster
+
+        :param function:
+        :param generator:
+        :param cache:
+        :param messages:
+        :return:
+        """
         push_socket = zmq_context.socket(zmq.PUSH)
         push_socket.connect(self.push_address)
 
         sub_socket = zmq_context.socket(zmq.SUB)
         sub_socket.setsockopt_string(zmq.SUBSCRIBE, self.uuid)
         sub_socket.connect(self.sub_address)
+
+        if type(function) == str:
+            # Single-stage job
+            pass
+        elif type(function) == list:
+            # Pipelined job.
+            function = ' '.join(function)
 
         # Remember that sockets are not thread safe
         sender_thread = Thread(target=self._sender,
@@ -158,6 +174,13 @@ class Client(object):
         sub_socket = zmq_context.socket(zmq.SUB)
         sub_socket.setsockopt_string(zmq.SUBSCRIBE, self.uuid)
         sub_socket.connect(self.sub_address)
+
+        if type(function) == str:
+            # Single-stage job
+            pass
+        elif type(function) == list:
+            # Pipelined job.
+            function = ' '.join(function)
 
         message = PalmMessage()
         message.function = function
