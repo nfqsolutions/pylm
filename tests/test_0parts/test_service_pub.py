@@ -19,8 +19,8 @@ logger.setLevel(logging.DEBUG)
 
 cache = DictDB()
 
-listen_address = 'inproc://pub4623'
-broker_address = 'inproc://broker2346'
+listen_address = 'inproc://pub1'
+broker_address = 'inproc://broker1'
 
 pub_service = PubService(
     'pull_service',
