@@ -42,7 +42,7 @@ class Server(object):
     :param pipelined: True if the server is chained to another server.
     :param log_level: Minimum output log level.
     :param int messages: Total number of messages that the server processes.
-     Useful for debugging.
+        Useful for debugging.
     """
     def __init__(self, name, db_address,
                  pull_address, pub_address, pipelined=False,
@@ -139,8 +139,8 @@ class Server(object):
         Start the server
 
         :param cache_messages: Number of messages the cache service handles
-        before it shuts down. Useful for debugging
-        :return:
+            before it shuts down. Useful for debugging
+
         """
         threads = []
 
@@ -178,7 +178,7 @@ class Pipeline(Server):
     :param to_client: True if the message is sent back to the client.
     :param log_level: Minimum output log level.
     :param int messages: Total number of messages that the server processes.
-     Useful for debugging.
+        Useful for debugging.
     """
     def __init__(self, name, db_address,
                  sub_address, pub_address, previous, to_client=True,
@@ -226,15 +226,14 @@ class Master(ServerTemplate, BaseMaster):
     :param db_address: Valid address to bind the Cache service
     :param pipelined: The output connects to a Pipeline or a Hub.
     :param cache: Key-value embeddable database. Pick from one of the
-    supported ones
+        supported ones
     :param log_level: Logging level
+
     """
     def __init__(self, name: str, pull_address: str, pub_address: str,
                  worker_pull_address: str, worker_push_address: str,
                  db_address: str, pipelined: bool=False,
                  cache: object = DictDB(), log_level: int = logging.INFO):
-        """
-        """
         super(Master, self).__init__(logging_level=log_level)
         self.name = name
         self.cache = cache
@@ -275,6 +274,7 @@ class Hub(ServerTemplate, BaseMaster):
     :param previous: Name of the previous server to subscribe to the queue.
     :param cache: Key-value embeddable database. Pick from one of the supported ones
     :param log_level: Logging level
+
     """
     def __init__(self, name: str, sub_address: str, pub_address: str,
                  worker_pull_address: str, worker_push_address: str, db_address: str,
@@ -316,11 +316,12 @@ class Worker(object):
     :param name: Name assigned to this worker server
     :param db_address: Address of the db service of the master
     :param push_address: Address the workers push to. If left blank, fetches
-    it from the master
+        it from the master
     :param pull_address: Address the workers pull from. If left blank,
-    fetches it from the master
+        fetches it from the master
     :param log_level: Log level for this server.
     :param messages: Number of messages before it is shut down.
+
     """
     def __init__(self, name='', db_address='', push_address=None,
                  pull_address=None, log_level=logging.INFO,
@@ -380,6 +381,9 @@ class Worker(object):
                 'pull_address': self.pull_address}
 
     def start(self):
+        """
+        Starts the server
+        """
         for i in range(self.messages):
             message_data = self.pull.recv()
             self.logger.debug('{} Got a message'.format(self.name))
@@ -414,6 +418,7 @@ class Worker(object):
     def set(self, value, key=None):
         """
         Sets a key value pare in the remote database.
+
         :param key:
         :param value:
         :return:

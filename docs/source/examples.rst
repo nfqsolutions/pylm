@@ -78,6 +78,23 @@ Usage of the gather function
     :language: python
     :linenos:
 
+.. _pipeline-client:
+
+A pipelined message stream
+--------------------------
+
+.. literalinclude:: ../../examples/pipeline/server.py
+    :language: python
+    :linenos:
+
+.. literalinclude:: ../../examples/pipeline/pipeline.py
+    :language: python
+    :linenos:
+
+.. literalinclude:: ../../examples/single/client.py
+    :language: python
+    :linenos:
+
 Building a master server from its components
 --------------------------------------------
 

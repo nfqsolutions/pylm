@@ -28,13 +28,14 @@ class ServerTemplate(object):
     Low-level tool to build a server from parts.
 
     :param logging_level: A correct logging level from the logging module.
-    Defaults to INFO.
+        Defaults to INFO.
 
     It has important attributes that you may want to override, like
 
     :cache: The key-value database that the server should use
     :logging_level: Controls the log output of the server.
     :router: Here's the router, you may want to change its attributes too.
+
     """
     def __init__(self,
                  logging_level=logging.INFO,

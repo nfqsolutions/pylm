@@ -3,12 +3,12 @@
 Servers
 =======
 
-An example of the simplest standalone server was presented in the :ref:`introduction`. A single server running
+An example of the simplest server was presented in the :ref:`introduction`. A single server running
 in a single process may be useful, but there are a million alternatives to pylm for that. The real usefulness
 of pylm arrives when the workload is so large that a single server is not capable of handling it. Here we introduce
 parallelism for the first time with the parallel standalone server.
 
-A simple picture of the architecture of a parallel standalone server is presented in the next figure. The client
+A simple picture of the architecture of a parallel server is presented in the next figure. The client
 connects to a master process that manages an arbitrary number of workers. The workers act as slaves, and connect
 only to the master.
 
