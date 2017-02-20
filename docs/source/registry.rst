@@ -73,7 +73,7 @@ The worker::
 
 And the client in the form of a launcher::
 
-    $> python launcher.py
+    $> python launcher.py --server test --function foo
     2017-02-01 10:12:18,394 - INFO - Fetching configuration from the server
     2017-02-01 10:12:18,394 - INFO - CLIENT 29796938-e3d7-4f9a-b69b...
     2017-02-01 10:12:18,395 - INFO - CLIENT 29796938-e3d7-4f9a-b69b...

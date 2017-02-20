@@ -26,7 +26,6 @@ pub_service = PubService(
     'pull_service',
     listen_address=listen_address,
     broker_address=broker_address,
-    palm=True,
     logger=logger,
     cache=cache,
     messages=1)

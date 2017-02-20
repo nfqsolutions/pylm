@@ -2,7 +2,8 @@
 
 from setuptools import setup
 
-with open('pylm/version.py') as f:
+__version__ = None
+with open('pylm/__init__.py') as f:
     exec(f.read())
 
 

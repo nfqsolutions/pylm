@@ -74,7 +74,6 @@ def test_send_job():
 
     puller = PullService('puller',
                          pull_address,
-                         palm=True,
                          logger=logging,
                          cache=cache,
                          messages=1)
@@ -83,7 +82,6 @@ def test_send_job():
                            pub_address,
                            logger=logging,
                            cache=cache,
-                           palm=True,
                            messages=1)
 
     def client_job():
@@ -145,7 +143,6 @@ def test_multiple_clients():
     puller = PullService('puller',
                          pull_address,
                          broker_address=router.inbound_address,
-                         palm=True,
                          logger=logging,
                          cache=cache,
                          messages=4)
@@ -155,7 +152,6 @@ def test_multiple_clients():
                            broker_address=router.outbound_address,
                            logger=logging,
                            cache=cache,
-                           palm=True,
                            messages=4)
 
     def client1_job():

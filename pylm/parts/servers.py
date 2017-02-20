@@ -31,7 +31,6 @@ class ServerTemplate(object):
 
     It has important attributes that you may want to override, like
 
-    :palm: Whether your messages are serialized using PALM messages or not
     :cache: The key-value database that the server should use
     :logging_level: Controls the log output of the server.
     :router: Here's the router, you may want to change its attributes too.
@@ -41,9 +40,6 @@ class ServerTemplate(object):
                  router_messages=sys.maxsize):
         # Name of the server
         self.name = ''
-
-        # Messages use the PALM specification
-        self.palm = True
 
         # Logging level for the server
         self.logging_level = logging_level
@@ -87,7 +83,6 @@ class ServerTemplate(object):
                         listen_address,
                         broker_address=self.router.inbound_address,
                         logger=self.logger,
-                        palm=self.palm,
                         **kwargs)
 
         self.router.register_inbound(name,
@@ -116,7 +111,6 @@ class ServerTemplate(object):
                         listen_address,
                         broker_address=self.router.outbound_address,
                         logger=self.logger,
-                        palm=self.palm,
                         **kwargs)
 
         self.router.register_outbound(name,

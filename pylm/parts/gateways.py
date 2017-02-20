@@ -35,7 +35,6 @@ class GatewayRouter(Inbound):
 
     :param broker_address: Broker address
     :param cache: K-v database for the cache
-    :param palm: If messages are palm messages
     :param logger: Logger class
     :param messages: Number of messages until it is shut down
     """
@@ -44,7 +43,6 @@ class GatewayRouter(Inbound):
                  listen_address='inproc://gateway_router',
                  broker_address="inproc://broker",
                  cache=DictDB(),
-                 palm=True,
                  logger=None,
                  messages=sys.maxsize):
         super(GatewayRouter, self).__init__(
@@ -54,7 +52,6 @@ class GatewayRouter(Inbound):
             reply=False,
             broker_address=broker_address,
             bind=True,
-            palm=palm,
             cache=cache,
             logger=logger,
             messages=messages,
@@ -127,7 +124,6 @@ class GatewayDealer(Outbound):
                 Workers -> Inbound -> |-/  \->| --> Outbound --> Workers
 
     :param broker_address: ZMQ socket address for the broker,
-    :param palm: The component is sending back a Palm message
     :param logger: Logger instance
     :param cache: Access to the cache of the server
     :param messages: Maximum number of inbound messages. Defaults to infinity.
@@ -137,7 +133,6 @@ class GatewayDealer(Outbound):
                  listen_address='inproc://gateway_router',
                  broker_address="inproc://broker",
                  cache=None,
-                 palm=True,
                  logger=None,
                  messages=sys.maxsize):
 
@@ -150,7 +145,6 @@ class GatewayDealer(Outbound):
         self.broker.identity = self.name
         self.broker.connect(broker_address)
         self.logger = logger
-        self.palm = palm
         self.cache = cache
         self.messages = messages
         self.reply = False
@@ -267,7 +261,6 @@ class HttpGateway(object):
                  hostname='',
                  port=8888,
                  cache=DictDB(),
-                 palm=True,
                  logger=None):
         self.handler = MyHandler
         self.handler.gateway_router_address = listen_address

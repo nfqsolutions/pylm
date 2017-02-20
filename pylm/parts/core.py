@@ -179,7 +179,6 @@ class Inbound(object):
     :param reply: True if the listening socket blocks waiting a reply
     :param broker_address: ZMQ socket address for the broker
     :param bind: True if socket has to bind, instead of connect.
-    :param palm: True if the message is waiting is a PALM message. False if it is just a binary string
     :param logger: Logger instance
     :param cache: Cache for shared data in the server
     :param messages: Maximum number of inbound messages. Defaults to infinity.
@@ -191,7 +190,6 @@ class Inbound(object):
                  reply=True,
                  broker_address="inproc://broker",
                  bind=False,
-                 palm=False,
                  logger=None,
                  cache=None,
                  messages=sys.maxsize):
@@ -202,7 +200,6 @@ class Inbound(object):
         self.broker = zmq_context.socket(zmq.REQ)
         self.broker.identity = self.name
         self.broker.connect(broker_address)
-        self.palm = palm
         self.logger = logger
         self.cache = cache
         self.messages = messages
@@ -307,7 +304,6 @@ class Outbound(object):
     :param reply: True if the listening socket blocks waiting a reply
     :param broker_address: ZMQ socket address for the broker,
     :param bind: True if the socket has to bind instead of connect.
-    :param palm: The component is sending back a Palm message
     :param logger: Logger instance
     :param cache: Access to the cache of the server
     :param messages: Maximum number of inbound messages. Defaults to infinity.
@@ -319,7 +315,6 @@ class Outbound(object):
                  reply=True,
                  broker_address="inproc://broker",
                  bind=False,
-                 palm=False,
                  logger=None,
                  cache=None,
                  messages=sys.maxsize):
@@ -331,7 +326,6 @@ class Outbound(object):
         self.broker.identity = self.name
         self.broker.connect(broker_address)
         self.logger = logger
-        self.palm = palm
         self.cache = cache
         self.messages = messages
         self.reply = reply

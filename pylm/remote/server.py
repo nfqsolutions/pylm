@@ -16,15 +16,14 @@
 
 from wsgiref.simple_server import make_server
 from collections import namedtuple
-from pylm.parts.messages_pb2 import PalmMessage, BrokerMessage
+from pylm.parts.messages_pb2 import PalmMessage
 
 Request = namedtuple('Request', 'method data')
 
 
 class RequestHandler(object):
-    def __init__(self, environ, worker):
+    def __init__(self, environ):
         self.environ = environ
-        self.worker = worker
         length = int(environ.get('CONTENT_LENGTH'), 0)
         self.request = Request(method=environ.get('REQUEST_METHOD'),
                                data=environ.get('wsgi.input').read(length))
@@ -33,11 +32,7 @@ class RequestHandler(object):
     def handle(self):
         if self.request.method == 'POST':
             try:
-                if self.worker:
-                    message = BrokerMessage()
-                else:
-                    message = PalmMessage()
-
+                message = PalmMessage()
                 message.ParseFromString(self.request.data)
 
                 # This exports the message information
@@ -59,12 +54,11 @@ class RequestHandler(object):
 
 
 class WSGIApplication(object):
-    def __init__(self, handler, worker=False):
+    def __init__(self, handler):
         self.handler = handler
-        self.worker = worker
 
     def __call__(self, environ, start_response):
-        my_handler = self.handler(environ, self.worker)
+        my_handler = self.handler(environ)
         status, response = my_handler.handle()
         response_headers = [
             ('Content-Type', 'application/octet-stream'),

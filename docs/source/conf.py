@@ -18,7 +18,8 @@ import os
 import shlex
 
 # Set the version string from the version file.
-with open('../../pylm/version.py') as f:
+__version__ = None
+with open('../../pylm/__init__.py') as f:
     exec(f.read())
 
 # If extensions (or modules to document with autodoc) are in another directory,

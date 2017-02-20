@@ -34,7 +34,6 @@ class RepService(Inbound):
                  name,
                  listen_address,
                  broker_address="inproc://broker",
-                 palm=False,
                  logger=None,
                  cache=None,
                  messages=sys.maxsize):
@@ -43,7 +42,6 @@ class RepService(Inbound):
         :param listen_address: ZMQ socket address to bind to
         :param broker_address: ZMQ socket address of the broker
         :param logger: Logger instance
-        :param palm: True if the service gets PALM messages. False if they are binary
         :param messages: Maximum number of messages. Defaults to infinity
         :return:
         """
@@ -54,7 +52,6 @@ class RepService(Inbound):
             reply=True,
             broker_address=broker_address,
             bind=True,
-            palm=palm,
             logger=logger,
             cache=cache,
             messages=messages
@@ -69,7 +66,6 @@ class PullService(Inbound):
                  name,
                  listen_address,
                  broker_address="inproc://broker",
-                 palm=False,
                  logger=None,
                  cache=None,
                  messages=sys.maxsize):
@@ -78,7 +74,6 @@ class PullService(Inbound):
         :param listen_address: ZMQ socket address to bind to
         :param broker_address: ZMQ socket address of the broker
         :param logger: Logger instance
-        :param palm: True if service gets PALM messages. False if they are binary
         :param messages: Maximum number of messages. Defaults to infinity.
         :return:
         """
@@ -89,7 +84,6 @@ class PullService(Inbound):
             reply=False,
             broker_address=broker_address,
             bind=True,
-            palm=palm,
             logger=logger,
             cache=cache,
             messages=messages
@@ -104,7 +98,6 @@ class PushService(Outbound):
                  name,
                  listen_address,
                  broker_address="inproc://broker",
-                 palm=False,
                  logger=None,
                  cache=None,
                  messages=sys.maxsize):
@@ -113,7 +106,6 @@ class PushService(Outbound):
         :param listen_address: ZMQ socket address to bind to
         :param broker_address: ZMQ socket address of the broker
         :param logger: Logger instance
-        :param palm: True if service gets PALM messages. False if they are binary
         :param messages: Maximum number of messages. Defaults to infinity.
         :return:
         """
@@ -124,7 +116,6 @@ class PushService(Outbound):
             reply=False,
             broker_address=broker_address,
             bind=True,
-            palm=palm,
             logger=logger,
             cache=cache,
             messages=messages
@@ -139,7 +130,6 @@ class PubService(Outbound):
     :param listen_address: ZMQ socket address to bind to
     :param broker_address: ZMQ socket address of the broker
     :param logger: Logger instance
-    :param palm: True if service gets PALM messages. False if they are binary
     :param messages: Maximum number of messages. Defaults to infinity.
     :param pipelined: Defaults to False. Pipelined if publishes to a
         server, False if publishes to a client.
@@ -148,7 +138,6 @@ class PubService(Outbound):
                  name,
                  listen_address,
                  broker_address="inproc://broker",
-                 palm=False,
                  logger=None,
                  cache=None,
                  messages=sys.maxsize,
@@ -160,7 +149,6 @@ class PubService(Outbound):
             reply=False,
             broker_address=broker_address,
             bind=True,
-            palm=palm,
             logger=logger,
             cache=cache,
             messages=messages
@@ -168,9 +156,6 @@ class PubService(Outbound):
         self.pipelined = pipelined
         if self.pipelined:
             raise NotImplementedError('pipelined=True not supported yet')
-
-        if not self.palm:
-            raise ValueError('This part only works with PALM Components')
 
     def start(self):
         """
@@ -265,7 +250,6 @@ class PushPullService(object):
                  push_address,
                  pull_address,
                  broker_address="inproc://broker",
-                 palm=False,
                  logger=None,
                  cache=None,
                  messages=sys.maxsize):
@@ -276,8 +260,6 @@ class PushPullService(object):
         :param reply: True if the listening socket blocks waiting a reply
         :param broker_address: ZMQ socket address for the broker
         :param bind: True if socket has to bind, instead of connect.
-        :param palm: True if the message is waiting is a PALM message. False if it is
-          just a binary string
         :param logger: Logger instance
         :param cache: Cache for shared data in the server
         :param messages: Maximum number of inbound messages. Defaults to infinity.
@@ -296,7 +278,6 @@ class PushPullService(object):
         self.broker.identity = self.name
         self.broker.connect(broker_address)
 
-        self.palm = palm
         self.logger = logger
         self.cache = cache
         self.messages = messages
@@ -386,14 +367,12 @@ class HttpService(Inbound):
                  name,
                  hostname,
                  port,
-                 broker_address = "inproc://broker",
-                 palm=False,
+                 broker_address="inproc://broker",
                  logger=None,
                  cache=None):
         self.name = name.encode('utf-8')
         self.hostname = hostname
         self.port = port
-        self.palm = palm
         self.logger = logger
         self.broker = zmq_context.socket(zmq.REQ)
         self.broker.identity = self.name
