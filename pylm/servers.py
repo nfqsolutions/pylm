@@ -262,7 +262,7 @@ class Master(ServerTemplate, BaseMaster):
         self.outbound_components['Pub'].scatter = self.gather
 
 
-class Hub(object):
+class Hub(ServerTemplate, BaseMaster):
     """
     A Hub is a pipelined Master.
 
@@ -281,7 +281,7 @@ class Hub(object):
                  previous: str, cache: object = DictDB(),
                  log_level: int = logging.INFO):
 
-        super(Master, self).__init__(logging_level=log_level)
+        super(Hub, self).__init__(logging_level=log_level)
         self.name = name
         self.cache = cache
 
