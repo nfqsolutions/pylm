@@ -24,3 +24,4 @@ the section devoted to :ref:`workers` if yow want to know the details of those s
     workers
     pipeline
     hub
+    message
