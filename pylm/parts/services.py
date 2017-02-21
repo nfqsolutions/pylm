@@ -133,6 +133,7 @@ class PubService(Outbound):
     :param messages: Maximum number of messages. Defaults to infinity.
     :param pipelined: Defaults to False. Pipelined if publishes to a
         server, False if publishes to a client.
+    :param server: Name of the server, necessary to pipeline messages.
     """
     def __init__(self,
                  name,
@@ -141,7 +142,8 @@ class PubService(Outbound):
                  logger=None,
                  cache=None,
                  messages=sys.maxsize,
-                 pipelined=False):
+                 pipelined=False,
+                 server=None):
         super(PubService, self).__init__(
             name,
             listen_address=listen_address,
@@ -153,6 +155,7 @@ class PubService(Outbound):
             cache=cache,
             messages=messages
         )
+        self.server = server
         self.pipelined = pipelined
 
     def handle_topic(self, message_data):
@@ -166,7 +169,7 @@ class PubService(Outbound):
             # If the master is pipelined,
             message = PalmMessage()
             message.ParseFromString(message_data)
-            topic = self.name
+            topic = self.server.encode('utf-8')
             message.stage += 1
             message_data = message.SerializeToString()
         else:
@@ -191,11 +194,9 @@ class PubService(Outbound):
 
             for scattered in self.scatter(message_data):
                 topic, scattered = self.handle_topic(scattered)
-
-                self.listen_to.send_multipart(
-                    [topic.encode('utf-8'), scattered]
-                )
-                self.logger.debug('Component {} Sent message'.format(self.name))
+                self.listen_to.send_multipart([topic, scattered])
+                self.logger.debug('Component {} Sent message. Topic {}'.format(
+                    self.name, topic))
 
                 if self.reply:
                     feedback = self.listen_to.recv()

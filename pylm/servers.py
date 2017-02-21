@@ -206,12 +206,61 @@ class Pipeline(Server):
 
         self.messages = messages
 
-        self.pull_socket = zmq_context.socket(zmq.SUB)
-        self.pull_socket.setsockopt_string(zmq.SUBSCRIBE, previous)
-        self.pull_socket.connect(self.sub_address)
+        self.sub_socket = zmq_context.socket(zmq.SUB)
+        self.sub_socket.setsockopt_string(zmq.SUBSCRIBE, previous)
+        self.sub_socket.connect(self.sub_address)
 
         self.pub_socket = zmq_context.socket(zmq.PUB)
         self.pub_socket.bind(self.pub_address)
+
+    def _execution_handler(self):
+        for i in range(self.messages):
+            self.logger.debug('Server waiting for messages')
+            message_data = self.sub_socket.recv_multipart()[1]
+            self.logger.debug('Got message {}'.format(i + 1))
+            result = b'0'
+            message = PalmMessage()
+            try:
+                message.ParseFromString(message_data)
+
+                # Handle the fact that the message may be a complete pipeline
+                if ' ' in message.function:
+                    [server, function] = message.function.split()[
+                        message.stage].split('.')
+                else:
+                    [server, function] = message.function.split('.')
+
+                if not self.name == server:
+                    self.logger.error('You called {}, instead of {}'.format(
+                        server, self.name))
+                else:
+                    try:
+                        user_function = getattr(self, function)
+                        self.logger.debug('Looking for {}'.format(function))
+                        try:
+                            result = user_function(message.payload)
+                        except:
+                            self.logger.error('User function gave an error')
+                            exc_type, exc_value, exc_traceback = sys.exc_info()
+                            lines = traceback.format_exception(
+                                exc_type, exc_value, exc_traceback)
+                            for l in lines:
+                                self.logger.exception(l)
+
+                    except KeyError:
+                        self.logger.error(
+                            'Function {} was not found'.format(function)
+                        )
+            except DecodeError:
+                self.logger.error('Message could not be decoded')
+
+            message.payload = result
+
+            topic = self._handle_topic(message)
+
+            self.pub_socket.send_multipart(
+                [topic.encode('utf-8'), message.SerializeToString()]
+            )
 
 
 class Master(ServerTemplate, BaseMaster):
@@ -245,7 +294,8 @@ class Master(ServerTemplate, BaseMaster):
         self.register_outbound(
             WorkerPushService, 'WorkerPush', worker_push_address)
         self.register_outbound(
-            PubService, 'Pub', pub_address, log='to_sink', pipelined=pipelined)
+            PubService, 'Pub', pub_address, log='to_sink',
+            pipelined=pipelined, server=self.name)
         self.register_bypass(
             CacheService, 'Cache', db_address)
         self.preset_cache(name=name,
@@ -390,7 +440,12 @@ class Worker(object):
             result = b'0'
             try:
                 self.message.ParseFromString(message_data)
-                instruction = self.message.function.split('.')[1]
+                if ' ' in self.message.function:
+                    instruction = self.message.function.split()[
+                        self.message.stage].split('.')[1]
+                else:
+                    instruction = self.message.function.split('.')[1]
+
                 try:
                     user_function = getattr(self, instruction)
                     self.logger.debug('Looking for {}'.format(instruction))
