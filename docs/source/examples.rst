@@ -95,6 +95,28 @@ A pipelined message stream
     :language: python
     :linenos:
 
+.. _pipeline-master:
+
+Connecting a pipeline to a master
+---------------------------------
+
+.. literalinclude:: ../../examples/master_pipeline/master.py
+    :language: python
+    :linenos:
+
+.. literalinclude:: ../../examples/master_pipeline/pipeline.py
+    :language: python
+    :linenos:
+
+.. literalinclude:: ../../examples/master_pipeline/worker.py
+    :language: python
+    :linenos:
+
+.. literalinclude:: ../../examples/master_pipeline/client.py
+    :language: python
+    :linenos:
+
+
 Building a master server from its components
 --------------------------------------------
 
@@ -111,8 +133,8 @@ Building a master server from its components
     :linenos:
 
 
-Turning a component into a mircoservice with the HTTP gateway
--------------------------------------------------------------
+Turning a master into a web server with the HTTP gateway
+--------------------------------------------------------
 
 .. literalinclude:: ../../examples/gateway/microservice.py
     :language: python
@@ -127,8 +149,8 @@ Turning a component into a mircoservice with the HTTP gateway
     :linenos:
 
 
-Using microservices as workers via the HTTP protocol
-----------------------------------------------------
+Using server-less infrastructure as workers via the HTTP protocol
+-----------------------------------------------------------------
 
 .. literalinclude:: ../../examples/http/master.py
     :language: python
