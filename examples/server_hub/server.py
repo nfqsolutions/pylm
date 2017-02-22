@@ -9,7 +9,7 @@ class MyServer(Server):
 
 
 if __name__ == '__main__':
-    server = MyServer('my_server',
+    server = MyServer('server',
                       db_address='tcp://127.0.0.1:5555',
                       pull_address='tcp://127.0.0.1:5556',
                       pub_address='tcp://127.0.0.1:5557',

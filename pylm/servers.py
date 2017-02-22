@@ -322,13 +322,14 @@ class Hub(ServerTemplate, BaseMaster):
     :param worker_push_address: Valid address for the push-to-workers service
     :param db_address: Valid address to bind the Cache service
     :param previous: Name of the previous server to subscribe to the queue.
+    :param pipelined: The stream is pipelined to another server.
     :param cache: Key-value embeddable database. Pick from one of the supported ones
     :param log_level: Logging level
 
     """
     def __init__(self, name: str, sub_address: str, pub_address: str,
                  worker_pull_address: str, worker_push_address: str, db_address: str,
-                 previous: str, cache: object = DictDB(),
+                 previous: str, pipelined: bool=False, cache: object = DictDB(),
                  log_level: int = logging.INFO):
 
         super(Hub, self).__init__(logging_level=log_level)
@@ -343,7 +344,7 @@ class Hub(ServerTemplate, BaseMaster):
         self.register_outbound(
             WorkerPushService, 'WorkerPush', worker_push_address)
         self.register_outbound(
-            PubService, 'Pub', pub_address, log='to_sink')
+            PubService, 'Pub', pub_address, log='to_sink', pipelined=pipelined)
         self.register_bypass(
             CacheService, 'Cache', db_address)
         self.preset_cache(name=name,

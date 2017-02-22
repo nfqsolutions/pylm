@@ -86,7 +86,7 @@ class SubConnection(Inbound):
         self.logger.info('{} successfully started'.format(self.name))
         for i in range(self.messages):
             self.logger.debug('{} blocked waiting messages'.format(self.name))
-            message_data = self.listen_to.recv()
+            message_data = self.listen_to.recv_multipart()[1]
             self.logger.debug('{} Got inbound message'.format(self.name))
 
             try:

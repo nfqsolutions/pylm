@@ -175,7 +175,7 @@ class PubService(Outbound):
         else:
             message = PalmMessage()
             message.ParseFromString(message_data)
-            topic = message.client
+            topic = message.client.encode('utf-8')
 
         return topic, message_data
 
