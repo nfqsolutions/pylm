@@ -1,3 +1,5 @@
+.. _pipeline:
+
 The Pipeline server
 ===================
 

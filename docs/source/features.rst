@@ -72,3 +72,12 @@ And the output of any of the workers (the two workers are probably doing exactly
     2016-08-26 08:08:38,672 - worker1 - INFO - Processed 10 messages
 
 
+
+Playing with the stream of messages
+-----------------------------------
+
+Servers have an interesting feature that can be used to seriously tune how
+the message stream moves through the cluster. In a couple of sections you
+will learn about pipelines (:ref:`pipeline`) and hubs (:ref:`hub`), and how
+several steps can be connected forming a complete streaming pipeline of
+messages. One feature that may come handy sometimes is to connect the

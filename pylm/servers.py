@@ -76,14 +76,41 @@ class Server(object):
         self.pub_socket = zmq_context.socket(zmq.PUB)
         self.pub_socket.bind(self.pub_address)
 
-    def _handle_topic(self, message):
+    def handle_stream(self, message):
+        """
+        Handle the stream of messages.
+
+        :param message: The message about to be sent to the next step in the
+            cluster
+        :return: topic (str) and message (PalmMessage)
+
+        The default behaviour is the following. If you leave this function
+        unchanged and pipeline is set to False, the topic is the ID of the
+        client, which makes the message return to the client. If the pipeline
+        parameter is set to True, the topic is set as the name of the server and
+        the step of the message is incremented by one.
+
+        You can alter this default behaviour by overriding this function.
+        Take into account that the message is also available in this function,
+        and you can change other parameters like the stage or the function.
+        """
         if self.pipelined:
             topic = self.name
             message.stage += 1
         else:
             topic = message.client
 
-        return topic
+        return topic, message
+
+    def echo(self, payload):
+        """
+        Echo utility function that returns the unchanged payload. This
+        function is useful when the server is there as just to modify the
+        stream of messages.
+
+        :return: payload (bytes)
+        """
+        return payload
 
     def _execution_handler(self):
         for i in range(self.messages):
@@ -128,7 +155,7 @@ class Server(object):
 
             message.payload = result
 
-            topic = self._handle_topic(message)
+            topic, message = self.handle_stream(message)
 
             self.pub_socket.send_multipart(
                 [topic.encode('utf-8'), message.SerializeToString()]
