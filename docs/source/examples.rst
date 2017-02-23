@@ -117,6 +117,27 @@ Connecting a pipeline to a master
     :linenos:
 
 
+.. _server-hub:
+
+Connecting a hub to a server
+----------------------------
+
+.. literalinclude:: ../../examples/server_hub/server.py
+    :language: python
+    :linenos:
+
+.. literalinclude:: ../../examples/server_hub/hub.py
+    :language: python
+    :linenos:
+
+.. literalinclude:: ../../examples/server_hub/worker.py
+    :language: python
+    :linenos:
+
+.. literalinclude:: ../../examples/server_hub/client.py
+    :language: python
+    :linenos:
+
 Building a master server from its components
 --------------------------------------------
 

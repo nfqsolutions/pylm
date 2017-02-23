@@ -251,10 +251,13 @@ class HttpConnection(Outbound):
                         self.logger.error('HttpConnection generated an error')
                         lines = traceback.format_exception(*sys.exc_info())
                         self.logger.exception(lines[0])
-                        feedback = b'0'
+                        feedback = None
 
                     if self.reply:
                         feedback = self._translate_to_broker(feedback)
                         self.handle_feedback(feedback)
 
-            self.broker.send(self.reply_feedback())
+            if feedback:
+                self.broker.send(self.reply_feedback())
+            else:
+                self.broker.send(message_data)
