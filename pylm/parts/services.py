@@ -189,6 +189,8 @@ class PubService(Outbound):
         """
         Call this function to start the component
         """
+        message = PalmMessage()
+
         self.listen_to.bind(self.listen_address)
         self.logger.info('{} successfully started'.format(self.name))
 
@@ -197,11 +199,10 @@ class PubService(Outbound):
             message_data = self.broker.recv()
             self.logger.debug('{} Got message from broker'.format(self.name))
             message_data = self._translate_from_broker(message_data)
+            message.ParseFromString(message_data)
 
-            for scattered in self.scatter(message_data):
-                message = PalmMessage()
-                message.ParseFromString(scattered)
-                topic, message = self.handle_stream(message)
+            for scattered in self.scatter(message):
+                topic, scattered = self.handle_stream(scattered)
                 self.listen_to.send_multipart([topic.encode('utf-8'),
                                                message.SerializeToString()])
                 self.logger.debug('Component {} Sent message. Topic {}'.format(
@@ -330,6 +331,7 @@ class PushPullService(object):
         return self.last_message
 
     def start(self):
+        message = PalmMessage
         self.logger.info('{} Successfully started'.format(self.name))
         initial_message = PalmMessage()
         initial_message.pipeline = '0'
@@ -343,7 +345,9 @@ class PushPullService(object):
             self.logger.debug('{} blocked waiting for broker'.format(self.name))
             message_data = self.broker.recv()
             self.logger.debug('Got message {} from broker'.format(i))
-            for scattered in self.scatter(message_data):
+            message.ParseFromString(message_data)
+
+            for scattered in self.scatter(message):
                 self.push.send(scattered)
                 self.handle_feedback(self.pull.recv())
 
@@ -420,6 +424,7 @@ class HttpService(Inbound):
                 """
                 Note that this http server always replies
                 """
+                message = PalmMessage()
                 self.send_response(200)
                 self.end_headers()
                 message_data = self.rfile.read(
@@ -427,7 +432,9 @@ class HttpService(Inbound):
                         self.headers.get('Content-Length')
                     )
                 )
-                scattered_messages = scatter(message_data)
+
+                message.ParseFromString(message_data)
+                scattered_messages = scatter(message)
 
                 if not scattered_messages:
                     self.wfile.write(b'0')
@@ -437,7 +444,7 @@ class HttpService(Inbound):
                         scattered = _translate_to_broker(scattered)
 
                         if scattered:
-                            broker.send(scattered)
+                            broker.send(scattered.SerializeToString())
                             handle_feedback(broker.recv())
 
                     self.wfile.write(reply_feedback())

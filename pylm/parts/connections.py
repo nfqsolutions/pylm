@@ -21,6 +21,7 @@ import traceback
 from pylm.parts.core import Inbound, Outbound, \
     BypassInbound, BypassOutbound, zmq_context
 from urllib.request import Request, urlopen
+from pylm.parts.messages_pb2 import PalmMessage
 
 
 class RepConnection(Inbound):
@@ -80,6 +81,7 @@ class SubConnection(Inbound):
         """
         Call this function to start the component
         """
+        message = PalmMessage()
         self.listen_to.setsockopt_string(zmq.SUBSCRIBE, self.previous)
         self.listen_to.connect(self.listen_address)
 
@@ -90,9 +92,11 @@ class SubConnection(Inbound):
             self.logger.debug('{} Got inbound message'.format(self.name))
 
             try:
-                for scattered in self.scatter(message_data):
+                message.ParseFromString(message_data)
+
+                for scattered in self.scatter(message):
                     scattered = self._translate_to_broker(scattered)
-                    self.broker.send(scattered)
+                    self.broker.send(scattered.SerializeToString())
                     self.logger.debug('{} blocked waiting for broker'.format(
                         self.name))
                     self.handle_feedback(self.broker.recv())
@@ -100,7 +104,8 @@ class SubConnection(Inbound):
                 if self.reply:
                     self.listen_to.send(self.reply_feedback())
             except:
-                self.logger.error('Error in scatter function')
+                self.logger.error('Error in scatter function in {}'.format(
+                    self.name))
                 lines = traceback.format_exception(*sys.exc_info())
                 self.logger.exception(lines[0])
 
@@ -228,6 +233,8 @@ class HttpConnection(Outbound):
         """
         Call this function to start the component
         """
+        message = PalmMessage()
+
         def load_url(url, data):
             request = Request(url, data=data)
             response = urlopen(request)
@@ -238,12 +245,15 @@ class HttpConnection(Outbound):
             message_data = self.broker.recv()
             self.logger.debug('{} Got message from broker'.format(self.name))
             message_data = self._translate_from_broker(message_data)
+            message.ParseFromString(message_data)
 
-            with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-                future_to = [executor.submit(load_url,
-                                             self.url,
-                                             scattered
-                                             ) for scattered in self.scatter(message_data)]
+            with concurrent.futures.ThreadPoolExecutor(
+                max_workers=self.max_workers) as executor:
+                future_to = [executor.submit(
+                    load_url,
+                    self.url,
+                    scattered.SerializeToString()
+                    ) for scattered in self.scatter(message)]
                 for future in concurrent.futures.as_completed(future_to):
                     try:
                         feedback = future.result()

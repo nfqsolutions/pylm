@@ -60,24 +60,23 @@ class GatewayRouter(Inbound):
             self.logger.warning('Gateway router part is called "gateway_router",')
             self.logger.warning('check that you have called this way')
 
-    def _translate_to_broker(self, message_data):
+    def _translate_to_broker(self, message):
         """
         Translate the message that the component has got to be digestible by the router.
         To be refactored. This method is overriden because it returns the message
         instead of returning the serialized message.
 
-        :param message_data: Message data from the component to the router
+        :param message: Message from the component to the router
         """
-        palm_message = PalmMessage()
-        palm_message.ParseFromString(message_data)
-        palm_message.cache = str(uuid4())
+        message.cache = str(uuid4())
 
-        return palm_message
+        return message
         
     def start(self):
         """
         Call this function to start the component
         """
+        message = PalmMessage()
         self.listen_to.bind(self.listen_address)
         self.logger.info('Launch component {}'.format(self.name))
 
@@ -92,7 +91,8 @@ class GatewayRouter(Inbound):
                 self.logger.debug('{} Got inbound message'.format(self.name))
                 
                 try:
-                    for scattered in self.scatter(message_data):
+                    message.ParseFromString(message_data)
+                    for scattered in self.scatter(message):
                         scattered = self._translate_to_broker(scattered)
                         self.broker.send(scattered.SerializeToString())
                         self.logger.debug(
@@ -155,36 +155,34 @@ class GatewayDealer(Outbound):
             self.logger.warning('Gateway dealer part is called "gateway_dealer",')
             self.logger.warning('check that you have called this way')
 
-    def _translate_from_broker(self, message_data):
+    def _translate_from_broker(self, message):
         """
         Translate the message that the component gets from the broker to the
         output format
 
-        :param message_data:
+        :param message:
         """
-        palm_message = PalmMessage()
-        palm_message.ParseFromString(message_data)
-        message_data = palm_message.SerializeToString()
-            
-        return palm_message.client.encode('utf-8'), message_data
+        return message.client, message
         
     def start(self):
         """
         Call this function to start the component
         """
+        message = PalmMessage()
         self.listen_to.connect(self.listen_address)
 
         for i in range(self.messages):
             self.logger.debug(
                 'Component {} blocked waiting for broker'.format(self.name))
             [me, message_data] = self.broker.recv_multipart()
-            
+            message.ParseFromString(message_data)
             self.logger.debug(
                 'Component {} Got message from broker'.format(self.name))
-            target, message_data = self._translate_from_broker(message_data)
+            target, message = self._translate_from_broker(message)
 
-            for scattered in self.scatter(message_data):
-                self.listen_to.send_multipart([target, b'', scattered])
+            for scattered in self.scatter(message):
+                self.listen_to.send_multipart([target.encode('utf-8'), b'',
+                                               scattered.SerializeToString()])
                 self.logger.debug('Component {} sent message'.format(self.name))
 
             self.broker.send(b'')

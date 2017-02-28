@@ -66,9 +66,11 @@ class Router(object):
         """
         Register component by name.
 
-        :param name: Name of the component. Each component has a name, that uniquely identifies it to the broker
-        :param route: Each message that the broker gets from the component may be routed to another component. This
-         argument gives the name of the target component for the message.
+        :param name: Name of the component. Each component has a name,
+            that uniquely identifies it to the broker
+        :param route: Each message that the broker gets from the component
+            may be routed to another component. This argument gives the name of
+            the target component for the message.
         :param block: Register if the component is waiting for a reply.
         :param log: Log message for each inbound connection.
         :return:
@@ -206,20 +208,18 @@ class Inbound(object):
         self.reply = reply
         self.last_message = b''
 
-    def _translate_to_broker(self, message_data):
+    def _translate_to_broker(self, message):
         """
         Translate the message that the component has got to be digestible by the router.
         To be refactored
 
         :param message_data: Message data from the component to the router
         """
-        palm_message = PalmMessage()
-        palm_message.ParseFromString(message_data)
 
-        if not palm_message.cache:
-            palm_message.cache = str(uuid4())
+        if not message.cache:
+            message.cache = str(uuid4())
 
-        return palm_message.SerializeToString()
+        return message
 
     def _translate_from_broker(self, message_data):
         """
@@ -257,6 +257,8 @@ class Inbound(object):
         """
         Call this function to start the component
         """
+        message = PalmMessage()
+
         if self.bind:
             self.listen_to.bind(self.listen_address)
         else:
@@ -269,9 +271,10 @@ class Inbound(object):
             self.logger.debug('{} Got inbound message'.format(self.name))
 
             try:
-                for scattered in self.scatter(message_data):
+                message.ParseFromString(message_data)
+                for scattered in self.scatter(message):
                     scattered = self._translate_to_broker(scattered)
-                    self.broker.send(scattered)
+                    self.broker.send(scattered.SerializeToString())
                     self.logger.debug('{} blocked waiting for broker'.format(
                         self.name))
                     self.handle_feedback(self.broker.recv())
@@ -279,7 +282,7 @@ class Inbound(object):
                 if self.reply:
                     self.listen_to.send(self.reply_feedback())
             except:
-                self.logger.error('Error in scatter function')
+                self.logger.error('Exception in scatter or routing.')
                 lines = traceback.format_exception(*sys.exc_info())
                 self.logger.exception(lines[0])
 
@@ -331,24 +334,24 @@ class Outbound(object):
         self.reply = reply
         self.last_message = b''
 
-    def _translate_to_broker(self, message_data):
+    def _translate_to_broker(self, message: PalmMessage):
         """
         Translate the message that the component has got to be digestible by
         the broker
 
-        :param message_data:
+        :param message:
         :return:
         """
-        return message_data
+        return message
 
-    def _translate_from_broker(self, message_data):
+    def _translate_from_broker(self, message: PalmMessage):
         """
         Translate the message that the component gets from the router to the
         output format
 
-        :param message_data:
+        :param message:
         """
-        return message_data
+        return message
 
     def scatter(self, message_data):
         """
@@ -377,6 +380,8 @@ class Outbound(object):
         """
         Call this function to start the component
         """
+        message = PalmMessage()
+
         if self.bind:
             self.listen_to.bind(self.listen_address)
         else:
@@ -389,9 +394,10 @@ class Outbound(object):
             message_data = self.broker.recv()
             self.logger.debug('{} Got message from broker'.format(self.name))
             message_data = self._translate_from_broker(message_data)
+            message.ParseFromString(message_data)
 
-            for scattered in self.scatter(message_data):
-                self.listen_to.send(scattered)
+            for scattered in self.scatter(message):
+                self.listen_to.send(scattered.SerializeToString())
                 self.logger.debug('{} Sent message'.format(self.name))
 
                 if self.reply:
