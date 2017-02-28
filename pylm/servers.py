@@ -283,7 +283,7 @@ class Pipeline(Server):
 
             message.payload = result
 
-            topic = self._handle_topic(message)
+            topic, message = self.handle_stream(message)
 
             self.pub_socket.send_multipart(
                 [topic.encode('utf-8'), message.SerializeToString()]
@@ -313,6 +313,7 @@ class Master(ServerTemplate, BaseMaster):
         super(Master, self).__init__(logging_level=log_level)
         self.name = name
         self.cache = cache
+        self.pipelined = pipelined
 
         self.register_inbound(
             PullService, 'Pull', pull_address, route='WorkerPush')
@@ -336,6 +337,7 @@ class Master(ServerTemplate, BaseMaster):
         # scatter function of Push and Pull parts respectively.
         self.inbound_components['Pull'].scatter = self.scatter
         self.outbound_components['Pub'].scatter = self.gather
+        self.outbound_components['Pub'].handle_stream = self.handle_stream
 
 
 class Hub(ServerTemplate, BaseMaster):
@@ -362,6 +364,7 @@ class Hub(ServerTemplate, BaseMaster):
         super(Hub, self).__init__(logging_level=log_level)
         self.name = name
         self.cache = cache
+        self.pipelined = pipelined
 
         self.register_inbound(
             SubConnection, 'Sub', sub_address, route='WorkerPush',
@@ -385,6 +388,7 @@ class Hub(ServerTemplate, BaseMaster):
         # scatter function of Push and Pull parts respectively.
         self.inbound_components['Sub'].scatter = self.scatter
         self.outbound_components['Pub'].scatter = self.gather
+        self.outbound_components['Pub'].handle_stream = self.handle_stream
 
 
 class Worker(object):

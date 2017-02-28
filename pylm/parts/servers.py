@@ -241,3 +241,30 @@ class BaseMaster(object):
         :return: Yield none, one or multiple binary messages
         """
         yield message
+
+    def handle_stream(self, message):
+        """
+        Handle the stream of messages.
+
+        :param message: The message about to be sent to the next step in the
+            cluster
+        :return: topic (str) and message (PalmMessage)
+
+        The default behaviour is the following. If you leave this function
+        unchanged and pipeline is set to False, the topic is the ID of the
+        client, which makes the message return to the client. If the pipeline
+        parameter is set to True, the topic is set as the name of the server and
+        the step of the message is incremented by one.
+
+        You can alter this default behaviour by overriding this function.
+        Take into account that the message is also available in this function,
+        and you can change other parameters like the stage or the function.
+        """
+        if self.pipelined:
+            # If the master is pipelined,
+            topic = self.name
+            message.stage += 1
+        else:
+            topic = message.client
+
+        return topic, message

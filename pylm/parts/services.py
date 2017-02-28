@@ -155,29 +155,35 @@ class PubService(Outbound):
             cache=cache,
             messages=messages
         )
-        self.server = server
+        self.name = server
         self.pipelined = pipelined
 
-    def handle_topic(self, message_data):
+    def handle_stream(self, message):
         """
-        Handle the topic of the pub thing. TBD
+        Handle the stream of messages.
 
-        :param message_data:
-        :return:
+        :param message: The message about to be sent to the next step in the
+            cluster
+        :return: topic (str) and message (PalmMessage)
+
+        The default behaviour is the following. If you leave this function
+        unchanged and pipeline is set to False, the topic is the ID of the
+        client, which makes the message return to the client. If the pipeline
+        parameter is set to True, the topic is set as the name of the server and
+        the step of the message is incremented by one.
+
+        You can alter this default behaviour by overriding this function.
+        Take into account that the message is also available in this function,
+        and you can change other parameters like the stage or the function.
         """
         if self.pipelined:
             # If the master is pipelined,
-            message = PalmMessage()
-            message.ParseFromString(message_data)
-            topic = self.server.encode('utf-8')
+            topic = self.name
             message.stage += 1
-            message_data = message.SerializeToString()
         else:
-            message = PalmMessage()
-            message.ParseFromString(message_data)
-            topic = message.client.encode('utf-8')
+            topic = message.client
 
-        return topic, message_data
+        return topic, message
 
     def start(self):
         """
@@ -193,8 +199,11 @@ class PubService(Outbound):
             message_data = self._translate_from_broker(message_data)
 
             for scattered in self.scatter(message_data):
-                topic, scattered = self.handle_topic(scattered)
-                self.listen_to.send_multipart([topic, scattered])
+                message = PalmMessage()
+                message.ParseFromString(scattered)
+                topic, message = self.handle_stream(message)
+                self.listen_to.send_multipart([topic.encode('utf-8'),
+                                               message.SerializeToString()])
                 self.logger.debug('Component {} Sent message. Topic {}'.format(
                     self.name, topic))
 
@@ -332,7 +341,6 @@ class PushPullService(object):
 
         for i in range(self.messages):
             self.logger.debug('{} blocked waiting for broker'.format(self.name))
-            # Workers use BrokerMessages, because they want to know the message ID.
             message_data = self.broker.recv()
             self.logger.debug('Got message {} from broker'.format(i))
             for scattered in self.scatter(message_data):

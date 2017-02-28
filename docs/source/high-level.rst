@@ -19,9 +19,9 @@ the section devoted to :ref:`workers` if yow want to know the details of those s
     :maxdepth: 2
 
     servers
+    message
     features
     clients
     workers
     pipeline
     hub
-    message

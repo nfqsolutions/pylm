@@ -4,6 +4,7 @@ from pylm.servers import Server
 class MyServer(Server):
     def foo(self, message):
         self.logger.warning('Got a message')
+        print(x)
         return b'you sent me ' + message
 
 
