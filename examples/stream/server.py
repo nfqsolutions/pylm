@@ -1,5 +1,4 @@
 from pylm.servers import Server
-import logging
 
 
 class MyServer(Server):
@@ -8,15 +7,17 @@ class MyServer(Server):
         self.counter = 0
 
     def foo(self, message):
-        self.logger.warning('Got a message')
+        self.logger.info('Got a message')
         return b'you sent me ' + message
 
     def handle_stream(self, message):
         # if message is even
         if self.counter % 2 == 0:
+            self.logger.info('Even')
             topic = 'even'
 
         else:
+            self.logger.info('Odd')
             topic = 'odd'
 
         # Remember to increment the stage
@@ -32,7 +33,5 @@ if __name__ == '__main__':
                       db_address='tcp://127.0.0.1:5555',
                       pull_address='tcp://127.0.0.1:5556',
                       pub_address='tcp://127.0.0.1:5557',
-                      pipelined=True,
-                      log_level=logging.DEBUG
-                      )
+                      pipelined=True)
     server.start()

@@ -1,10 +1,9 @@
 from pylm.servers import Pipeline
-import logging
 
 
 class MyPipeline(Pipeline):
     def foo(self, message):
-        self.logger.warning('Just echo, nothing else')
+        self.logger.info('Echo: {}'.format(message.decode('utf-8')))
 
 
 if __name__ == '__main__':
@@ -13,7 +12,5 @@ if __name__ == '__main__':
                         sub_address='tcp://127.0.0.1:5557',
                         pub_address='tcp://127.0.0.1:5571',
                         previous='odd',
-                        to_client=True,
-                        log_level=logging.DEBUG
-                        )
+                        to_client=True)
     server.start()

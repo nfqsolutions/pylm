@@ -283,7 +283,7 @@ class Pipeline(Server):
 
             # Do nothing if the function returns no value
             if result is None:
-                break
+                continue
 
             message.payload = result
 
