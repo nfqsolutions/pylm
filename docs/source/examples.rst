@@ -91,7 +91,55 @@ A pipelined message stream
     :language: python
     :linenos:
 
-.. literalinclude:: ../../examples/single/client.py
+.. literalinclude:: ../../examples/pipeline/client.py
+    :language: python
+    :linenos:
+
+.. _pipeline-tee:
+
+A pipelined message stream forming a tee
+----------------------------------------
+
+.. literalinclude:: ../../examples/tee/server.py
+    :language: python
+    :linenos:
+
+.. literalinclude:: ../../examples/tee/pipeline_close.py
+    :language: python
+    :linenos:
+
+.. important::
+
+    If the method of a pipeline does not return any value, pylm assumes that
+    no message has to be delivered
+
+.. literalinclude:: ../../examples/tee/pipeline_echo.py
+    :language: python
+    :linenos:
+
+.. literalinclude:: ../../examples/tee/client.py
+    :language: python
+    :linenos:
+
+
+.. _pipeline-stream:
+
+A pipelined message stream forming a tee and controls the stream of messages
+----------------------------------------------------------------------------
+
+.. literalinclude:: ../../examples/stream/server.py
+    :language: python
+    :linenos:
+
+.. literalinclude:: ../../examples/stream/pipeline_close.py
+    :language: python
+    :linenos:
+
+.. literalinclude:: ../../examples/stream/pipeline_echo.py
+    :language: python
+    :linenos:
+
+.. literalinclude:: ../../examples/stream/client.py
     :language: python
     :linenos:
 

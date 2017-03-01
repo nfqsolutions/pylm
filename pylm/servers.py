@@ -281,6 +281,10 @@ class Pipeline(Server):
             except DecodeError:
                 self.logger.error('Message could not be decoded')
 
+            # Do nothing if the function returns no value
+            if result is None:
+                break
+
             message.payload = result
 
             topic, message = self.handle_stream(message)
