@@ -118,15 +118,17 @@ class Client(object):
 
             socket.send(message.SerializeToString())
         
-    def job(self, function, generator, cache=None, messages=sys.maxsize):
+    def job(self, function, generator, messages: int=sys.maxsize, cache: str=''):
         """
-        Submit a job to the cluster
+        Submit a job with multiple messages to a server.
 
-        :param function:
-        :param generator:
-        :param cache:
-        :param messages:
-        :return:
+        :param function: Sting or list of strings following the format
+            ``server.function``.
+        :param payload: A generator that yields a series of binary messages.
+        :param messages: Number of messages expected to be sent back to the
+            client. Defaults to infinity (sys.maxsize)
+        :param cache: Cache data included in the message
+        :return: an iterator with the messages that are sent back to the client.
         """
         push_socket = zmq_context.socket(zmq.PUSH)
         push_socket.connect(self.push_address)
@@ -158,15 +160,17 @@ class Client(object):
             message.ParseFromString(message_data)
             yield message.payload
 
-    def eval(self, function, payload, messages=1, cache=None):
+    def eval(self, function, payload: bytes, messages: int=1, cache: str=''):
         """
-        Execute single evaluation.
+        Execute single job.
 
-        :param function:
-        :param payload:
-        :param messages:
-        :param cache:
-        :return:
+        :param function: Sting or list of strings following the format
+            ``server.function``.
+        :param payload: Binary message to be sent
+        :param messages: Number of messages expected to be sent back to the
+            client
+        :param cache: Cache data included in the message
+        :return: If messages=1, the result data. If messages > 1, a list with the results
         """
         push_socket = zmq_context.socket(zmq.PUSH)
         push_socket.connect(self.push_address)

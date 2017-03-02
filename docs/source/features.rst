@@ -80,4 +80,5 @@ Servers have an interesting feature that can be used to seriously tune how
 the message stream moves through the cluster. In a couple of sections you
 will learn about pipelines (:ref:`pipeline`) and hubs (:ref:`hub`), and how
 several steps can be connected forming a complete streaming pipeline of
-messages. One feature that may come handy sometimes is to connect the
+messages.
+
