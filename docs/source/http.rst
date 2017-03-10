@@ -7,6 +7,18 @@ or some servers may have to run behind traffic-sniffing firewalls. You name it.
 
 For this reason, pylm includes two parts
 
+.. only:: html
+
+    .. figure:: _images/http_part.png
+        :align: center
+
+.. only:: latex
+
+    .. figure:: _images/http_part.pdf
+        :align: center
+        :scale: 60
+
+
 .. literalinclude:: ../../examples/http/master.py
     :language: python
     :linenos:

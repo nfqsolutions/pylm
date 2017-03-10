@@ -8,6 +8,17 @@ Examples
 Simple server and client communication
 --------------------------------------
 
+.. only:: html
+
+    .. figure:: _images/single.png
+        :align: center
+
+.. only:: latex
+
+    .. figure:: _images/single.pdf
+        :align: center
+        :scale: 60
+
 .. literalinclude:: ../../examples/single/server.py
     :language: python
     :linenos:
@@ -20,6 +31,17 @@ Simple server and client communication
 
 Simple parallel server and client communication
 -----------------------------------------------
+
+.. only:: html
+
+    .. figure:: _images/parallel.png
+        :align: center
+
+.. only:: latex
+
+    .. figure:: _images/parallel.pdf
+        :align: center
+        :scale: 60
 
 .. literalinclude:: ../../examples/parallel/master.py
     :language: python
@@ -83,6 +105,17 @@ Usage of the gather function
 A pipelined message stream
 --------------------------
 
+.. only:: html
+
+    .. figure:: _images/pipeline.png
+        :align: center
+
+.. only:: latex
+
+    .. figure:: _images/pipeline.pdf
+        :align: center
+        :scale: 60
+
 .. literalinclude:: ../../examples/pipeline/server.py
     :language: python
     :linenos:
@@ -99,6 +132,17 @@ A pipelined message stream
 
 A pipelined message stream forming a tee
 ----------------------------------------
+
+.. only:: html
+
+    .. figure:: _images/pipeline-tee.png
+        :align: center
+
+.. only:: latex
+
+    .. figure:: _images/pipeline-tee.pdf
+        :align: center
+        :scale: 60
 
 .. literalinclude:: ../../examples/tee/server.py
     :language: python
@@ -127,6 +171,17 @@ A pipelined message stream forming a tee
 A pipelined message stream forming a tee and controls the stream of messages
 ----------------------------------------------------------------------------
 
+.. only:: html
+
+    .. figure:: _images/pipeline-stream.png
+        :align: center
+
+.. only:: latex
+
+    .. figure:: _images/pipeline-stream.pdf
+        :align: center
+        :scale: 60
+
 .. literalinclude:: ../../examples/stream/server.py
     :language: python
     :linenos:
@@ -147,6 +202,17 @@ A pipelined message stream forming a tee and controls the stream of messages
 
 Connecting a pipeline to a master
 ---------------------------------
+
+.. only:: html
+
+    .. figure:: _images/master_pipeline.png
+        :align: center
+
+.. only:: latex
+
+    .. figure:: _images/master_pipeline.pdf
+        :align: center
+        :scale: 60
 
 .. literalinclude:: ../../examples/master_pipeline/master.py
     :language: python
@@ -170,6 +236,17 @@ Connecting a pipeline to a master
 Connecting a hub to a server
 ----------------------------
 
+.. only:: html
+
+    .. figure:: _images/server_hub.png
+        :align: center
+
+.. only:: latex
+
+    .. figure:: _images/server_hub.pdf
+        :align: center
+        :scale: 60
+
 .. literalinclude:: ../../examples/server_hub/server.py
     :language: python
     :linenos:
@@ -189,6 +266,17 @@ Connecting a hub to a server
 Building a master server from its components
 --------------------------------------------
 
+.. only:: html
+
+    .. figure:: _images/master_internals.png
+        :align: center
+
+.. only:: latex
+
+    .. figure:: _images/master_internals.pdf
+        :align: center
+        :scale: 60
+
 .. literalinclude:: ../../examples/template/master.py
     :language: python
     :linenos:
@@ -205,6 +293,17 @@ Building a master server from its components
 Turning a master into a web server with the HTTP gateway
 --------------------------------------------------------
 
+.. only:: html
+
+    .. figure:: _images/parallel_http.png
+        :align: center
+
+.. only:: latex
+
+    .. figure:: _images/parallel_http.pdf
+        :align: center
+        :scale: 60
+
 .. literalinclude:: ../../examples/gateway/microservice.py
     :language: python
     :linenos:
@@ -220,6 +319,17 @@ Turning a master into a web server with the HTTP gateway
 
 Using server-less infrastructure as workers via the HTTP protocol
 -----------------------------------------------------------------
+
+.. only:: html
+
+    .. figure:: _images/http_part.png
+        :align: center
+
+.. only:: latex
+
+    .. figure:: _images/http_part.pdf
+        :align: center
+        :scale: 60
 
 .. literalinclude:: ../../examples/http/master.py
     :language: python
