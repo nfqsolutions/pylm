@@ -117,7 +117,7 @@ class GatewayDealer(Outbound):
     socket to an inbound external service.
 
     This part is a companion for the gateway router, and has to connect to it
-    to work properly
+    to work properly::
 
            -->|         v--------------------------------------|
               |-->Gateway Router ---> |-\  /->| --> *Dealer* --|
@@ -258,6 +258,16 @@ class MyHandler(BaseHTTPRequestHandler):
         
     
 class HttpGateway(object):
+    """
+    HTTP Gateway that adapts an HTTP server to a PALM master
+
+    :param name: Name of the part
+    :param listen_address: Address listening for reentrant messages
+    :param hostname: Hostname for the HTTP server
+    :param port: Port for the HTTP server
+    :param cache: Cache of the master
+    :param logger: Logger class
+    """
     def __init__(self,
                  name='',
                  listen_address='inproc://gateway_router',

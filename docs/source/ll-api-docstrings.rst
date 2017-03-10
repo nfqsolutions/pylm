@@ -21,6 +21,15 @@ Services
    :members:
    :inherited-members:
 
+Gateways
+--------
+
+.. automodule:: pylm.parts.gateways
+   :members:
+   :inherited-members:
+
+
+
 Connections
 -----------
 
