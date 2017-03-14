@@ -92,7 +92,7 @@ avialiable at the present version.
 Services and connections
 ------------------------
 
-It's time to build a small micro-service from a router and some
+It's time to build a component from a router and some
 services and parts that are already available.  This way you will have
 a rough idea of how the high level API of pylm is built. Some of the
 details of the implementation are not described yet, but this example
@@ -127,7 +127,8 @@ four service parts.
 
 * A *Pull* part that gets the result from the workers
 
-* A *Push* part that sends the results down the message pipeline or back to the client.
+* A *Pub* part that sends the results down the message pipeline or back to
+the client.
 
 All parts are non-blocking, and the message stream is never
 interrupted.  All the parts are *services*, meaning that the workers
@@ -162,3 +163,13 @@ test it using the same client and workers.
 Bypass parts
 ------------
 
+In the previous example one :py:class:`pylm.parts.services.CacheService` was
+registered as a *bypass* part. These kind of parts also run in the same process
+as the router in a separate thread, but they do not interact with the router
+at all. The *CacheService* is a good example of that. It is the key-value
+store of the Master and Hub server, and it is one of those nice goodies of the
+high-level API. It has to be there, but it never waits for a message coming
+from the router.
+
+Another part that is registered as bypass is the
+:py:class:`pylm.parts.gateways.HttpGateway`.
