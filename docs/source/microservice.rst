@@ -4,7 +4,13 @@ Turning a PALM master into a microservice
 The low level API also includes parts that can be used to turn a master
 server into a more classical microserver in the form of an HTTP server. The
 goal would be to offer a gateway to a PALM cluster with the HTTP protocol,
-meaning that the client can be any HTTP client.
+The master (and now microservice too) can connect to as many workers as it is
+needed, just like a Master or a Hub, while serving to several HTTP clients.
+
+
+.. note::
+    One caveat. The HttpGateway part spawns a thread for every client connection
+    so don't rely on it for dealing with thousands of concurrent connections.
 
 .. only:: html
 
@@ -47,3 +53,12 @@ The whole example can be implemented as follows.
 .. literalinclude:: ../../examples/gateway/client.py
     :language: python
     :linenos:
+
+Note that the client is calling the path ``/function`` of the server, that is
+mapped to the ``function`` method of the worker. This means that the body of
+the HTTP message is precisely the message you wan to send down the pipeline.
+
+In this example, the GatewayDealer only pipes the output of the workers back to
+the GatewayRouter and the HttpGateway, but remember that every outbound
+component has a ``route`` argument that allows you to multiplex the output
+stream.
