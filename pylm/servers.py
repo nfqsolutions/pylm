@@ -217,6 +217,7 @@ class Pipeline(Server):
         self.sub_address = sub_address
         self.pub_address = pub_address
         self.pipelined = not to_client
+        self.message = None
 
         self.cache.set('name', name.encode('utf-8'))
         self.cache.set('sub_address', sub_address.encode('utf-8'))
@@ -247,16 +248,16 @@ class Pipeline(Server):
             message_data = self.sub_socket.recv_multipart()[1]
             self.logger.debug('Got message {}'.format(i + 1))
             result = b'0'
-            message = PalmMessage()
+            self.message = PalmMessage()
             try:
-                message.ParseFromString(message_data)
+                self.message.ParseFromString(message_data)
 
                 # Handle the fact that the message may be a complete pipeline
-                if ' ' in message.function:
-                    [server, function] = message.function.split()[
-                        message.stage].split('.')
+                if ' ' in self.message.function:
+                    [server, function] = self.message.function.split()[
+                        self.message.stage].split('.')
                 else:
-                    [server, function] = message.function.split('.')
+                    [server, function] = self.message.function.split('.')
 
                 if not self.name == server:
                     self.logger.error('You called {}, instead of {}'.format(
@@ -266,7 +267,7 @@ class Pipeline(Server):
                         user_function = getattr(self, function)
                         self.logger.debug('Looking for {}'.format(function))
                         try:
-                            result = user_function(message.payload)
+                            result = user_function(self.message.payload)
                         except:
                             self.logger.error('User function gave an error')
                             exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -286,12 +287,12 @@ class Pipeline(Server):
             if result is None:
                 continue
 
-            message.payload = result
+            self.message.payload = result
 
-            topic, message = self.handle_stream(message)
+            topic, self.message = self.handle_stream(self.message)
 
             self.pub_socket.send_multipart(
-                [topic.encode('utf-8'), message.SerializeToString()]
+                [topic.encode('utf-8'), self.message.SerializeToString()]
             )
 
 
