@@ -509,4 +509,7 @@ class CacheService(RepBypassService):
             )
             return_value = b''
 
-        self.listen_to.send(return_value)
+        if isinstance(return_value, str):
+            self.listen_to.send_string(return_value)
+        else:
+            self.listen_to.send(return_value)

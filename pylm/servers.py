@@ -468,44 +468,49 @@ class Worker(object):
         return {'push_address': self.push_address,
                 'pull_address': self.pull_address}
 
+    def _exec_function(self):
+        """
+        Waits for a message and return the result
+        """
+        message_data = self.pull.recv()
+        self.logger.debug('{} Got a message'.format(self.name))
+        result = b'0'
+        try:
+            self.message.ParseFromString(message_data)
+            if ' ' in self.message.function:
+                instruction = self.message.function.split()[
+                    self.message.stage].split('.')[1]
+            else:
+                instruction = self.message.function.split('.')[1]
+
+            try:
+                user_function = getattr(self, instruction)
+                self.logger.debug('Looking for {}'.format(instruction))
+                try:
+                    result = user_function(self.message.payload)
+                    self.logger.debug('{} Ok'.format(instruction))
+                except:
+                    self.logger.error(
+                        '{} User function {} gave an error'.format(
+                            self.name, instruction)
+                    )
+                    lines = traceback.format_exception(*sys.exc_info())
+                    self.logger.exception(lines[0])
+
+            except AttributeError:
+                self.logger.error(
+                    'Function {} was not found'.format(instruction)
+                )
+        except DecodeError:
+            self.logger.error('Message could not be decoded')
+        return result
+
     def start(self):
         """
         Starts the server
         """
         for i in range(self.messages):
-            message_data = self.pull.recv()
-            self.logger.debug('{} Got a message'.format(self.name))
-            result = b'0'
-            try:
-                self.message.ParseFromString(message_data)
-                if ' ' in self.message.function:
-                    instruction = self.message.function.split()[
-                        self.message.stage].split('.')[1]
-                else:
-                    instruction = self.message.function.split('.')[1]
-
-                try:
-                    user_function = getattr(self, instruction)
-                    self.logger.debug('Looking for {}'.format(instruction))
-                    try:
-                        result = user_function(self.message.payload)
-                        self.logger.debug('{} Ok'.format(instruction))
-                    except:
-                        self.logger.error(
-                            '{} User function {} gave an error'.format(
-                                self.name, instruction)
-                        )
-                        lines = traceback.format_exception(*sys.exc_info())
-                        self.logger.exception(lines[0])
-                        
-                except AttributeError:
-                    self.logger.error(
-                        'Function {} was not found'.format(instruction)
-                    )
-            except DecodeError:
-                self.logger.error('Message could not be decoded')
-
-            self.message.payload = result
+            self.message.payload = self._exec_function()
             self.push.send(self.message.SerializeToString())
 
     def set(self, value, key=None):
@@ -559,3 +564,28 @@ class Worker(object):
         message.payload = key.encode('utf-8')
         self.db.send(message.SerializeToString())
         return self.db.recv().decode('utf-8')
+
+class MuxWorker(Worker):
+    """
+    Standalone worker for the standalone master which allow
+    that user function returns an iterator a therefore 
+    the gather function of the Master recieve more messages.
+
+    :param name: Name assigned to this worker server
+    :param db_address: Address of the db service of the master
+    :param push_address: Address the workers push to. If left blank, fetches
+        it from the master
+    :param pull_address: Address the workers pull from. If left blank,
+        fetches it from the master
+    :param log_level: Log level for this server.
+    :param messages: Number of messages before it is shut down.
+
+    """
+    def start(self):
+        """
+        Starts the server
+        """
+        for i in range(self.messages):
+            for r in self._exec_function():
+                self.message.payload = r
+                self.push.send(self.message.SerializeToString())
