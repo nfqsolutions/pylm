@@ -125,7 +125,7 @@ class Server(object):
 
                 # Handle the fact that the message may be a complete pipeline
                 if ' ' in self.message.function:
-                    [server, function] = message.function.split()[
+                    [server, function] = self.message.function.split()[
                         self.message.stage].split('.')
                 else:
                     [server, function] = self.message.function.split('.')
@@ -294,6 +294,127 @@ class Pipeline(Server):
             self.pub_socket.send_multipart(
                 [topic.encode('utf-8'), self.message.SerializeToString()]
             )
+
+
+class Sink(Server):
+    """
+    Minimal server that acts as a sink of multiple streams.
+
+    :param str name: Name of the server
+    :param str db_address: ZeroMQ address of the cache service.
+    :param str sub_addresses: List of addresses of the pub socket of the previous servers
+    :param str pub_address: Address of the pub socket
+    :param previous: List of names of the previous servers.
+    :param to_client: True if the message is sent back to the client.
+    :param log_level: Minimum output log level.
+    :param int messages: Total number of messages that the server processes.
+        Useful for debugging.
+    """
+    def __init__(self, name, db_address,
+                 sub_addresses, pub_address, previous, to_client=True,
+                 log_level=logging.INFO, messages=sys.maxsize):
+        self.name = name
+        self.cache = DictDB()
+        self.db_address = db_address
+        self.sub_addresses = sub_addresses
+        self.pub_address = pub_address
+        self.pipelined = not to_client
+        self.message = None
+
+        self.cache.set('name', name.encode('utf-8'))
+        for i, address in enumerate(sub_addresses):
+            self.cache.set('sub_address_{}'.format(i), address.encode('utf-8'))
+
+        self.cache.set('pub_address', pub_address.encode('utf-8'))
+
+        self.logger = logging.getLogger(name=name)
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setFormatter(
+            logging.Formatter(
+                '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            )
+        )
+        self.logger.addHandler(handler)
+        self.logger.setLevel(log_level)
+
+        self.messages = messages
+
+        self.sub_sockets = list()
+
+        # Simple type checks
+        assert type(previous) == list
+        assert type(sub_addresses) == list
+        
+        for address, prev in zip(self.sub_addresses, previous):
+            self.sub_sockets.append(zmq_context.socket(zmq.SUB))
+            self.sub_sockets[-1].setsockopt_string(zmq.SUBSCRIBE, prev)
+            self.sub_sockets[-1].connect(address)
+
+        self.pub_socket = zmq_context.socket(zmq.PUB)
+        self.pub_socket.bind(self.pub_address)
+
+        self.poller = zmq.Poller()
+
+        for sock in self.sub_sockets:
+            self.poller.register(sock, zmq.POLLIN)
+        
+    def _execution_handler(self):
+        for i in range(self.messages):
+            self.logger.debug('Server waiting for messages')
+            locked_socks = dict(self.poller.poll())
+
+            for sock in self.sub_sockets:
+                if sock in locked_socks:
+                    message_data = sock.recv_multipart()[1]
+                    
+                    self.logger.debug('Got message {}'.format(i + 1))
+                    result = b'0'
+                    self.message = PalmMessage()
+                    try:
+                        self.message.ParseFromString(message_data)
+                    
+                        # Handle the fact that the message may be a complete pipeline
+                        if ' ' in self.message.function:
+                            [server, function] = self.message.function.split()[
+                                self.message.stage].split('.')
+                        else:
+                            [server, function] = self.message.function.split('.')
+                    
+                        if not self.name == server:
+                            self.logger.error('You called {}, instead of {}'.format(
+                                server, self.name))
+                        else:
+                            try:
+                                user_function = getattr(self, function)
+                                self.logger.debug('Looking for {}'.format(function))
+                                try:
+                                    result = user_function(self.message.payload)
+                                except:
+                                    self.logger.error('User function gave an error')
+                                    exc_type, exc_value, exc_traceback = sys.exc_info()
+                                    lines = traceback.format_exception(
+                                        exc_type, exc_value, exc_traceback)
+                                    for l in lines:
+                                        self.logger.exception(l)
+                    
+                            except KeyError:
+                                self.logger.error(
+                                    'Function {} was not found'.format(function)
+                                )
+                    except DecodeError:
+                        self.logger.error('Message could not be decoded')
+                    
+                    # Do nothing if the function returns no value
+                    if result is None:
+                        continue
+                    
+                    self.message.payload = result
+                    
+                    topic, self.message = self.handle_stream(self.message)
+                    
+                    self.pub_socket.send_multipart(
+                        [topic.encode('utf-8'), self.message.SerializeToString()]
+                    )
 
 
 class Master(ServerTemplate, BaseMaster):
