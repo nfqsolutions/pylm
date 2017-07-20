@@ -198,6 +198,43 @@ A pipelined message stream forming a tee and controls the stream of messages
     :language: python
     :linenos:
 
+.. _pipeline-sink:
+
+A pipelined message stream forming a tee and controls the stream of messages with a sink
+----------------------------------------------------------------------------------------
+
+.. only:: html
+
+    .. figure:: _images/pipeline-stream-sink.png
+        :align: center
+
+.. only:: latex
+
+    .. figure:: _images/pipeline-stream-sink.pdf
+        :align: center
+        :scale: 60
+
+.. literalinclude:: ../../examples/stream_sink/server.py
+    :language: python
+    :linenos:
+
+.. literalinclude:: ../../examples/stream_sink/pipeline_odd.py
+    :language: python
+    :linenos:
+
+.. literalinclude:: ../../examples/stream_sink/pipeline_even.py
+    :language: python
+    :linenos:
+
+.. literalinclude:: ../../examples/stream_sink/sink.py
+    :language: python
+    :linenos:
+       
+.. literalinclude:: ../../examples/stream_sink/client.py
+    :language: python
+    :linenos:
+
+       
 .. _pipeline-master:
 
 Connecting a pipeline to a master

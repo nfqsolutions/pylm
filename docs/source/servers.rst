@@ -143,7 +143,7 @@ to the master is repeated three times, the client expects 30 messages instead of
 .. literalinclude:: ../../examples/scatter/client.py
     :language: python
     :linenos:
-    :emphasize-lines: 30
+    :emphasize-lines: 10
 
 This is the (partially omitted) output of the client::
 

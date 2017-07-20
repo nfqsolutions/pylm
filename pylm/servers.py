@@ -124,12 +124,16 @@ class Server(object):
                 self.message.ParseFromString(message_data)
 
                 # Handle the fact that the message may be a complete pipeline
-                if ' ' in self.message.function:
-                    [server, function] = self.message.function.split()[
-                        self.message.stage].split('.')
-                else:
-                    [server, function] = self.message.function.split('.')
-
+                try:
+                    if ' ' in self.message.function:
+                        [server, function] = self.message.function.split()[
+                            self.message.stage].split('.')
+                    else:
+                        [server, function] = self.message.function.split('.')
+                except IndexError:
+                    raise ValueError('Pipeline call not correct. Review the '
+                                     'config in your client')
+                        
                 if not self.name == server:
                     self.logger.error('You called {}, instead of {}'.format(
                         server, self.name))
@@ -203,7 +207,7 @@ class Pipeline(Server):
     :param str sub_address: Address of the pub socket of the previous server
     :param str pub_address: Address of the pub socket
     :param previous: Name of the previous server.
-    :param to_client: True if the message is sent back to the client.
+    :param to_client: True if the message is sent back to the client. Defaults to True 
     :param log_level: Minimum output log level.
     :param int messages: Total number of messages that the server processes.
         Useful for debugging.
@@ -253,12 +257,16 @@ class Pipeline(Server):
                 self.message.ParseFromString(message_data)
 
                 # Handle the fact that the message may be a complete pipeline
-                if ' ' in self.message.function:
-                    [server, function] = self.message.function.split()[
-                        self.message.stage].split('.')
-                else:
-                    [server, function] = self.message.function.split('.')
-
+                try:
+                    if ' ' in self.message.function:
+                        [server, function] = self.message.function.split()[
+                            self.message.stage].split('.')
+                    else:
+                        [server, function] = self.message.function.split('.')
+                except IndexError:
+                    raise ValueError('Pipeline call not correct. Review the '
+                                     'config in your client')
+                        
                 if not self.name == server:
                     self.logger.error('You called {}, instead of {}'.format(
                         server, self.name))
@@ -290,7 +298,6 @@ class Pipeline(Server):
             self.message.payload = result
 
             topic, self.message = self.handle_stream(self.message)
-
             self.pub_socket.send_multipart(
                 [topic.encode('utf-8'), self.message.SerializeToString()]
             )
@@ -305,9 +312,9 @@ class Sink(Server):
     :param str sub_addresses: List of addresses of the pub socket of the previous servers
     :param str pub_address: Address of the pub socket
     :param previous: List of names of the previous servers.
-    :param to_client: True if the message is sent back to the client.
-    :param log_level: Minimum output log level.
-    :param int messages: Total number of messages that the server processes.
+    :param to_client: True if the message is sent back to the client. Defaults to True
+    :param log_level: Minimum output log level. Defaults to INFO
+    :param int messages: Total number of messages that the server processes. Defaults to Infty
         Useful for debugging.
     """
     def __init__(self, name, db_address,
@@ -374,12 +381,16 @@ class Sink(Server):
                         self.message.ParseFromString(message_data)
                     
                         # Handle the fact that the message may be a complete pipeline
-                        if ' ' in self.message.function:
-                            [server, function] = self.message.function.split()[
-                                self.message.stage].split('.')
-                        else:
-                            [server, function] = self.message.function.split('.')
-                    
+                        try:
+                            if ' ' in self.message.function:
+                                [server, function] = self.message.function.split()[
+                                    self.message.stage].split('.')
+                            else:
+                                [server, function] = self.message.function.split('.')
+                        except IndexError:
+                            raise ValueError('Pipeline call not correct. Review the '
+                                             'config in your client')
+
                         if not self.name == server:
                             self.logger.error('You called {}, instead of {}'.format(
                                 server, self.name))
@@ -411,7 +422,7 @@ class Sink(Server):
                     self.message.payload = result
                     
                     topic, self.message = self.handle_stream(self.message)
-                    
+
                     self.pub_socket.send_multipart(
                         [topic.encode('utf-8'), self.message.SerializeToString()]
                     )
@@ -598,11 +609,15 @@ class Worker(object):
         result = b'0'
         try:
             self.message.ParseFromString(message_data)
-            if ' ' in self.message.function:
-                instruction = self.message.function.split()[
-                    self.message.stage].split('.')[1]
-            else:
-                instruction = self.message.function.split('.')[1]
+            try:
+                if ' ' in self.message.function:
+                    instruction = self.message.function.split()[
+                        self.message.stage].split('.')[1]
+                else:
+                    instruction = self.message.function.split('.')[1]
+            except IndexError:
+                raise ValueError('Pipeline call not correct. Review the '
+                                 'config in your client')
 
             try:
                 user_function = getattr(self, instruction)

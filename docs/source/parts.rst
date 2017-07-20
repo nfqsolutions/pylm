@@ -128,7 +128,7 @@ four service parts.
 * A *Pull* part that gets the result from the workers
 
 * A *Pub* part that sends the results down the message pipeline or back to
-the client.
+  the client.
 
 All parts are non-blocking, and the message stream is never
 interrupted.  All the parts are *services*, meaning that the workers
