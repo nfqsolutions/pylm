@@ -72,7 +72,15 @@ allows us to discover some important aspects of pylm.
      want... Pylm gives you the pieces to create the cluster, and you are in charge
      of the rest.
 
-This example does not honor of the capabilities of pylm. Particularly the
+.. important::      
+
+    At this point you are maybe wondering where to start, and you are afraid that you
+    may have to read tons of documentation to start using pylm. Well, despite we'd love if
+    you carefully read the documentation, it is probable that you find a template that works
+    for you in the :ref:`examples` section. This way you can start from code that it
+    already works.
+     
+The example presented in this section does not honor of the capabilities of pylm. Particularly the
 patterns that support parallel execution of jobs. To learn what are the capabilities
 of the different servers that are already implemented in pylm, visit the section about
 the :ref:`high-level-api`.
