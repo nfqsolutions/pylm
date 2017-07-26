@@ -1,14 +1,16 @@
 Welcome to pylm's documentation!
 ================================
 
-.. image:: https://badge.fury.io/py/pylm.svg
-    :target: https://badge.fury.io/py/pylm
+.. only:: html
 
-.. image:: https://img.shields.io/badge/docs-latest-brightgreen.svg?style=flat
-    :target: https://pylm.readthedocs.io/en/latest
-
-.. image:: https://badge.fury.io/gh/nfqsolutions%2Fpylm.svg
-    :target: https://badge.fury.io/gh/nfqsolutions%2Fpylm
+    .. image:: https://badge.fury.io/py/pylm.svg
+        :target: https://badge.fury.io/py/pylm
+    
+    .. image:: https://img.shields.io/badge/docs-latest-brightgreen.svg?style=flat
+        :target: https://pylm.readthedocs.io/en/latest
+    
+    .. image:: https://badge.fury.io/gh/nfqsolutions%2Fpylm.svg
+        :target: https://badge.fury.io/gh/nfqsolutions%2Fpylm
 
 Pylm is the Python implementation of PALM, a framework to build
 clusters of high performance backend components. It is presented in two

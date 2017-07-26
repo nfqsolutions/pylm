@@ -18,7 +18,7 @@ elements matter.
 You can see a complete example of the use of a :class:`pylm.servers.Sink` in
 :ref:`pipeline-sink`.
 
-     .. only:: html
+.. only:: html
 
     .. figure:: _images/pipeline-stream-sink.png
         :align: center
