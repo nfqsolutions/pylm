@@ -18,11 +18,15 @@ only to the master.
     .. figure:: _images/parallel.png
         :align: center
 
+	Example of a pair client-master with workers for load balancing
+
 .. only:: latex
 
     .. figure:: _images/parallel.pdf
         :align: center
         :scale: 60
+
+	Example of a pair client-master with workers for load balancing
 
 The following is a simple example on how to configure and run a parallel server. Since the parallel server
 is designed to handle a large workload, the job method of the client expects a generator that creates a

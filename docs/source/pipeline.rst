@@ -1,7 +1,7 @@
 .. _pipeline:
 
-The Pipeline server
-===================
+The Pipeline component
+======================
 
 The serial server presented in the previous section is intended to receive
 messages from a client. The pipeline server is just like a serial server, but
@@ -18,11 +18,15 @@ following figure.
     .. figure:: _images/pipeline.png
         :align: center
 
+	Diagram of components for a simple use of the pipeline server
+
 .. only:: latex
 
     .. figure:: _images/pipeline.pdf
         :align: center
         :scale: 60
+
+	Diagram of components for a simple use of the pipeline server
 
 You can see an example how the Pipeline server to create a pipeline started
 by a Server in the examples section (:ref:`pipeline-client`). The big picture
@@ -44,11 +48,15 @@ parallel-processing step to a serial-processing step
     .. figure:: _images/master_pipeline.png
         :align: center
 
+	Sketch of a pipeline server processing the output of a master.
+
 .. only:: latex
 
     .. figure:: _images/master_pipeline.pdf
         :align: center
         :scale: 60
+
+	Sketch of a pipeline server processing the output of a master.
 
 You can find the full example in :ref:`pipeline-master`
 
@@ -65,11 +73,19 @@ connected pipelines.
     .. figure:: _images/pipeline-tee.png
         :align: center
 
+	Example of two pipeline components fetching the output of
+	a server. The default behavior of the que is to send the
+	same data to both pipelines.
+
 .. only:: latex
 
     .. figure:: _images/pipeline-tee.pdf
         :align: center
         :scale: 60
+
+	Example of two pipeline components fetching the output of
+	a server. The default behavior of the que is to send the
+	same data to both pipelines.
 
 If you take a look at the full example (:ref:`pipeline-tee`), you can see
 that the Pipeline needs an extra argument, which is the name of the server or
@@ -87,10 +103,19 @@ routing of the messages on each step.
     .. figure:: _images/pipeline-stream.png
         :align: center
 
+	The flow of messages from the server to the pipeline can be controlled
+	in many different ways. In this example, the odd messages are sent
+	to one component, while the even are sent to a different one.
+
 .. only:: latex
 
     .. figure:: _images/pipeline-stream.pdf
         :align: center
         :scale: 60
+
+	The flow of messages from the server to the pipeline can be controlled
+	in many different ways. In this example, the odd messages are sent
+	to one component, while the even are sent to a different one.
+
 
 You can see the full example here (:ref:`pipeline-stream`).
